@@ -15,7 +15,8 @@
       "Bash(git init *)",
       "Bash(git add *)",
       "Bash(git commit *)",
-      "Bash(./sauvegarder.sh)"
+      "Bash(./sauvegarder.sh)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8766/)"
     ]
   }
 }

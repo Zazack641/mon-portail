@@ -173,6 +173,7 @@
 
   /* ===== CARD ===== */
   .app-card {
+    position: relative;
     background: #fff;
     border: 1px solid #E8EEF4;
     border-radius: 18px;
@@ -190,6 +191,37 @@
     border-color: #CBD5E0;
   }
   .app-card.hidden { display: none; }
+
+  /* ===== BANDEAU "EN CHANTIER" ===== */
+  .app-card[data-wip] {
+    overflow: hidden;
+  }
+  .app-card[data-wip]::before {
+    content: "🚧 En chantier";
+    position: absolute;
+    top: 18px;
+    right: -32px;
+    width: 150px;
+    padding: 5px 0;
+    background: #F59E0B;
+    color: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-size: 11px;
+    font-weight: 800;
+    text-align: center;
+    letter-spacing: 0.04em;
+    transform: rotate(35deg);
+    transform-origin: center center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+    pointer-events: none;
+    z-index: 10;
+  }
+  .app-card[data-wip] .launch-btn {
+    opacity: 0.55;
+    pointer-events: none;
+    cursor: not-allowed;
+    filter: grayscale(0.3);
+  }
 
   @keyframes cardIn {
     from { opacity: 0; transform: translateY(10px); }
@@ -358,7 +390,7 @@
 
     <!-- ======= MATHÉMATIQUES — GRANDEURS ET MESURES ======= -->
 
-    <article class="app-card" data-domain="math" data-cycle="c1" data-keywords="aire surface grande petite formes grille grandeurs mesures" style="animation-delay: 0ms;">
+    <article class="app-card" data-domain="math" data-cycle="c1" data-keywords="aire surface grande petite formes grille grandeurs mesures" data-wip style="animation-delay: 0ms;">
       <div class="card-header">
         <div class="card-icon icon-math">📐</div>
         <div class="card-title-wrap">
@@ -374,7 +406,7 @@
       <a href="apps/surfaces.html" class="launch-btn">Lancer l'activité</a>
     </article>
 
-    <article class="app-card" data-domain="math" data-cycle="c1" data-keywords="capacité récipients contient plus moins formes grandeurs mesures" style="animation-delay: 60ms;">
+    <article class="app-card" data-domain="math" data-cycle="c1" data-keywords="capacité récipients contient plus moins formes grandeurs mesures" data-wip style="animation-delay: 60ms;">
       <div class="card-header">
         <div class="card-icon icon-math">🥛</div>
         <div class="card-title-wrap">
@@ -424,7 +456,7 @@
 
     <!-- ======= MATHÉMATIQUES — NOMBRES ======= -->
 
-    <article class="app-card" data-domain="math" data-cycle="c2" data-keywords="nombres flèches droite graduée mille situer nombres" style="animation-delay: 270ms;">
+    <article class="app-card" data-domain="math" data-cycle="c2" data-keywords="nombres flèches droite graduée mille situer nombres" data-wip style="animation-delay: 270ms;">
       <div class="card-header">
         <div class="card-icon icon-math">↗️</div>
         <div class="card-title-wrap">
@@ -440,7 +472,7 @@
       <a href="apps/droite-graduee.html" class="launch-btn">Lancer l'activité</a>
     </article>
 
-    <article class="app-card" data-domain="math" data-cycle="c2" data-keywords="comparer nombres comparateur grand petit nombres" style="animation-delay: 300ms;">
+    <article class="app-card" data-domain="math" data-cycle="c2" data-keywords="comparer nombres comparateur grand petit nombres" data-wip style="animation-delay: 300ms;">
       <div class="card-header">
         <div class="card-icon icon-math">🔢</div>
         <div class="card-title-wrap">
@@ -456,7 +488,7 @@
       <a href="apps/comparaison-nombres.html" class="launch-btn">Lancer l'activité</a>
     </article>
 
-    <article class="app-card" data-domain="math" data-cycle="c2" data-keywords="saut dizaines centaines ajouter enlever nombres" style="animation-delay: 330ms;">
+    <article class="app-card" data-domain="math" data-cycle="c2" data-keywords="saut dizaines centaines ajouter enlever nombres" data-wip style="animation-delay: 330ms;">
       <div class="card-header">
         <div class="card-icon icon-math">🦘</div>
         <div class="card-title-wrap">
@@ -472,7 +504,7 @@
       <a href="apps/saut-de-nombre.html" class="launch-btn">Lancer l'activité</a>
     </article>
 
-    <article class="app-card" data-domain="math" data-cycle="c2" data-keywords="extracteur décomposer dizaines unités centaines nombres" style="animation-delay: 360ms;">
+    <article class="app-card" data-domain="math" data-cycle="c2" data-keywords="extracteur décomposer dizaines unités centaines nombres" data-wip style="animation-delay: 360ms;">
       <div class="card-header">
         <div class="card-icon icon-math">🧩</div>
         <div class="card-title-wrap">
@@ -507,7 +539,7 @@
 
     <!-- ======= FRANÇAIS ======= -->
 
-    <article class="app-card" data-domain="fr" data-cycle="c2" data-keywords="lecture compréhension textes questions lire français" style="animation-delay: 420ms;">
+    <article class="app-card" data-domain="fr" data-cycle="c2" data-keywords="lecture compréhension textes questions lire français" data-wip style="animation-delay: 420ms;">
       <div class="card-header">
         <div class="card-icon icon-fr">📖</div>
         <div class="card-title-wrap">
@@ -523,7 +555,7 @@
       <a href="apps/comprehension.html" class="launch-btn fr">Lancer l'activité</a>
     </article>
 
-    <article class="app-card" data-domain="fr" data-cycle="c1" data-keywords="vocabulaire mots apprendre langue français" style="animation-delay: 450ms;">
+    <article class="app-card" data-domain="fr" data-cycle="c1" data-keywords="vocabulaire mots apprendre langue français" data-wip style="animation-delay: 450ms;">
       <div class="card-header">
         <div class="card-icon icon-fr">🔤</div>
         <div class="card-title-wrap">
