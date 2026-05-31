@@ -300,15 +300,21 @@
   }
 
   function resizeAndDraw() {
+    const dpr = window.devicePixelRatio || 1;
     const w = nlWrap.clientWidth - 16;
-    canvas.width = w;
-    canvas.height = 100;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(100 * dpr);
+    canvas.style.width = w + 'px';
+    canvas.style.height = '100px';
     drawLine();
   }
 
   function drawLine(userFrac, showResult) {
-    const W = canvas.width, H = canvas.height;
-    ctx.clearRect(0, 0, W, H);
+    const dpr = window.devicePixelRatio || 1;
+    const W = canvas.width / dpr, H = canvas.height / dpr;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.scale(dpr, dpr);
 
     const padL = 40, padR = 40;
     const lineY = H * 0.55;
@@ -402,20 +408,22 @@
       ctx.textBaseline = 'bottom';
       ctx.fillText(state.target, cx, lineY - 28);
     }
+    ctx.restore();
   }
 
   function getCanvasX(e) {
     const rect = canvas.getBoundingClientRect();
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    return (clientX - rect.left) * (canvas.width / rect.width);
+    return clientX - rect.left;
   }
 
   function handleTap(e) {
     if (state.answered) return;
     e.preventDefault();
     const x = getCanvasX(e);
+    const dpr = window.devicePixelRatio || 1;
     const padL = 40, padR = 40;
-    const lineW = canvas.width - padL - padR;
+    const lineW = canvas.width / dpr - padL - padR;
     let frac = (x - padL) / lineW;
     frac = Math.max(0, Math.min(1, frac));
     state.userPos = frac;

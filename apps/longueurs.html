@@ -695,7 +695,7 @@
 
   // L2: hit test on rotated bar — transform click into bar's local space
   function hitTestL2(cx, cy) {
-    const TOL = 18; // px tolerance around bar
+    const TOL = 28; // px tolerance around bar
     for (const line of state.lines) {
       if (!line.placement) continue;
       const { sx, sy, angle, barPx } = line.placement;

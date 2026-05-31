@@ -210,6 +210,20 @@
 </main>
 
 <script>
+  // Tracé d'un rectangle arrondi compatible iOS < 15.4 (pas de ctx.roundRect natif)
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.arcTo(x + w, y,     x + w, y + r,     r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+    ctx.lineTo(x + r, y + h);
+    ctx.arcTo(x,     y + h, x,     y + h - r, r);
+    ctx.lineTo(x, y + r);
+    ctx.arcTo(x,     y,     x + r, y,         r);
+    ctx.closePath();
+  }
+
   // Container shapes: each has a draw function(ctx, w, h, fillRatio, color)
   // fillRatio = volume / maxVolume for visual fill
 
@@ -341,9 +355,17 @@
       draw(ctx, w, h, fill) {
         const bw = w * 0.55;
         const bx = (w - bw) / 2;
-        // Body
+        // Body — coins bas arrondis via arcTo (ctx.roundRect absent avant iOS 15.4)
         ctx.beginPath();
-        ctx.roundRect(bx, h * 0.15, bw, h * 0.85, [0, 0, 8, 8]);
+        const px = bx, py = h * 0.15, pw = bw, ph = h * 0.85, pr = 8;
+        ctx.moveTo(px, py);
+        ctx.lineTo(px + pw, py);
+        ctx.lineTo(px + pw, py + ph - pr);
+        ctx.arcTo(px + pw, py + ph, px + pw - pr, py + ph, pr);
+        ctx.lineTo(px + pr, py + ph);
+        ctx.arcTo(px, py + ph, px, py + ph - pr, pr);
+        ctx.lineTo(px, py);
+        ctx.closePath();
         ctx.strokeStyle = '#475569'; ctx.lineWidth = 2.5; ctx.stroke();
         // Spout
         ctx.beginPath();
