@@ -207,6 +207,7 @@
   }
   .icon-math { background: #EBF3FC; }
   .icon-fr   { background: #E6F5F0; }
+  .icon-geo  { background: #FFF3E0; }
 
   .card-title-wrap { flex: 1; min-width: 0; padding-top: 4px; }
   .card-title {
@@ -239,6 +240,7 @@
   }
   .badge-math  { background: #EBF3FC; color: #1A5FA8; }
   .badge-fr    { background: #E6F5F0; color: #0A6048; }
+  .badge-geo   { background: #FFF3E0; color: #7C4700; }
   .badge-c1    { background: #FEF3E2; color: #8A4E00; }
   .badge-c2    { background: #F0EAFF; color: #5B2D9E; }
   .badge-theme { background: #F1F5F9; color: #475569; }
@@ -268,6 +270,8 @@
   .launch-btn:active { transform: scale(0.98); }
   .launch-btn.fr     { background: #0F7860; }
   .launch-btn.fr:hover { background: #0A5C48; box-shadow: 0 4px 14px rgba(15,120,96,0.30); }
+  .launch-btn.geo    { background: #C45E00; }
+  .launch-btn.geo:hover { background: #A34E00; box-shadow: 0 4px 14px rgba(196,94,0,0.30); }
 
   /* ===== NO RESULTS ===== */
   .no-results {
@@ -330,6 +334,9 @@
       </button>
       <button class="filter-btn" data-domain="fr" aria-pressed="false">
         <span class="filter-dot" style="background:#1D9E75"></span>Français
+      </button>
+      <button class="filter-btn" data-domain="geo" aria-pressed="false">
+        <span class="filter-dot" style="background:#C45E00"></span>Géographie
       </button>
     </div>
   </div>
@@ -530,6 +537,22 @@
         <span class="badge badge-theme">Langue</span>
       </div>
       <a href="apps/vocabulaire.html" class="launch-btn fr">Lancer l'activité</a>
+    </article>
+
+    <article class="app-card" data-domain="geo" data-cycle="c2" data-keywords="ville village campagne fonctions aspect habitants dense géographie entraînement" style="animation-delay: 480ms;">
+      <div class="card-header">
+        <div class="card-icon icon-geo">🏙️</div>
+        <div class="card-title-wrap">
+          <h2 class="card-title">Entraînement — La ville</h2>
+        </div>
+      </div>
+      <p class="card-desc">Classe des lieux, réponds à des questions sur les fonctions d'une ville, et complète des définitions.</p>
+      <div class="card-badges">
+        <span class="badge badge-geo">Géographie</span>
+        <span class="badge badge-c2">Cycle 2</span>
+        <span class="badge badge-theme">La ville</span>
+      </div>
+      <a href="apps/entrainement-ville.html" class="launch-btn geo">Lancer l'activité</a>
     </article>
 
     <!-- No results -->
