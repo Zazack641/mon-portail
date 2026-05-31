@@ -7,38 +7,22 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { -webkit-text-size-adjust: 100%; }
-
-  :root {
-    --font-sans: 'Source Sans 3', sans-serif;
-    --color-background-primary:   #FFFFFF;
-    --color-background-secondary: #F3F4F6;
-    --color-background-danger:    #FEF2F2;
-    --color-text-primary:         #1A1A2E;
-    --color-text-secondary:       #6B7280;
-    --color-text-danger:          #991B1B;
-    --color-border-secondary:     #D1D5DB;
-    --color-border-danger:        #FCA5A5;
-    --color-border-tertiary:      #E5E7EB;
-    --border-radius-lg:           12px;
-    --border-radius-md:           8px;
-  }
-
   body {
-    font-family: var(--font-sans);
+    font-family: 'Source Sans 3', sans-serif;
     background: #F7F8FA;
-    color: var(--color-text-primary);
+    color: #1A1A2E;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     -webkit-tap-highlight-color: transparent;
   }
 
+  /* ── Header ── */
   .app-header {
-    background: #0F7860;
+    background: #B35400;
     padding: 16px 20px;
     display: flex;
     align-items: center;
@@ -51,7 +35,9 @@
     font-weight: 600;
     white-space: nowrap;
     touch-action: manipulation;
-    -webkit-appearance: none;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
   }
   .back-link:hover { color: #fff; }
   .app-header h1 {
@@ -64,16 +50,385 @@
   }
   .header-spacer { width: 80px; }
 
-  main {
-    flex: 1;
-    padding: 24px 16px;
+  /* ── Phases ── */
+  .phase { display: none; }
+  .phase.active { display: flex; flex-direction: column; }
+
+  /* ── Layout commun ── */
+  .phase-inner {
     max-width: 680px;
-    width: 100%;
     margin: 0 auto;
+    width: 100%;
+    padding: 24px 20px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: stretch;
   }
 
-  @media (min-width: 768px) {
-    main { padding: 32px 24px; }
+  /* ── Progress ── */
+  .progress-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .progress-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #94A3B8;
+    text-align: right;
+  }
+  .progress-bar-bg {
+    background: #E2E8F0;
+    border-radius: 999px;
+    height: 8px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: #B35400;
+    transition: width 0.35s ease;
+  }
+
+  /* ── Carte contenu ── */
+  .content-card {
+    background: #fff;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* ── Écran d'accueil ── */
+  .start-icon {
+    font-size: 56px;
+    text-align: center;
+  }
+  .start-title {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(22px, 5vw, 28px);
+    font-weight: 900;
+    color: #1A1A2E;
+    text-align: center;
+  }
+  .start-desc {
+    font-size: clamp(15px, 2.5vw, 17px);
+    color: #64748B;
+    text-align: center;
+    line-height: 1.6;
+  }
+  .start-steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .start-step {
+    background: #FFF3E0;
+    border-radius: 12px;
+    padding: 14px 10px;
+    text-align: center;
+  }
+  .start-step-icon { font-size: 24px; margin-bottom: 6px; }
+  .start-step-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #7C4700;
+    line-height: 1.4;
+  }
+
+  /* ── Boutons principaux ── */
+  .primary-btn {
+    padding: 18px 36px;
+    background: #B35400;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+    min-height: 56px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    transition: all 0.15s;
+    align-self: center;
+  }
+  .primary-btn:hover { background: #8C4000; }
+  .primary-btn:active { transform: scale(0.97); }
+
+  .next-btn {
+    padding: 14px 28px;
+    background: #1A3A5C;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    min-height: 52px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    transition: all 0.15s;
+    align-self: flex-end;
+    display: none;
+  }
+  .next-btn.visible { display: block; }
+  .next-btn:hover { background: #253F63; }
+  .next-btn:active { transform: scale(0.98); }
+
+  /* ── Exercice 1 : Classement ── */
+  .sort-question {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(17px, 3.5vw, 20px);
+    font-weight: 800;
+    color: #1A1A2E;
+    line-height: 1.4;
+  }
+  .pool-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: -8px;
+  }
+  .card-pool {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .sort-item {
+    padding: 12px 16px;
+    background: #F8FAFC;
+    border: 2px solid #E2E8F0;
+    border-radius: 10px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1A1A2E;
+    cursor: pointer;
+    min-height: 48px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+  }
+  .sort-item:hover:not(.placed-v):not(.placed-c) { background: #FFF3E0; border-color: #B35400; }
+  .sort-item.selected { outline: 3px solid #B35400; outline-offset: 1px; }
+  .sort-item.placed-v { background: #EBF3FC; border-color: #7BB8F5; color: #185FA5; }
+  .sort-item.placed-c { background: #EAF3DE; border-color: #A0C96A; color: #3B6D11; }
+
+  .drop-zones {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .drop-zone {
+    border: 2px dashed #E2E8F0;
+    border-radius: 14px;
+    padding: 12px;
+    min-height: 130px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .drop-zone:hover { border-color: #B35400; background: #FFF8F0; }
+  .drop-zone.drop-ville { border-color: #7BB8F5; }
+  .drop-zone.drop-ville:hover { background: #EBF3FC; border-color: #5A9ED6; }
+  .drop-zone.drop-camp { border-color: #A0C96A; }
+  .drop-zone.drop-camp:hover { background: #EAF3DE; border-color: #7BB240; }
+  .drop-zone-label {
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    padding: 6px 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  .drop-ville .drop-zone-label { background: #EBF3FC; color: #185FA5; }
+  .drop-camp .drop-zone-label { background: #EAF3DE; color: #3B6D11; }
+  .drop-zone-items { display: flex; flex-direction: column; gap: 6px; }
+
+  /* ── Feedback ── */
+  .feedback {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 12px 16px;
+    border-radius: 10px;
+    line-height: 1.5;
+    display: none;
+  }
+  .feedback.correct { background: #D1FAE5; color: #065F46; display: block; }
+  .feedback.wrong   { background: #FEE2E2; color: #991B1B; display: block; }
+  .feedback.warning { background: #FEF3C7; color: #92400E; display: block; }
+
+  /* ── Exercice 2 : QCM ── */
+  .question-text {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(17px, 3.5vw, 20px);
+    font-weight: 800;
+    color: #1A1A2E;
+    line-height: 1.4;
+  }
+  .answer-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .answer-btn {
+    width: 100%;
+    padding: 16px 20px;
+    background: #F8FAFC;
+    border: 2px solid #E2E8F0;
+    border-radius: 12px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: clamp(15px, 2.5vw, 17px);
+    font-weight: 600;
+    color: #1A1A2E;
+    cursor: pointer;
+    min-height: 52px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    text-align: left;
+    transition: all 0.15s;
+    line-height: 1.4;
+  }
+  .answer-btn:hover { background: #FFF3E0; border-color: #B35400; }
+  .answer-btn:active { transform: scale(0.99); }
+  .answer-btn.correct { background: #D1FAE5; border-color: #10B981; color: #065F46; font-weight: 700; }
+  .answer-btn.wrong   { background: #FEE2E2; border-color: #EF4444; color: #991B1B; }
+  .answer-btn:disabled { cursor: default; }
+
+  .score-badge {
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    color: #7C4700;
+    background: #FFF3E0;
+    padding: 5px 12px;
+    border-radius: 999px;
+    align-self: flex-end;
+  }
+
+  /* ── Exercice 3 : Définition à trous ── */
+  .gap-sentence-card {
+    background: #fff;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .gap-sentence-text {
+    font-size: clamp(15px, 2.5vw, 17px);
+    color: #1A1A2E;
+    line-height: 1.8;
+  }
+  .gap-blank {
+    display: inline-block;
+    min-width: 100px;
+    border-bottom: 2px solid #B35400;
+    text-align: center;
+    font-weight: 700;
+    color: #B35400;
+    padding: 0 4px;
+  }
+  .gap-options {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .gap-option {
+    padding: 10px 16px;
+    border: 2px solid #E2E8F0;
+    border-radius: 999px;
+    background: #F8FAFC;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: #1A1A2E;
+    cursor: pointer;
+    min-height: 44px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+  }
+  .gap-option:hover { background: #FFF3E0; border-color: #B35400; }
+  .gap-option.selected { background: #FFF3E0; border-color: #B35400; color: #7C4700; }
+
+  /* ── Résultat ── */
+  #phase-result {
+    align-items: center;
+    text-align: center;
+  }
+  .result-emoji { font-size: 72px; }
+  .result-title {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(24px, 5vw, 32px);
+    font-weight: 900;
+    color: #1A1A2E;
+  }
+  .result-score {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(40px, 10vw, 60px);
+    font-weight: 900;
+    color: #B35400;
+  }
+  .result-msg {
+    font-size: clamp(16px, 2.5vw, 18px);
+    color: #64748B;
+    line-height: 1.6;
+  }
+  .result-detail {
+    background: #fff;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    padding: 18px 24px;
+    font-size: 15px;
+    color: #64748B;
+    line-height: 1.9;
+    text-align: left;
+    width: 100%;
+    max-width: 400px;
+  }
+  .result-detail strong { color: #1A1A2E; }
+  .result-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .retry-btn {
+    padding: 16px 32px;
+    background: #B35400;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 17px;
+    font-weight: 800;
+    cursor: pointer;
+    min-height: 56px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    transition: all 0.15s;
+  }
+  .retry-btn:hover { background: #8C4000; }
+
+  @media (max-width: 480px) {
+    .start-steps { grid-template-columns: 1fr; }
+    .drop-zones { grid-template-columns: 1fr; }
+    .primary-btn { width: 100%; justify-content: center; }
+    .next-btn { align-self: stretch; text-align: center; }
   }
 </style>
 </head>
@@ -81,605 +436,483 @@
 
 <header class="app-header" role="banner">
   <a href="../Mes outils pour apprendre.html" class="back-link" aria-label="Retour au portail">← Retour</a>
-  <h1>La ville</h1>
+  <h1>🏙️ Entraînement — La ville</h1>
   <div class="header-spacer" aria-hidden="true"></div>
 </header>
 
-<main>
-
-<h2 class="sr-only">Entraînement interactif — séance 1 : qu'est-ce qu'une ville ? Classement ville/village et mots-clés.</h2>
-<style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: var(--font-sans); }
-
-.screen { display: none; padding: 1.5rem 0; }
-.screen.active { display: block; }
-
-.top-bar {
-  display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem;
-}
-.progress-track {
-  flex: 1; height: 6px; background: var(--color-background-secondary);
-  border-radius: 3px; overflow: hidden;
-}
-.progress-fill {
-  height: 100%; background: #1D9E75; border-radius: 3px;
-  transition: width 0.4s ease;
-}
-.score-badge {
-  font-size: 13px; font-weight: 500; color: #0F6E56;
-  background: #E1F5EE; padding: 4px 10px;
-  border-radius: 20px; white-space: nowrap;
-}
-
-.question-label {
-  font-size: 12px; font-weight: 500; color: var(--color-text-secondary);
-  letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px;
-}
-.question-text {
-  font-size: 17px; font-weight: 500; color: var(--color-text-primary);
-  line-height: 1.5; margin-bottom: 1.5rem;
-}
-
-.choices { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.5rem; }
-.choice-btn {
-  width: 100%; text-align: left; padding: 12px 16px;
-  font-size: 15px; color: var(--color-text-primary);
-  background: var(--color-background-primary);
-  border: 1.5px solid var(--color-border-secondary);
-  border-radius: var(--border-radius-lg); cursor: pointer;
-  transition: background 0.12s, border-color 0.12s;
-  display: flex; align-items: center; gap: 10px;
-  touch-action: manipulation; -webkit-appearance: none;
-}
-.choice-btn:hover:not(:disabled) {
-  background: var(--color-background-secondary);
-  border-color: #1D9E75;
-}
-.choice-btn.correct {
-  background: #E1F5EE; border-color: #1D9E75; color: #0F6E56;
-}
-.choice-btn.wrong {
-  background: var(--color-background-danger); border-color: var(--color-border-danger);
-  color: var(--color-text-danger);
-}
-.choice-btn .icon { font-size: 18px; flex-shrink: 0; opacity: 0; }
-.choice-btn.correct .icon, .choice-btn.wrong .icon { opacity: 1; }
-
-.feedback-box {
-  border-radius: var(--border-radius-md); padding: 12px 14px;
-  font-size: 14px; line-height: 1.6; margin-bottom: 1.25rem;
-  display: none;
-}
-.feedback-box.show { display: block; }
-.feedback-box.ok { background: #E1F5EE; color: #0F6E56; border-left: 3px solid #1D9E75; }
-.feedback-box.ko { background: var(--color-background-danger); color: var(--color-text-danger); border-left: 3px solid var(--color-border-danger); }
-
-.next-btn {
-  font-size: 14px; font-weight: 500; padding: 10px 20px;
-  background: #1D9E75; color: white; border: none;
-  border-radius: var(--border-radius-md); cursor: pointer;
-  display: none; transition: background 0.12s;
-  touch-action: manipulation; -webkit-appearance: none;
-}
-.next-btn:hover { background: #0F6E56; }
-.next-btn.show { display: inline-block; }
-
-.drag-zone {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.25rem;
-}
-.drop-col {
-  border: 1.5px dashed var(--color-border-secondary);
-  border-radius: var(--border-radius-lg); padding: 10px;
-  min-height: 120px;
-}
-.drop-col-label {
-  font-size: 13px; font-weight: 500; padding: 6px 10px;
-  border-radius: var(--border-radius-md); margin-bottom: 8px; text-align: center;
-}
-.drop-col.ville .drop-col-label { background: #E6F1FB; color: #185FA5; }
-.drop-col.camp .drop-col-label { background: #EAF3DE; color: #3B6D11; }
-.drop-col.ville { border-color: #B5D4F4; }
-.drop-col.camp { border-color: #C0DD97; }
-
-.card-pool {
-  display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.25rem;
-}
-.drag-card {
-  font-size: 13px; padding: 7px 12px;
-  background: var(--color-background-secondary);
-  border: 1.5px solid var(--color-border-secondary);
-  border-radius: var(--border-radius-md); cursor: pointer;
-  user-select: none; transition: background 0.1s, border-color 0.1s;
-  touch-action: manipulation; -webkit-appearance: none;
-}
-.drag-card:hover { background: var(--color-background-primary); border-color: #1D9E75; }
-.drag-card.placed-v { background: #E6F1FB; border-color: #B5D4F4; color: #185FA5; }
-.drag-card.placed-c { background: #EAF3DE; border-color: #C0DD97; color: #3B6D11; }
-
-.check-sort-btn {
-  font-size: 14px; font-weight: 500; padding: 10px 20px;
-  background: #1D9E75; color: white; border: none;
-  border-radius: var(--border-radius-md); cursor: pointer;
-  transition: background 0.12s; margin-right: 8px;
-  touch-action: manipulation; -webkit-appearance: none;
-}
-.check-sort-btn:hover { background: #0F6E56; }
-
-.result-card {
-  border: 0.5px solid var(--color-border-tertiary);
-  border-radius: var(--border-radius-lg); padding: 1.5rem;
-  text-align: center;
-}
-.result-score {
-  font-size: 48px; font-weight: 500; color: #1D9E75; margin-bottom: 6px;
-}
-.result-msg { font-size: 16px; color: var(--color-text-secondary); margin-bottom: 1.5rem; }
-.result-detail {
-  font-size: 13px; color: var(--color-text-secondary);
-  background: var(--color-background-secondary); border-radius: var(--border-radius-md);
-  padding: 10px 14px; margin-bottom: 1.5rem; text-align: left; line-height: 1.7;
-}
-.restart-btn {
-  font-size: 14px; font-weight: 500; padding: 10px 20px;
-  background: #1D9E75; color: white; border: none;
-  border-radius: var(--border-radius-md); cursor: pointer;
-  transition: background 0.12s;
-  touch-action: manipulation; -webkit-appearance: none;
-}
-.restart-btn:hover { background: #0F6E56; }
-
-.chip-ok { display: inline-block; background: #E1F5EE; color: #0F6E56; font-size: 12px; padding: 2px 8px; border-radius: 10px; margin: 2px; }
-.chip-ko { display: inline-block; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 12px; padding: 2px 8px; border-radius: 10px; margin: 2px; }
-
-.sr-only {
-  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
-  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
-}
-</style>
-
-<div id="s-start" class="screen active">
-  <div style="text-align:center; padding: 2rem 0 1.5rem;">
-    <div style="width:56px;height:56px;border-radius:50%;background:#E1F5EE;display:inline-flex;align-items:center;justify-content:center;margin-bottom:1rem;">
-      <i class="ti ti-building" style="font-size:28px;color:#1D9E75;" aria-hidden="true"></i>
+<!-- ══ Phase : Accueil ══ -->
+<div class="phase active" id="phase-start">
+  <div class="phase-inner">
+    <div class="content-card" style="align-items:center; text-align:center; gap:20px; padding:32px 24px;">
+      <div class="start-icon" aria-hidden="true">🏙️</div>
+      <div class="start-title">Entraînement — La ville</div>
+      <div class="start-desc">3 exercices courts pour consolider ce que tu as appris sur les villes.</div>
+      <div class="start-steps" role="list">
+        <div class="start-step" role="listitem">
+          <div class="start-step-icon" aria-hidden="true">🗂️</div>
+          <div class="start-step-label">Classer ville / village</div>
+        </div>
+        <div class="start-step" role="listitem">
+          <div class="start-step-icon" aria-hidden="true">❓</div>
+          <div class="start-step-label">Questions sur les mots-clés</div>
+        </div>
+        <div class="start-step" role="listitem">
+          <div class="start-step-icon" aria-hidden="true">✏️</div>
+          <div class="start-step-label">Compléter une définition</div>
+        </div>
+      </div>
+      <button class="primary-btn" id="start-btn">Commencer →</button>
     </div>
-    <p style="font-size:22px;font-weight:500;color:var(--color-text-primary);margin-bottom:8px;">Entraînement — la ville</p>
-    <p style="font-size:14px;color:var(--color-text-secondary);margin-bottom:2rem;line-height:1.6;">3 exercices courts pour consolider ce que tu as appris.</p>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem;">
-      <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px 8px;text-align:center;">
-        <i class="ti ti-sort-descending" style="font-size:20px;color:#1D9E75;" aria-hidden="true"></i>
-        <p style="font-size:12px;color:var(--color-text-secondary);margin-top:6px;">Classer ville / village</p>
+  </div>
+</div>
+
+<!-- ══ Phase : Exercice 1 — Classement ══ -->
+<div class="phase" id="phase-sort">
+  <div class="phase-inner">
+    <div class="progress-wrap">
+      <div class="progress-label" id="sort-progress-label">Exercice 1 sur 3</div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="sort-progress-bar" style="width:33%"></div></div>
+    </div>
+    <div class="content-card">
+      <div class="sort-question">Place chaque élément dans la bonne colonne.<br><span style="font-size:14px;font-weight:600;color:#64748B;">Clique sur un élément, puis sur la colonne.</span></div>
+      <div class="pool-label" id="pool-label">Éléments à classer</div>
+      <div class="card-pool" id="card-pool" role="list" aria-label="Éléments à classer"></div>
+      <div class="drop-zones" role="group" aria-label="Colonnes de classement">
+        <div class="drop-zone drop-ville" id="col-ville" role="button" tabindex="0" aria-label="Colonne Ville">
+          <div class="drop-zone-label">🏢 Ville</div>
+          <div class="drop-zone-items" id="placed-ville"></div>
+        </div>
+        <div class="drop-zone drop-camp" id="col-camp" role="button" tabindex="0" aria-label="Colonne Village / campagne">
+          <div class="drop-zone-label">🌾 Village / campagne</div>
+          <div class="drop-zone-items" id="placed-camp"></div>
+        </div>
       </div>
-      <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px 8px;text-align:center;">
-        <i class="ti ti-help" style="font-size:20px;color:#1D9E75;" aria-hidden="true"></i>
-        <p style="font-size:12px;color:var(--color-text-secondary);margin-top:6px;">Questions sur les mots-clés</p>
-      </div>
-      <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px 8px;text-align:center;">
-        <i class="ti ti-puzzle" style="font-size:20px;color:#1D9E75;" aria-hidden="true"></i>
-        <p style="font-size:12px;color:var(--color-text-secondary);margin-top:6px;">Compléter une définition</p>
+      <div class="feedback" id="fb-sort" role="status" aria-live="polite"></div>
+      <div style="display:flex; gap:12px; flex-wrap:wrap;">
+        <button class="primary-btn" style="padding:14px 24px;font-size:16px;min-height:52px;" id="check-sort-btn">Vérifier mes réponses</button>
+        <button class="next-btn visible" id="next-sort-btn" style="display:none;">Exercice suivant →</button>
       </div>
     </div>
-    <button onclick="startGame()" style="font-size:15px;font-weight:500;padding:12px 28px;background:#1D9E75;color:white;border:none;border-radius:var(--border-radius-md);cursor:pointer;touch-action:manipulation;-webkit-appearance:none;">Commencer <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
   </div>
 </div>
 
-<div id="s-sort" class="screen">
-  <div class="top-bar">
-    <span style="font-size:13px;font-weight:500;color:var(--color-text-secondary);">Exercice 1 sur 3</span>
-    <div class="progress-track"><div class="progress-fill" id="prog1" style="width:33%"></div></div>
-  </div>
-  <p class="question-label">Classement</p>
-  <p class="question-text">Place chaque élément dans la bonne colonne en cliquant dessus, puis sur la colonne.</p>
-  <div id="pool" class="card-pool"></div>
-  <div class="drag-zone">
-    <div class="drop-col ville" id="col-ville">
-      <div class="drop-col-label"><i class="ti ti-building" aria-hidden="true"></i> Ville</div>
-      <div id="placed-ville"></div>
+<!-- ══ Phase : Exercice 2 — QCM ══ -->
+<div class="phase" id="phase-qcm">
+  <div class="phase-inner">
+    <div class="progress-wrap">
+      <div class="progress-label" id="qcm-progress-label">Question 1 / 5</div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="qcm-progress-bar" style="width:0%"></div></div>
     </div>
-    <div class="drop-col camp" id="col-camp">
-      <div class="drop-col-label"><i class="ti ti-trees" aria-hidden="true"></i> Village / campagne</div>
-      <div id="placed-camp"></div>
+    <div class="content-card" id="qcm-card">
+      <div class="score-badge" id="qcm-score-badge" aria-live="polite" aria-atomic="true">0 / 5</div>
+      <div class="question-text" id="qcm-question"></div>
+      <div class="answer-list" id="qcm-answers" role="list"></div>
+      <div class="feedback" id="fb-qcm" role="status" aria-live="polite"></div>
+      <button class="next-btn" id="next-qcm-btn">Question suivante →</button>
     </div>
   </div>
-  <div class="feedback-box" id="fb-sort" role="status" aria-live="polite"></div>
-  <button class="check-sort-btn" onclick="checkSort()">Vérifier mes réponses</button>
-  <button class="next-btn" id="next-sort" onclick="goToQcm()">Exercice suivant <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
 </div>
 
-<div id="s-qcm" class="screen">
-  <div class="top-bar">
-    <span style="font-size:13px;font-weight:500;color:var(--color-text-secondary);">Exercice 2 sur 3</span>
-    <div class="progress-track"><div class="progress-fill" id="prog2" style="width:66%"></div></div>
-    <div class="score-badge" id="qcm-score-badge" aria-live="polite" aria-atomic="true">0 / 5</div>
-  </div>
-  <div id="qcm-area"></div>
-</div>
-
-<div id="s-gap" class="screen">
-  <div class="top-bar">
-    <span style="font-size:13px;font-weight:500;color:var(--color-text-secondary);">Exercice 3 sur 3</span>
-    <div class="progress-track"><div class="progress-fill" id="prog3" style="width:100%"></div></div>
-  </div>
-  <p class="question-label">Définition à compléter</p>
-  <p class="question-text">Clique sur le bon mot pour compléter chaque phrase.</p>
-  <div id="gap-area" style="margin-bottom:1.5rem;"></div>
-  <div class="feedback-box" id="fb-gap" role="status" aria-live="polite"></div>
-  <button class="check-sort-btn" id="check-gap-btn" onclick="checkGap()">Vérifier</button>
-  <button class="next-btn" id="next-gap" onclick="showResult()">Voir mon résultat <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
-</div>
-
-<div id="s-result" class="screen">
-  <div class="result-card">
-    <div class="result-score" id="final-score">0</div>
-    <div class="result-msg" id="final-msg"></div>
-    <div class="result-detail" id="final-detail"></div>
-    <button class="restart-btn" onclick="restart()"><i class="ti ti-refresh" aria-hidden="true"></i> Recommencer</button>
+<!-- ══ Phase : Exercice 3 — Définition à trous ══ -->
+<div class="phase" id="phase-gap">
+  <div class="phase-inner">
+    <div class="progress-wrap">
+      <div class="progress-label">Exercice 3 sur 3</div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:100%"></div></div>
+    </div>
+    <div class="content-card">
+      <div class="question-text">Clique sur le bon mot pour compléter chaque phrase.</div>
+      <div id="gap-sentences" style="display:flex;flex-direction:column;gap:12px;"></div>
+      <div class="feedback" id="fb-gap" role="status" aria-live="polite"></div>
+      <div style="display:flex; gap:12px; flex-wrap:wrap;">
+        <button class="primary-btn" style="padding:14px 24px;font-size:16px;min-height:52px;" id="check-gap-btn">Vérifier</button>
+        <button class="next-btn" id="next-gap-btn">Voir mon résultat →</button>
+      </div>
+    </div>
   </div>
 </div>
 
-</main>
+<!-- ══ Phase : Résultat ══ -->
+<div class="phase" id="phase-result">
+  <div class="phase-inner" style="align-items:center;text-align:center;">
+    <div class="result-emoji" id="result-emoji">🎉</div>
+    <div class="result-title">Terminé !</div>
+    <div class="result-score" id="result-score"></div>
+    <div class="result-msg" id="result-msg"></div>
+    <div class="result-detail" id="result-detail"></div>
+    <div class="result-actions">
+      <button class="retry-btn" id="retry-btn">↺ Recommencer</button>
+    </div>
+  </div>
+</div>
 
 <script>
-const sortItems = [
-  { label: "Un hôpital", cat: "v" },
-  { label: "Des champs de blé", cat: "c" },
-  { label: "Un grand stade", cat: "v" },
-  { label: "Des vaches", cat: "c" },
-  { label: "Une grande gare", cat: "v" },
-  { label: "Une ferme", cat: "c" },
-  { label: "Un théâtre", cat: "v" },
-  { label: "Un chemin de terre", cat: "c" },
-  { label: "Un grand magasin", cat: "v" },
-  { label: "Une forêt", cat: "c" },
-];
+  /* ── Données ── */
+  const SORT_ITEMS = [
+    { label: 'Un hôpital',       cat: 'v' },
+    { label: 'Des champs de blé', cat: 'c' },
+    { label: 'Un grand stade',   cat: 'v' },
+    { label: 'Des vaches',       cat: 'c' },
+    { label: 'Une grande gare',  cat: 'v' },
+    { label: 'Une ferme',        cat: 'c' },
+    { label: 'Un théâtre',       cat: 'v' },
+    { label: 'Un chemin de terre', cat: 'c' },
+    { label: 'Un grand magasin', cat: 'v' },
+    { label: 'Une forêt',        cat: 'c' },
+  ];
 
-const qcmQuestions = [
-  {
-    q: "Qu'est-ce que les géographes appellent les « fonctions » d'une ville ?",
-    choices: ["À quoi elle ressemble", "À quoi elle sert", "Combien elle coûte", "Quelle est sa taille"],
-    correct: 1,
-    fb_ok: "Exact ! Les fonctions, c'est à quoi sert la ville : habiter, travailler, se soigner, se distraire...",
-    fb_ko: "Pas tout à fait. Les fonctions désignent à quoi sert la ville, pas à quoi elle ressemble.",
-  },
-  {
-    q: "Qu'est-ce que l'« aspect » d'une ville désigne ?",
-    choices: ["La position de la ville sur une carte", "À quoi elle sert", "Comment elle ressemble visuellement", "Le nombre d'habitants"],
-    correct: 2,
-    fb_ok: "Oui ! L'aspect, c'est ce qu'on voit : les bâtiments, les rues, la densité...",
-    fb_ko: "L'aspect, c'est ce qu'on observe visuellement : les bâtiments, la densité du bâti.",
-  },
-  {
-    q: "Selon les géographes, une ville doit avoir au moins combien d'habitants ?",
-    choices: ["1 000", "5 000", "10 000", "100 000"],
-    correct: 2,
-    fb_ok: "Juste ! Plus de 10 000 habitants, regroupés sur une petite surface.",
-    fb_ko: "Les géographes fixent le seuil à plus de 10 000 habitants (emplois et nuitées compris).",
-  },
-  {
-    q: "Le mot « dense » décrit une ville où les bâtiments sont...",
-    choices: ["Très espacés les uns des autres", "Très nombreux et proches les uns des autres", "Entourés de champs", "Très vieux"],
-    correct: 1,
-    fb_ok: "Parfait ! Dense = beaucoup de bâtiments sur une petite surface, très proches.",
-    fb_ko: "Dense veut dire que les bâtiments sont nombreux et très proches les uns des autres.",
-  },
-  {
-    q: "Parmi ces exemples, lequel est une FONCTION d'une ville ?",
-    choices: ["Avoir de grands immeubles", "Avoir des rues larges", "Permettre aux gens de se soigner", "Être entourée de routes"],
-    correct: 2,
-    fb_ok: "Bien joué ! Se soigner (hôpital) est une fonction : c'est un service que la ville offre.",
-    fb_ko: "La bonne réponse est « permettre aux gens de se soigner » : c'est un service, donc une fonction.",
-  },
-];
+  const QCM = [
+    {
+      q: "Qu'est-ce que les géographes appellent les « fonctions » d'une ville ?",
+      choices: ["À quoi elle ressemble", "À quoi elle sert", "Combien elle coûte", "Quelle est sa taille"],
+      correct: 1,
+      fb_ok: "✅ Exact ! Les fonctions, c'est à quoi sert la ville : habiter, travailler, se soigner, se distraire…",
+      fb_ko: "❌ Les fonctions désignent à quoi sert la ville, pas à quoi elle ressemble.",
+    },
+    {
+      q: "Qu'est-ce que l'« aspect » d'une ville désigne ?",
+      choices: ["La position de la ville sur une carte", "À quoi elle sert", "Comment elle ressemble visuellement", "Le nombre d'habitants"],
+      correct: 2,
+      fb_ok: "✅ Oui ! L'aspect, c'est ce qu'on voit : les bâtiments, les rues, la densité…",
+      fb_ko: "❌ L'aspect, c'est ce qu'on observe visuellement : les bâtiments et la densité du bâti.",
+    },
+    {
+      q: "Selon les géographes, une ville doit avoir au moins combien d'habitants ?",
+      choices: ["1 000", "5 000", "10 000", "100 000"],
+      correct: 2,
+      fb_ok: "✅ Juste ! Plus de 10 000 habitants, regroupés sur une petite surface.",
+      fb_ko: "❌ Les géographes fixent le seuil à plus de 10 000 habitants (emplois et nuitées compris).",
+    },
+    {
+      q: "Le mot « dense » décrit une ville où les bâtiments sont…",
+      choices: ["Très espacés les uns des autres", "Très nombreux et proches les uns des autres", "Entourés de champs", "Très vieux"],
+      correct: 1,
+      fb_ok: "✅ Parfait ! Dense = beaucoup de bâtiments sur une petite surface, très proches.",
+      fb_ko: "❌ Dense veut dire que les bâtiments sont nombreux et très proches les uns des autres.",
+    },
+    {
+      q: "Parmi ces exemples, lequel est une FONCTION d'une ville ?",
+      choices: ["Avoir de grands immeubles", "Avoir des rues larges", "Permettre aux gens de se soigner", "Être entourée de routes"],
+      correct: 2,
+      fb_ok: "✅ Bien joué ! Se soigner (hôpital) est une fonction : c'est un service que la ville offre.",
+      fb_ko: "❌ La bonne réponse est « permettre aux gens de se soigner » : c'est un service, donc une fonction.",
+    },
+  ];
 
-const gapSentences = [
-  {
-    before: "Une ville attire beaucoup d'",
-    after: ".",
-    options: ["habitants", "arbres", "animaux"],
-    correct: "habitants",
-  },
-  {
-    before: "Les géographes regardent les",
-    after: " d'une ville pour savoir à quoi elle sert.",
-    options: ["fonctions", "photos", "frontières"],
-    correct: "fonctions",
-  },
-  {
-    before: "En ville, les bâtiments sont très proches. On dit que c'est",
-    after: ".",
-    options: ["dense", "vide", "calme"],
-    correct: "dense",
-  },
-  {
-    before: "Un hôpital, une gare, un marché : ce sont des",
-    after: " que la ville offre.",
-    options: ["services", "paysages", "animaux"],
-    correct: "services",
-  },
-];
+  const GAP = [
+    {
+      before: "Une ville attire beaucoup d'",
+      after: ".",
+      options: ["habitants", "arbres", "animaux"],
+      correct: "habitants",
+    },
+    {
+      before: "Les géographes regardent les",
+      after: " d'une ville pour savoir à quoi elle sert.",
+      options: ["fonctions", "photos", "frontières"],
+      correct: "fonctions",
+    },
+    {
+      before: "En ville, les bâtiments sont très proches. On dit que c'est",
+      after: ".",
+      options: ["dense", "vide", "calme"],
+      correct: "dense",
+    },
+    {
+      before: "Un hôpital, une gare, un marché : ce sont des",
+      after: " que la ville offre.",
+      options: ["services", "paysages", "animaux"],
+      correct: "services",
+    },
+  ];
 
-let selected = null;
-let qcmIdx = 0;
-let qcmOk = 0;
-let sortScore = 0;
-let sortDone = false;
-let gapOk = 0;
-let gapAnswers = [];
+  /* ── État ── */
+  let selected = null;
+  let sortDone = false;
+  let sortScore = 0;
+  let qcmIdx = 0;
+  let qcmOk = 0;
+  let gapAnswers = [];
+  let gapOk = 0;
 
-function show(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-
-function startGame() {
-  buildSort();
-  show('s-sort');
-}
-
-function buildSort() {
-  const pool = document.getElementById('pool');
-  pool.innerHTML = '';
-  document.getElementById('placed-ville').innerHTML = '';
-  document.getElementById('placed-camp').innerHTML = '';
-  document.getElementById('fb-sort').className = 'feedback-box';
-  document.getElementById('next-sort').className = 'next-btn';
-  sortItems.forEach((item, i) => {
-    const card = document.createElement('div');
-    card.className = 'drag-card';
-    card.dataset.idx = i;
-    card.dataset.placed = '';
-    card.textContent = item.label;
-    card.addEventListener('click', () => selectCard(card, i));
-    pool.appendChild(card);
-  });
-  ['col-ville','col-camp'].forEach(id => {
-    document.getElementById(id).addEventListener('click', () => dropCard(id));
-  });
-  selected = null;
-}
-
-function selectCard(card, idx) {
-  if (sortDone) return;
-  document.querySelectorAll('.drag-card').forEach(c => c.style.outline = '');
-  if (selected && selected.card === card) { selected = null; return; }
-  card.style.outline = '2px solid #1D9E75';
-  selected = { card, idx };
-}
-
-function dropCard(colId) {
-  if (!selected || sortDone) return;
-  const { card, idx } = selected;
-  const cat = colId === 'col-ville' ? 'v' : 'c';
-  card.dataset.placed = cat;
-  card.style.outline = '';
-  card.className = 'drag-card ' + (cat === 'v' ? 'placed-v' : 'placed-c');
-  const targetId = cat === 'v' ? 'placed-ville' : 'placed-camp';
-  document.getElementById(targetId).appendChild(card);
-  selected = null;
-  card.addEventListener('click', () => returnToPool(card, idx));
-}
-
-function returnToPool(card, idx) {
-  if (sortDone) return;
-  card.dataset.placed = '';
-  card.className = 'drag-card';
-  card.style.outline = '';
-  document.getElementById('pool').appendChild(card);
-}
-
-function checkSort() {
-  const cards = document.querySelectorAll('.drag-card');
-  let correct = 0, total = 0;
-  const errors = [];
-  cards.forEach(card => {
-    const idx = parseInt(card.dataset.idx);
-    const placed = card.dataset.placed;
-    if (!placed) return;
-    total++;
-    if (placed === sortItems[idx].cat) correct++;
-    else errors.push(sortItems[idx].label);
-  });
-  sortScore = correct;
-  const fb = document.getElementById('fb-sort');
-  if (total < sortItems.length) {
-    fb.className = 'feedback-box show ko';
-    fb.textContent = 'Il reste encore des éléments à placer ! Place-les tous avant de vérifier.';
-    return;
+  /* ── Navigation entre phases ── */
+  function showPhase(id) {
+    document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
   }
-  sortDone = true;
-  if (errors.length === 0) {
-    fb.className = 'feedback-box show ok';
-    fb.textContent = 'Parfait ! Tous les éléments sont bien classés.';
-  } else {
-    fb.className = 'feedback-box show ko';
-    fb.innerHTML = 'Quelques erreurs : <strong>' + errors.join(', ') + '</strong>. Les bons éléments : hôpital, stade, grande gare, théâtre et grand magasin sont en ville. Les autres sont à la campagne.';
+
+  /* ════════════════════════════════
+     EXERCICE 1 — Classement
+  ════════════════════════════════ */
+  function buildSort() {
+    const pool = document.getElementById('card-pool');
+    pool.innerHTML = '';
+    document.getElementById('placed-ville').innerHTML = '';
+    document.getElementById('placed-camp').innerHTML = '';
+    document.getElementById('fb-sort').className = 'feedback';
+    document.getElementById('next-sort-btn').style.display = 'none';
+    document.getElementById('check-sort-btn').style.display = '';
+    sortDone = false;
+    selected = null;
+
+    SORT_ITEMS.forEach((item, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'sort-item';
+      btn.textContent = item.label;
+      btn.dataset.idx = i;
+      btn.dataset.placed = '';
+      btn.setAttribute('role', 'listitem');
+      btn.addEventListener('click', () => onSortItemClick(btn, i));
+      pool.appendChild(btn);
+    });
+
+    ['col-ville', 'col-camp'].forEach(id => {
+      const col = document.getElementById(id);
+      col.addEventListener('click', () => onDropZoneClick(id));
+      col.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') onDropZoneClick(id); });
+    });
   }
-  document.getElementById('next-sort').className = 'next-btn show';
-}
 
-function goToQcm() {
-  qcmIdx = 0; qcmOk = 0;
-  renderQcm();
-  show('s-qcm');
-}
+  function onSortItemClick(btn, idx) {
+    if (sortDone) return;
+    if (selected && selected.btn === btn) {
+      btn.classList.remove('selected');
+      selected = null;
+      return;
+    }
+    document.querySelectorAll('.sort-item').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selected = { btn, idx };
+  }
 
-function renderQcm() {
-  const q = qcmQuestions[qcmIdx];
-  const area = document.getElementById('qcm-area');
-  area.innerHTML = '';
+  function onDropZoneClick(colId) {
+    if (!selected || sortDone) return;
+    const { btn, idx } = selected;
+    const cat = colId === 'col-ville' ? 'v' : 'c';
+    btn.dataset.placed = cat;
+    btn.classList.remove('selected');
+    btn.classList.add(cat === 'v' ? 'placed-v' : 'placed-c');
+    const targetId = cat === 'v' ? 'placed-ville' : 'placed-camp';
+    document.getElementById(targetId).appendChild(btn);
+    selected = null;
+    btn.addEventListener('click', () => returnToPool(btn, idx), { once: true });
+  }
 
-  const ql = document.createElement('p');
-  ql.className = 'question-label';
-  ql.textContent = 'Question ' + (qcmIdx + 1) + ' sur ' + qcmQuestions.length;
-  area.appendChild(ql);
+  function returnToPool(btn, idx) {
+    if (sortDone) return;
+    btn.dataset.placed = '';
+    btn.classList.remove('placed-v', 'placed-c', 'selected');
+    document.getElementById('card-pool').appendChild(btn);
+    btn.addEventListener('click', () => onSortItemClick(btn, idx));
+  }
 
-  const qt = document.createElement('p');
-  qt.className = 'question-text';
-  qt.textContent = q.q;
-  area.appendChild(qt);
-
-  const choices = document.createElement('div');
-  choices.className = 'choices';
-  q.choices.forEach((c, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'choice-btn';
-    btn.innerHTML = '<i class="ti icon" aria-hidden="true"></i>' + c;
-    btn.onclick = () => answerQcm(i, btn, q, choices);
-    choices.appendChild(btn);
+  document.getElementById('check-sort-btn').addEventListener('click', () => {
+    const items = document.querySelectorAll('.sort-item');
+    let correct = 0, total = 0;
+    const errors = [];
+    items.forEach(item => {
+      const idx = parseInt(item.dataset.idx);
+      const placed = item.dataset.placed;
+      if (!placed) return;
+      total++;
+      if (placed === SORT_ITEMS[idx].cat) correct++;
+      else errors.push(SORT_ITEMS[idx].label);
+    });
+    sortScore = correct;
+    const fb = document.getElementById('fb-sort');
+    if (total < SORT_ITEMS.length) {
+      fb.className = 'feedback warning';
+      fb.textContent = '⚠️ Il reste encore des éléments à placer ! Place-les tous avant de vérifier.';
+      return;
+    }
+    sortDone = true;
+    document.getElementById('check-sort-btn').style.display = 'none';
+    document.getElementById('next-sort-btn').style.display = 'block';
+    if (errors.length === 0) {
+      fb.className = 'feedback correct';
+      fb.textContent = '✅ Parfait ! Tous les éléments sont bien classés.';
+      launchConfetti(); playCorrect();
+    } else {
+      fb.className = 'feedback wrong';
+      fb.innerHTML = '❌ Quelques erreurs : <strong>' + errors.join(', ') + '</strong>. Les éléments de ville : hôpital, stade, grande gare, théâtre, grand magasin.';
+      playIncorrect();
+    }
   });
-  area.appendChild(choices);
 
-  const fb = document.createElement('div');
-  fb.className = 'feedback-box';
-  fb.id = 'fb-qcm';
-  fb.setAttribute('role', 'status');
-  fb.setAttribute('aria-live', 'polite');
-  area.appendChild(fb);
+  document.getElementById('next-sort-btn').addEventListener('click', () => {
+    qcmIdx = 0; qcmOk = 0;
+    renderQcm();
+    showPhase('phase-qcm');
+  });
 
-  const next = document.createElement('button');
-  next.className = 'next-btn';
-  next.id = 'next-qcm';
-  next.innerHTML = qcmIdx < qcmQuestions.length - 1
-    ? 'Question suivante <i class="ti ti-arrow-right" aria-hidden="true"></i>'
-    : 'Exercice suivant <i class="ti ti-arrow-right" aria-hidden="true"></i>';
-  next.onclick = () => {
+  /* ════════════════════════════════
+     EXERCICE 2 — QCM
+  ════════════════════════════════ */
+  function renderQcm() {
+    const q = QCM[qcmIdx];
+    const total = QCM.length;
+    document.getElementById('qcm-progress-label').textContent = 'Question ' + (qcmIdx + 1) + ' / ' + total;
+    document.getElementById('qcm-progress-bar').style.width = ((qcmIdx / total) * 100) + '%';
+    document.getElementById('qcm-question').textContent = q.q;
+    document.getElementById('fb-qcm').className = 'feedback';
+    document.getElementById('next-qcm-btn').classList.remove('visible');
+
+    const list = document.getElementById('qcm-answers');
+    list.innerHTML = '';
+    q.choices.forEach((c, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'answer-btn';
+      btn.textContent = c;
+      btn.setAttribute('role', 'listitem');
+      btn.addEventListener('click', () => answerQcm(i, btn, q, list));
+      list.appendChild(btn);
+    });
+  }
+
+  function answerQcm(i, btn, q, list) {
+    list.querySelectorAll('.answer-btn').forEach((b, j) => {
+      b.disabled = true;
+      if (j === q.correct) b.classList.add('correct');
+      else if (b === btn) b.classList.add('wrong');
+    });
+    const ok = i === q.correct;
+    if (ok) { qcmOk++; playCorrect(); launchConfetti(); } else { playIncorrect(); }
+    const fb = document.getElementById('fb-qcm');
+    fb.className = 'feedback ' + (ok ? 'correct' : 'wrong');
+    fb.textContent = ok ? q.fb_ok : q.fb_ko;
+    document.getElementById('qcm-score-badge').textContent = qcmOk + ' / ' + (qcmIdx + 1);
+    const nextBtn = document.getElementById('next-qcm-btn');
+    nextBtn.textContent = qcmIdx < QCM.length - 1 ? 'Question suivante →' : 'Exercice suivant →';
+    nextBtn.classList.add('visible');
+  }
+
+  document.getElementById('next-qcm-btn').addEventListener('click', () => {
     qcmIdx++;
-    if (qcmIdx < qcmQuestions.length) renderQcm();
-    else goToGap();
-  };
-  area.appendChild(next);
-}
+    if (qcmIdx < QCM.length) {
+      renderQcm();
+    } else {
+      buildGap();
+      showPhase('phase-gap');
+    }
+  });
 
-function answerQcm(i, btn, q, choices) {
-  choices.querySelectorAll('.choice-btn').forEach(b => b.disabled = true);
-  const icon = btn.querySelector('.icon');
-  if (i === q.correct) {
-    btn.classList.add('correct');
-    icon.classList.add('ti-check');
-    qcmOk++;
-    document.getElementById('fb-qcm').className = 'feedback-box show ok';
-    document.getElementById('fb-qcm').textContent = q.fb_ok;
-  } else {
-    btn.classList.add('wrong');
-    icon.classList.add('ti-x');
-    choices.querySelectorAll('.choice-btn')[q.correct].classList.add('correct');
-    document.getElementById('fb-qcm').className = 'feedback-box show ko';
-    document.getElementById('fb-qcm').textContent = q.fb_ko;
-  }
-  document.getElementById('qcm-score-badge').textContent = qcmOk + ' / ' + (qcmIdx + 1);
-  document.getElementById('next-qcm').className = 'next-btn show';
-}
+  /* ════════════════════════════════
+     EXERCICE 3 — Définition à trous
+  ════════════════════════════════ */
+  function buildGap() {
+    gapAnswers = new Array(GAP.length).fill(null);
+    gapOk = 0;
+    document.getElementById('fb-gap').className = 'feedback';
+    document.getElementById('next-gap-btn').classList.remove('visible');
+    document.getElementById('check-gap-btn').style.display = '';
 
-function goToGap() {
-  gapAnswers = new Array(gapSentences.length).fill(null);
-  gapOk = 0;
-  buildGap();
-  show('s-gap');
-}
+    const container = document.getElementById('gap-sentences');
+    container.innerHTML = '';
 
-function buildGap() {
-  const area = document.getElementById('gap-area');
-  area.innerHTML = '';
-  document.getElementById('fb-gap').className = 'feedback-box';
-  document.getElementById('next-gap').className = 'next-btn';
-  document.getElementById('check-gap-btn').style.display = '';
+    GAP.forEach((s, si) => {
+      const card = document.createElement('div');
+      card.className = 'gap-sentence-card';
 
-  gapSentences.forEach((s, si) => {
-    const wrap = document.createElement('div');
-    wrap.style.cssText = 'background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px 14px;margin-bottom:10px;';
+      const textDiv = document.createElement('div');
+      textDiv.className = 'gap-sentence-text';
+      textDiv.appendChild(document.createTextNode(s.before + ' '));
+      const blank = document.createElement('span');
+      blank.className = 'gap-blank';
+      blank.id = 'blank-' + si;
+      blank.textContent = '…';
+      textDiv.appendChild(blank);
+      textDiv.appendChild(document.createTextNode(' ' + s.after));
+      card.appendChild(textDiv);
 
-    const sentDiv = document.createElement('div');
-    sentDiv.style.cssText = 'font-size:15px;color:var(--color-text-primary);line-height:1.8;margin-bottom:10px;';
-    sentDiv.appendChild(document.createTextNode(s.before + ' '));
-
-    const blankSpan = document.createElement('span');
-    blankSpan.style.cssText = 'display:inline-block;min-width:90px;border-bottom:2px solid #1D9E75;text-align:center;font-weight:500;color:#1D9E75;padding:0 4px;';
-    blankSpan.id = 'blank-' + si;
-    blankSpan.textContent = '...';
-    sentDiv.appendChild(blankSpan);
-
-    sentDiv.appendChild(document.createTextNode(' ' + s.after));
-    wrap.appendChild(sentDiv);
-
-    const opts = document.createElement('div');
-    opts.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;';
-    s.options.forEach(opt => {
-      const ob = document.createElement('button');
-      ob.textContent = opt;
-      ob.style.cssText = 'font-size:13px;padding:5px 12px;border:1.5px solid var(--color-border-secondary);border-radius:20px;background:var(--color-background-primary);cursor:pointer;transition:background 0.1s;touch-action:manipulation;-webkit-appearance:none;';
-      ob.dataset.si = si;
-      ob.dataset.opt = opt;
-      ob.addEventListener('click', () => pickGap(si, opt, ob, opts));
-      opts.appendChild(ob);
+      const opts = document.createElement('div');
+      opts.className = 'gap-options';
+      s.options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'gap-option';
+        btn.textContent = opt;
+        btn.addEventListener('click', () => pickGap(si, opt, btn, opts));
+        opts.appendChild(btn);
+      });
+      card.appendChild(opts);
+      container.appendChild(card);
     });
-    wrap.appendChild(opts);
-    area.appendChild(wrap);
-  });
-}
+  }
 
-function pickGap(si, opt, btn, opts) {
-  opts.querySelectorAll('button').forEach(b => {
-    b.style.background = 'var(--color-background-primary)';
-    b.style.borderColor = 'var(--color-border-secondary)';
-    b.style.color = 'var(--color-text-primary)';
-  });
-  btn.style.background = '#E1F5EE';
-  btn.style.borderColor = '#1D9E75';
-  btn.style.color = '#0F6E56';
-  gapAnswers[si] = opt;
-  document.getElementById('blank-' + si).textContent = opt;
-}
+  function pickGap(si, opt, btn, opts) {
+    opts.querySelectorAll('.gap-option').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    gapAnswers[si] = opt;
+    document.getElementById('blank-' + si).textContent = opt;
+  }
 
-function checkGap() {
-  if (gapAnswers.some(a => a === null)) {
+  document.getElementById('check-gap-btn').addEventListener('click', () => {
+    if (gapAnswers.some(a => a === null)) {
+      const fb = document.getElementById('fb-gap');
+      fb.className = 'feedback warning';
+      fb.textContent = '⚠️ Choisis un mot pour chaque phrase avant de vérifier.';
+      return;
+    }
+    gapOk = 0;
+    GAP.forEach((s, si) => { if (gapAnswers[si] === s.correct) gapOk++; });
     const fb = document.getElementById('fb-gap');
-    fb.className = 'feedback-box show ko';
-    fb.textContent = 'Choisis un mot pour chaque phrase avant de vérifier.';
-    return;
-  }
-  gapOk = 0;
-  gapSentences.forEach((s, si) => {
-    if (gapAnswers[si] === s.correct) gapOk++;
+    if (gapOk === GAP.length) {
+      fb.className = 'feedback correct';
+      fb.textContent = '✅ Toutes les phrases sont correctes !';
+      launchConfetti(); playCorrect();
+    } else {
+      const corrections = GAP.filter((s, si) => gapAnswers[si] !== s.correct).map(s => '"' + s.correct + '"').join(', ');
+      fb.className = 'feedback wrong';
+      fb.textContent = '❌ Quelques corrections : ' + corrections + '.';
+      playIncorrect();
+    }
+    document.getElementById('check-gap-btn').style.display = 'none';
+    document.getElementById('next-gap-btn').classList.add('visible');
   });
-  const fb = document.getElementById('fb-gap');
-  if (gapOk === gapSentences.length) {
-    fb.className = 'feedback-box show ok';
-    fb.textContent = 'Toutes les phrases sont correctes !';
-  } else {
-    let msg = 'Quelques corrections : ';
-    gapSentences.forEach((s, si) => {
-      if (gapAnswers[si] !== s.correct) msg += '"' + s.correct + '" ';
-    });
-    fb.className = 'feedback-box show ko';
-    fb.textContent = msg.trim();
+
+  document.getElementById('next-gap-btn').addEventListener('click', () => showResult());
+
+  /* ════════════════════════════════
+     RÉSULTAT
+  ════════════════════════════════ */
+  function showResult() {
+    const totalMax = SORT_ITEMS.length + QCM.length + GAP.length;
+    const total = sortScore + qcmOk + gapOk;
+    const pct = Math.round(total / totalMax * 100);
+    document.getElementById('result-score').textContent = pct + ' %';
+    let emoji, msg;
+    if (pct >= 80) {
+      emoji = '🏆'; msg = 'Excellent travail ! Tu as bien compris les notions de la séance.';
+      launchConfetti(); playCorrect();
+    } else if (pct >= 55) {
+      emoji = '👍'; msg = 'Bien ! Quelques points à revoir, mais les bases sont là.';
+    } else {
+      emoji = '📖'; msg = 'Continue à t\'entraîner. Relis tes notes et recommence !';
+    }
+    document.getElementById('result-emoji').textContent = emoji;
+    document.getElementById('result-msg').textContent = msg;
+    document.getElementById('result-detail').innerHTML =
+      'Exercice 1 — classement : <strong>' + sortScore + ' / ' + SORT_ITEMS.length + '</strong><br>' +
+      'Exercice 2 — questions : <strong>' + qcmOk + ' / ' + QCM.length + '</strong><br>' +
+      'Exercice 3 — définition : <strong>' + gapOk + ' / ' + GAP.length + '</strong>';
+    showPhase('phase-result');
   }
-  document.getElementById('check-gap-btn').style.display = 'none';
-  document.getElementById('next-gap').className = 'next-btn show';
-}
 
-function showResult() {
-  const totalMax = sortItems.length + qcmQuestions.length + gapSentences.length;
-  const total = sortScore + qcmOk + gapOk;
-  const pct = Math.round(total / totalMax * 100);
-  document.getElementById('final-score').textContent = pct + ' %';
-  let msg = '';
-  if (pct >= 80) msg = 'Excellent travail ! Tu as bien compris les notions de la séance.';
-  else if (pct >= 55) msg = 'Bien ! Quelques points à revoir, mais les bases sont là.';
-  else msg = 'Continue à t\'entraîner. Relis tes notes et recommence !';
-  document.getElementById('final-msg').textContent = msg;
-  document.getElementById('final-detail').innerHTML =
-    'Exercice 1 — classement : <strong>' + sortScore + ' / ' + sortItems.length + '</strong><br>' +
-    'Exercice 2 — questions : <strong>' + qcmOk + ' / ' + qcmQuestions.length + '</strong><br>' +
-    'Exercice 3 — définition : <strong>' + gapOk + ' / ' + gapSentences.length + '</strong>';
-  show('s-result');
-}
+  /* ════════════════════════════════
+     INIT
+  ════════════════════════════════ */
+  document.getElementById('start-btn').addEventListener('click', () => {
+    buildSort();
+    showPhase('phase-sort');
+  });
 
-function restart() {
-  sortDone = false; selected = null; sortScore = 0; qcmOk = 0; qcmIdx = 0; gapOk = 0;
-  gapAnswers = [];
-  show('s-start');
-}
+  document.getElementById('retry-btn').addEventListener('click', () => {
+    selected = null; sortDone = false; sortScore = 0;
+    qcmIdx = 0; qcmOk = 0;
+    gapAnswers = []; gapOk = 0;
+    showPhase('phase-start');
+  });
 </script>
-
+<script src="feedbackUtils.js"></script>
 </body>
 </html>
