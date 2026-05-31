@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<!--
+  _template.html — Squelette canonique pour une nouvelle app pédagogique.
+
+  UTILISATION :
+    1. Copier ce fichier sous le nom de la nouvelle app (ex. apps/mon-activite.html).
+    2. Remplacer tous les blocs marqués « TODO » ci-dessous.
+    3. Ne pas modifier les classes/IDs marqués « NE PAS CHANGER » — ils correspondent
+       aux conventions documentées dans CLAUDE.md.
+
+  CHECKLIST avant livraison :
+    [ ] <title> renseigné
+    [ ] Emoji + titre dans le <h1>
+    [ ] Niveaux définis dans .level-bar (au moins 2 boutons)
+    [ ] playCorrect() + launchConfetti() appelés sur bonne réponse
+    [ ] playIncorrect() appelé seul sur mauvaise réponse (pas de confettis)
+    [ ] Bouton "Nouvel exercice" visible après chaque réponse
+    [ ] Les compteurs repartent à zéro au changement de niveau
+    [ ] Testé sur iPad (touch-action, min-height des boutons)
+-->
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>TODO — Titre de l'activité</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ── Reset ──────────────────────────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: 'Source Sans 3', sans-serif;
+    background: #F7F8FA;
+    color: #1A1A2E;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ── Header ─────────────────────────────────────────────────────────────── */
+  /* NE PAS CHANGER les classes .app-header, .back-link, .header-spacer */
+  .app-header {
+    background: #1A3A5C;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .back-link {
+    color: rgba(255,255,255,0.85);
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+    touch-action: manipulation;
+  }
+  .back-link:hover { color: #fff; }
+  .app-header h1 {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(18px, 4vw, 24px);
+    font-weight: 900;
+    color: #fff;
+    flex: 1;
+    text-align: center;
+  }
+  .header-spacer { width: 80px; }
+
+  /* ── Sélecteur de niveau ─────────────────────────────────────────────────── */
+  /* NE PAS CHANGER les classes .level-bar, .level-btn */
+  .level-bar {
+    background: #fff;
+    border-bottom: 1px solid #E2E8F0;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .level-btn {
+    padding: 10px 24px;
+    border-radius: 999px;
+    border: 2px solid #E2E8F0;
+    background: #F8FAFC;
+    color: #4A5568;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    min-height: 48px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    transition: all 0.15s;
+  }
+  .level-btn.active        { background: #1A3A5C; color: #fff; border-color: #1A3A5C; }
+  .level-btn:not(.active):hover { background: #EEF2F7; border-color: #CBD5E0; }
+
+  /* ── Zone principale ─────────────────────────────────────────────────────── */
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 40px;
+    gap: 24px;
+    max-width: 680px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  /* ── Boîte de question ───────────────────────────────────────────────────── */
+  /* NE PAS CHANGER la classe .question-box */
+  .question-box {
+    background: #fff;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    padding: 20px 24px;
+    text-align: center;
+    width: 100%;
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(17px, 3.5vw, 21px);
+    font-weight: 800;
+    color: #1A1A2E;
+    line-height: 1.4;
+  }
+
+  /* ── TODO : styles spécifiques à l'app ──────────────────────────────────── */
+  /*
+    Ajouter ici les styles propres à l'activité (canvas, SVG, grilles de choix…).
+    Exemple :
+      .canvas-wrap { width: 100%; background: #fff; border: 1px solid #E2E8F0; border-radius: 16px; }
+  */
+
+  /* ── Feedback ────────────────────────────────────────────────────────────── */
+  /* NE PAS CHANGER la classe .feedback */
+  .feedback {
+    width: 100%;
+    padding: 18px 24px;
+    border-radius: 14px;
+    text-align: center;
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(16px, 3vw, 19px);
+    font-weight: 800;
+    display: none;
+    line-height: 1.5;
+  }
+  .feedback.correct { background: #D1FAE5; color: #065F46; display: block; }
+  .feedback.wrong   { background: #FEE2E2; color: #991B1B; display: block; }
+
+  /* ── Boutons d'action ────────────────────────────────────────────────────── */
+  /* NE PAS CHANGER les classes .action-row, .verify-btn, .new-btn */
+  .action-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .verify-btn {
+    padding: 16px 36px;
+    background: #1A3A5C;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+    min-height: 56px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    transition: all 0.15s;
+  }
+  .verify-btn:hover    { background: #253F63; }
+  .verify-btn:disabled { background: #94A3B8; cursor: default; }
+  .new-btn {
+    padding: 16px 36px;
+    background: #0F7860;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+    min-height: 56px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    transition: all 0.15s;
+    display: none;
+  }
+  .new-btn.visible { display: block; }
+  .new-btn:hover   { background: #0A5C48; }
+</style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────────── -->
+<header class="app-header">
+  <a href="../index.html" class="back-link">← Retour</a>
+  <h1>TODO 🎯 Titre de l'activité</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<!-- ── Sélecteur de niveau ─────────────────────────────────────────────────── -->
+<!--
+  Convention :
+  - Premier bouton toujours class="level-btn active" aria-pressed="true"
+  - Libellé : "Niveau 1" ou "Niveau 1 · description courte"
+  - aria-pressed mis à jour dynamiquement par le JS
+  - Supprimer ce bloc entier si l'app n'a qu'un seul niveau
+-->
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1</button>
+  <button class="level-btn"        data-level="2" aria-pressed="false">Niveau 2</button>
+  <!-- TODO : ajouter ou retirer des boutons selon le nombre de niveaux -->
+</div>
+
+<!-- ── Contenu principal ───────────────────────────────────────────────────── -->
+<main>
+  <div class="question-box" id="question-box">Chargement…</div>
+
+  <!-- TODO : zone de contenu spécifique à l'app (canvas, SVG, grille de choix…) -->
+
+  <div class="feedback" id="feedback"></div>
+
+  <div class="action-row">
+    <!-- Supprimer .verify-btn si la réponse est immédiate (clic direct) -->
+    <button class="verify-btn" id="verify-btn" disabled>Vérifier</button>
+    <button class="new-btn"    id="new-btn">Nouvel exercice</button>
+  </div>
+</main>
+
+<!-- ── Script de l'app ─────────────────────────────────────────────────────── -->
+<script>
+  // ── Références DOM ─────────────────────────────────────────────────────────
+  const questionBox = document.getElementById('question-box');
+  const feedbackEl  = document.getElementById('feedback');
+  const verifyBtn   = document.getElementById('verify-btn');
+  const newBtn      = document.getElementById('new-btn');
+
+  // ── État ────────────────────────────────────────────────────────────────────
+  let currentLevel = 1;
+  let state = {};
+
+  // ── Utilitaires ─────────────────────────────────────────────────────────────
+  function randInt(a, b)  { return a + Math.floor(Math.random() * (b - a + 1)); }
+  function shuffle(arr)   { return [...arr].sort(() => Math.random() - 0.5); }
+  function pick(arr, n)   { return shuffle(arr).slice(0, n); }
+
+  // ── Feedback unifié ─────────────────────────────────────────────────────────
+  // Appeler showFeedback() depuis le point de validation unique de l'app.
+  // Ne jamais appeler playCorrect/playIncorrect/launchConfetti directement
+  // depuis plusieurs endroits différents.
+  function showFeedback(correct, msg) {
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = msg;
+    newBtn.classList.add('visible');
+    if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+  }
+
+  function resetFeedback() {
+    feedbackEl.className = 'feedback';
+    newBtn.classList.remove('visible');
+  }
+
+  // ── Sélecteur de niveau ─────────────────────────────────────────────────────
+  // NE PAS MODIFIER ce bloc — convention partagée entre toutes les apps.
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLevel = parseInt(btn.dataset.level);
+      document.querySelectorAll('.level-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+      newExercise(); // remet aussi les compteurs de stats à zéro (point 5 futur)
+    });
+  });
+
+  newBtn.addEventListener('click', newExercise);
+  // verifyBtn.addEventListener('click', verify); // TODO : décommenter et implémenter
+
+  // ── Logique de l'app ────────────────────────────────────────────────────────
+  // TODO : implémenter setup() et newExercise() selon le niveau.
+
+  function setupLevel1() {
+    resetFeedback();
+    // TODO
+    questionBox.textContent = 'TODO : question niveau 1';
+    state = { answered: false };
+  }
+
+  function setupLevel2() {
+    resetFeedback();
+    // TODO
+    questionBox.textContent = 'TODO : question niveau 2';
+    state = { answered: false };
+  }
+
+  function newExercise() {
+    if (currentLevel === 1) setupLevel1();
+    else                    setupLevel2();
+    // TODO : ajouter les autres niveaux si nécessaire
+  }
+
+  // ── Démarrage ───────────────────────────────────────────────────────────────
+  newExercise();
+</script>
+<!-- feedbackUtils.js DOIT être chargé APRÈS le script de l'app, juste avant </body> -->
+<script src="feedbackUtils.js"></script>
+</body>
+</html>

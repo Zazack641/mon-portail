@@ -60,6 +60,18 @@ Les URLs des applications sont pour l'instant des placeholders `file:///apps/…
 
 ### Ajouter une nouvelle activité
 
+**Étape 1 — Créer le fichier de l'app**
+
+Copier [`apps/_template.html`](apps/_template.html) sous le nom de la nouvelle app et suivre les instructions `TODO` inline. Ne jamais partir d'une app existante comme base : le squelette est la référence canonique (classes, IDs, structure JS, ordre des scripts).
+
+Règles à ne pas oublier :
+- `feedbackUtils.js` se charge **après** le script de l'app, juste avant `</body>`
+- `playCorrect()` + `launchConfetti()` sur bonne réponse ; `playIncorrect()` seul sur mauvaise
+- Le changement de niveau appelle `newExercise()` qui doit remettre à zéro tout l'état
+- `aria-pressed` mis à jour dynamiquement sur chaque `.level-btn`
+
+**Étape 2 — Ajouter la carte dans `index.html`**
+
 Copier un bloc `<article class="app-card" …>` existant et renseigner :
 - `data-domain` : `"math"` ou `"fr"`
 - `data-cycle` : `"c1"` ou `"c2"`
