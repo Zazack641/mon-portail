@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Additions en Colonne</title>
+  <title>Soustraction en Colonne</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
@@ -135,9 +135,7 @@
       margin-bottom: 24px;
       overflow-x: auto;
     }
-    .calc-table {
-      border-collapse: collapse;
-    }
+    .calc-table { border-collapse: collapse; }
 
     /* Column headers */
     .th-sign { width: 52px; }
@@ -151,26 +149,82 @@
       padding-bottom: 10px;
     }
 
-    /* Carry row */
-    .td-carry { text-align: center; padding: 0 6px 8px; }
-    .carry-inp {
-      width: 32px; height: 32px;
-      border: 2px dashed #CBD5E0;
-      border-radius: 7px;
-      background: #F8FAFC;
+    /* ── Minuend interactive row ── */
+    .td-minuend {
       text-align: center;
-      font-family: 'Nunito', sans-serif;
-      font-size: 15px;
-      font-weight: 800;
-      color: #94A3B8;
-      outline: none;
-      -webkit-appearance: none;
-      touch-action: manipulation;
-      transition: border-color 0.15s, color 0.15s;
+      padding: 0 6px;
+      vertical-align: middle;
+      height: 86px;
     }
-    .carry-inp:focus { border-style: solid; border-color: #94A3B8; color: #475569; }
+    /* Tappable columns get a pointer and subtle active state */
+    .td-minuend.tappable {
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+    .td-minuend.tappable:active .minuend-wrap {
+      opacity: 0.75;
+      transform: scale(0.95);
+    }
+    .minuend-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      transition: opacity 0.1s, transform 0.1s;
+    }
+    /* "+10" label shown when the column receives a borrow */
+    .plus10-label {
+      font-family: 'Nunito', sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      color: #3A9E6F;
+      line-height: 1;
+      min-height: 16px;
+      visibility: hidden;
+    }
+    .plus10-label.visible { visibility: visible; }
+    /* Original digit and effective value sit side by side */
+    .digit-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 3px;
+    }
+    .digit-orig {
+      font-family: 'Nunito', sans-serif;
+      font-size: 44px;
+      font-weight: 900;
+      line-height: 1;
+      transition: color 0.15s, text-decoration 0.15s;
+    }
+    .digit-orig.struck {
+      text-decoration: line-through;
+      color: #CBD5E0 !important;
+    }
+    /* Effective value: hidden until borrow involved */
+    .digit-eff {
+      display: none;
+      font-family: 'Nunito', sans-serif;
+      font-size: 28px;
+      font-weight: 900;
+      color: #D97706;
+      line-height: 1;
+    }
+    .digit-eff.visible { display: block; }
+    /* Subtle tap affordance on tappable columns with no active borrow */
+    .td-minuend.tappable .tap-hint {
+      font-size: 10px;
+      color: #CBD5E0;
+      line-height: 1;
+      min-height: 14px;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 700;
+    }
+    .td-minuend.tappable.borrowed .tap-hint { display: none; }
 
-    /* Addend rows */
+    /* ── Subtrahend row ── */
     .td-sign {
       text-align: right;
       padding-right: 8px;
@@ -219,8 +273,6 @@
     /* Verification states */
     .result-inp.ok  { border-color: #3A9E6F; background: #E6F5F0; color: #0A6048; }
     .result-inp.bad { border-color: #D64045; background: #FEE8E8; color: #C0282C; }
-    .carry-inp.ok   { border-style: solid; border-color: #3A9E6F; background: #E6F5F0; color: #0A6048; }
-    .carry-inp.bad  { border-style: solid; border-color: #D64045; background: #FEE8E8; color: #C0282C; }
 
     /* ── Feedback ── */
     .feedback {
@@ -277,7 +329,7 @@
     /* ── Responsive ── */
     @media (max-width: 400px) {
       .level-row { grid-template-columns: repeat(2, 1fr); }
-      .digit, .td-sign { font-size: 36px; }
+      .digit-orig, .td-sign { font-size: 36px; }
       .result-inp { width: 52px; height: 60px; font-size: 34px; }
     }
   </style>
@@ -285,8 +337,8 @@
 <body>
 
 <header class="app-header" role="banner">
-  <a href="../index.html" class="back-link">← Retour au portail</a>
-  <h1>Additions en Colonne</h1>
+  <a href="../index.html" class="back-btn">← Retour au portail</a>
+  <h1>Soustraction en Colonne</h1>
 </header>
 
 <main class="app-main">
@@ -295,23 +347,23 @@
     <div class="panel-label">Niveau</div>
     <div class="level-row" role="group" aria-label="Choisir le niveau">
       <button class="level-btn active" data-level="1" aria-pressed="true">
-        N·1<small>2 chiffres sans retenue</small>
+        N·1<small>2 chiffres sans emprunt</small>
       </button>
       <button class="level-btn" data-level="2" aria-pressed="false">
-        N·2<small>3 chiffres sans retenue</small>
+        N·2<small>3 chiffres sans emprunt</small>
       </button>
       <button class="level-btn" data-level="3" aria-pressed="false">
-        N·3<small>avec retenue</small>
+        N·3<small>1 emprunt</small>
       </button>
       <button class="level-btn" data-level="4" aria-pressed="false">
-        N·4<small>3 nombres</small>
+        N·4<small>2 emprunts</small>
       </button>
     </div>
   </div>
 
   <div class="exercise-card">
     <div class="calc-wrap">
-      <table class="calc-table" id="calc-table" aria-label="Grille de calcul en colonne"></table>
+      <table class="calc-table" id="calc-table" aria-label="Grille de soustraction en colonne"></table>
     </div>
     <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
     <div class="btn-row">
@@ -325,105 +377,95 @@
 <script>
   // ── State ──────────────────────────────────────────────────────────────────
   let level = 1;
-  let numbers = [];
+  let minuend = 0;
+  let subtrahend = 0;
   let cols = 2;
   let isVerified = false;
+  // gives[c] = true → column c gives 1 to column c+1 (right, lower place value)
+  let gives = [];
 
   // ── Helpers ────────────────────────────────────────────────────────────────
   const ri = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
 
-  // Returns array of length `c`: null for absent leading digits, then actual digits.
   function toDigits(n, c) {
     const arr = String(n).split('').map(Number);
     while (arr.length < c) arr.unshift(null);
     return arr;
   }
 
-  // Column 0 = leftmost (highest place value), column cols-1 = units.
   const PLACE_COLORS = ['var(--color-hundreds)', 'var(--color-tens)', 'var(--color-units)'];
   const PLACE_LABELS = ['C', 'D', 'U'];
   const PLACE_NAMES  = ['centaines', 'dizaines', 'unités'];
 
-  function colColor(colIdx, totalCols) {
-    return PLACE_COLORS[colIdx + (3 - totalCols)];
+  function colColor(colIdx, totalCols) { return PLACE_COLORS[colIdx + (3 - totalCols)]; }
+  function colLabel(colIdx, totalCols) { return PLACE_LABELS[colIdx + (3 - totalCols)]; }
+  function colName(colIdx, totalCols)  { return PLACE_NAMES [colIdx + (3 - totalCols)]; }
+
+  // Effective value for minuend column c given current borrows state.
+  // receives borrow if gives[c-1]; gives borrow if gives[c].
+  function effectiveDigit(origDigits, c) {
+    const base = origDigits[c] ?? 0;
+    const received = c > 0 && gives[c - 1] ? 10 : 0;
+    const given    = c < cols - 1 && gives[c] ? 1 : 0;
+    return base + received - given;
   }
-  function colLabel(colIdx, totalCols) {
-    return PLACE_LABELS[colIdx + (3 - totalCols)];
-  }
-  function colName(colIdx, totalCols) {
-    return PLACE_NAMES[colIdx + (3 - totalCols)];
+
+  function countBorrows(a, b, c) {
+    const da = toDigits(a, c).map(d => d ?? 0);
+    const db = toDigits(b, c).map(d => d ?? 0);
+    let n = 0;
+    for (let i = 0; i < c; i++) if (da[i] < db[i]) n++;
+    return n;
   }
 
   // ── Number generation ──────────────────────────────────────────────────────
   function generate(lvl) {
-    let a, b, c;
+    let a, b;
 
     if (lvl === 1) {
-      // 2 numbers, 2 digits, no carry in any column
       do {
-        a = ri(11, 89); b = ri(11, 89);
+        a = ri(11, 99); b = ri(11, 99);
+        if (a < b) [a, b] = [b, a];
       } while (
-        (a % 10) + (b % 10) >= 10 ||
-        Math.floor(a / 10) + Math.floor(b / 10) >= 10
+        (a % 10) < (b % 10) ||
+        Math.floor(a / 10) < Math.floor(b / 10)
       );
       cols = 2;
       return [a, b];
     }
 
     if (lvl === 2) {
-      // 2 numbers, 3 digits, no carry in any column
+      // 50% chance: 3-digit minus 2-digit (e.g. 987 - 42), no borrow
+      const mixed = Math.random() < 0.5;
       do {
-        a = ri(111, 899); b = ri(111, 899);
-      } while (
-        (a % 10) + (b % 10) >= 10 ||
-        (Math.floor(a / 10) % 10) + (Math.floor(b / 10) % 10) >= 10 ||
-        Math.floor(a / 100) + Math.floor(b / 100) >= 10
-      );
+        a = ri(111, 999);
+        b = mixed ? ri(11, 99) : ri(111, 999);
+        if (a < b) [a, b] = [b, a];
+      } while (countBorrows(a, b, 3) > 0);
       cols = 3;
       return [a, b];
     }
 
     if (lvl === 3) {
-      // 2 numbers, 2–3 digits, at least one carry, sum < 1000
-      let hasCarry;
+      // 2-digit numbers only, exactly 1 borrow (units column)
       do {
-        a = ri(10, 999); b = ri(10, 999);
-        const su = (a % 10) + (b % 10);
-        const sd = (Math.floor(a / 10) % 10) + (Math.floor(b / 10) % 10);
-        hasCarry = su >= 10 || sd >= 10;
-      } while (!hasCarry || a + b >= 1000);
-      cols = 3;
+        a = ri(21, 99); b = ri(11, 89);
+        if (a < b) [a, b] = [b, a];
+      } while (a === b || (a % 10) >= (b % 10));
+      cols = 2;
       return [a, b];
     }
 
-    // lvl 4: 3 numbers, 3 digits, at least 2 carries, sum < 1000
-    let carries;
+    // lvl 4: 3-digit minus 2-or-3-digit, at least two borrows
+    // 50% chance: 3-digit minus 2-digit
+    const mixed = Math.random() < 0.5;
     do {
-      a = ri(100, 399); b = ri(100, 399); c = ri(100, 399);
-      const su = (a % 10) + (b % 10) + (c % 10);
-      const cu = Math.floor(su / 10);
-      const sd = (Math.floor(a / 10) % 10) + (Math.floor(b / 10) % 10) + (Math.floor(c / 10) % 10) + cu;
-      carries = (su >= 10 ? 1 : 0) + (sd >= 10 ? 1 : 0);
-    } while (carries < 2 || a + b + c >= 1000);
+      a = ri(200, 999);
+      b = mixed ? ri(11, 99) : ri(11, 999);
+      if (a < b) [a, b] = [b, a];
+    } while (a === b || countBorrows(a, b, 3) < 2);
     cols = 3;
-    return [a, b, c];
-  }
-
-  // ── Expected carries ───────────────────────────────────────────────────────
-  // carries[colIdx] = value to write above that column (carry INTO it from the right).
-  function computeCarries(nums, c) {
-    const result = new Array(c).fill(0);
-    let carry = 0;
-    for (let col = c - 1; col >= 0; col--) {
-      let sum = carry;
-      nums.forEach(n => {
-        const d = toDigits(n, c)[col];
-        if (d !== null) sum += d;
-      });
-      carry = Math.floor(sum / 10);
-      if (col > 0) result[col - 1] = carry;
-    }
-    return result;
+    return [a, b];
   }
 
   // ── Build table ────────────────────────────────────────────────────────────
@@ -431,41 +473,50 @@
     const t = document.getElementById('calc-table');
     let html = '';
 
-    // Header row: column labels (C / D / U)
+    // Header row
     html += '<tr><th class="th-sign"></th>';
     for (let c = 0; c < cols; c++) {
       html += `<th class="th-col" style="color:${colColor(c, cols)}">${colLabel(c, cols)}</th>`;
     }
     html += '</tr>';
 
-    // Carry row: optional small inputs above each column
-    html += '<tr><td></td>';
+    // Minuend row: interactive cells (all but the last column are tappable)
+    const origDigits = toDigits(minuend, cols).map(d => d ?? 0);
+    html += '<tr><td class="td-sign"></td>';
     for (let c = 0; c < cols; c++) {
-      html += `<td class="td-carry">
-        <input class="carry-inp" type="text" inputmode="numeric" maxlength="1"
-               data-carry="${c}" autocomplete="off"
-               aria-label="Retenue ${colName(c, cols)}">
-      </td>`;
+      const isLast = c === cols - 1;
+      const canBorrow = level >= 3 && !isLast;
+      const tappable = canBorrow ? 'tappable' : '';
+      const tapHint  = canBorrow ? '<span class="tap-hint">tap ✎</span>' : '';
+      html += `
+        <td class="td-minuend ${tappable}" data-col="${c}"
+            ${!isLast ? `role="button" tabindex="0" aria-label="Emprunt ${colName(c, cols)}, chiffre ${origDigits[c]}"` : ''}>
+          <div class="minuend-wrap">
+            <span class="plus10-label">+10</span>
+            <div class="digit-row">
+              <span class="digit-orig" style="color:${colColor(c, cols)}">${origDigits[c]}</span>
+              <span class="digit-eff"></span>
+            </div>
+            ${tapHint}
+          </div>
+        </td>`;
     }
     html += '</tr>';
 
-    // Addend rows
-    numbers.forEach((n, row) => {
-      const isLast = row === numbers.length - 1;
-      html += `<tr><td class="td-sign">${isLast ? '+' : ''}</td>`;
-      toDigits(n, cols).forEach((d, c) => {
-        const hidden = d === null ? 'style="visibility:hidden"' : '';
-        html += `<td class="td-digit">
-          <span class="digit" style="color:${colColor(c, cols)}" ${hidden}>${d ?? 0}</span>
-        </td>`;
-      });
-      html += '</tr>';
+    // Subtrahend row
+    html += '<tr><td class="td-sign">−</td>';
+    toDigits(subtrahend, cols).forEach((d, c) => {
+      const hidden = d === null ? 'style="visibility:hidden"' : '';
+      html += `<td class="td-digit">
+        <span class="digit" style="color:${colColor(c, cols)}" ${hidden}>${d ?? 0}</span>
+      </td>`;
     });
+    html += '</tr>';
 
-    // Separator line
+    // Separator
     html += `<tr><td class="sep-td" colspan="${cols + 1}"></td></tr>`;
 
-    // Result row: one editable input per column
+    // Result row
     html += '<tr><td></td>';
     for (let c = 0; c < cols; c++) {
       html += `<td class="td-result">
@@ -477,87 +528,126 @@
     html += '</tr>';
 
     t.innerHTML = html;
+    updateMinuendDisplay();
     wireInputs();
+    wireMinuendTaps();
+  }
+
+  // ── Borrow display update ──────────────────────────────────────────────────
+  function updateMinuendDisplay() {
+    const origDigits = toDigits(minuend, cols).map(d => d ?? 0);
+
+    for (let c = 0; c < cols; c++) {
+      const cell      = document.querySelector(`.td-minuend[data-col="${c}"]`);
+      const plus10El  = cell.querySelector('.plus10-label');
+      const origEl    = cell.querySelector('.digit-orig');
+      const effEl     = cell.querySelector('.digit-eff');
+
+      const receives  = c > 0 && gives[c - 1];
+      const givesRight = c < cols - 1 && gives[c];
+      const involved  = receives || givesRight;
+      const eff       = effectiveDigit(origDigits, c);
+
+      // "+10" label: shown when receiving a borrow
+      plus10El.classList.toggle('visible', receives);
+
+      // Only the giving column gets struck + effective value shown
+      origEl.classList.toggle('struck', givesRight);
+
+      if (givesRight) {
+        effEl.textContent = effectiveDigit(origDigits, c);
+        effEl.classList.add('visible');
+      } else {
+        effEl.textContent = '';
+        effEl.classList.remove('visible');
+      }
+
+      // borrowed marker for tap-hint hide
+      cell.classList.toggle('borrowed', givesRight);
+    }
+  }
+
+  // ── Wire minuend taps ──────────────────────────────────────────────────────
+  function wireMinuendTaps() {
+    document.querySelectorAll('.td-minuend.tappable').forEach(cell => {
+      const toggle = () => {
+        const c = parseInt(cell.dataset.col);
+        gives[c] = !gives[c];
+        updateMinuendDisplay();
+        resetVerification();
+      };
+      cell.addEventListener('click', toggle);
+      cell.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+      });
+    });
   }
 
   // ── Input wiring ───────────────────────────────────────────────────────────
   function wireInputs() {
     const resInps = [...document.querySelectorAll('.result-inp')];
 
-    // Auto-advance right-to-left (educational convention: units first)
     resInps.forEach((inp, i) => {
       inp.addEventListener('input', e => {
         const v = e.target.value.replace(/\D/g, '');
         e.target.value = v ? v[v.length - 1] : '';
-        // Advance to the column on the left (higher place value)
         if (v && i > 0) resInps[i - 1].focus();
         resetVerification();
       });
       inp.addEventListener('keydown', e => {
         if (e.key === 'Backspace' && !inp.value && i < resInps.length - 1) {
-          resInps[i + 1].focus(); // go right (lower place value)
+          resInps[i + 1].focus();
         }
       });
     });
 
-    // Carry inputs: independent, just sanitize
-    document.querySelectorAll('.carry-inp').forEach(inp => {
-      inp.addEventListener('input', e => {
-        const v = e.target.value.replace(/\D/g, '');
-        e.target.value = v ? v[v.length - 1] : '';
-        resetVerification();
-      });
-    });
-
-    // Focus units (rightmost) first
     resInps[resInps.length - 1]?.focus();
   }
 
   // ── Verify ─────────────────────────────────────────────────────────────────
   function verify() {
     isVerified = true;
-    const total = numbers.reduce((s, n) => s + n, 0);
-    const expected = toDigits(total, cols);
-    const carries  = computeCarries(numbers, cols);
+    const diff = minuend - subtrahend;
+    const expected = toDigits(diff, cols).map(d => d ?? 0);
     let allOk = true;
+    const wrongCols = [];
 
     document.querySelectorAll('.result-inp').forEach((inp, i) => {
       const ok = inp.value !== '' && parseInt(inp.value) === expected[i];
       inp.classList.toggle('ok', ok);
       inp.classList.toggle('bad', !ok);
-      if (!ok) allOk = false;
-    });
-
-    // Carries are optional: only validate if filled
-    document.querySelectorAll('.carry-inp').forEach((inp, i) => {
-      inp.classList.remove('ok', 'bad');
-      if (!inp.value) return;
-      const ok = parseInt(inp.value) === carries[i];
-      inp.classList.toggle('ok', ok);
-      inp.classList.toggle('bad', !ok);
-      if (!ok) allOk = false;
+      if (!ok) { allOk = false; wrongCols.push(colName(i, cols)); }
     });
 
     const fb = document.getElementById('feedback');
-    fb.textContent = allOk
-      ? '🎉 Bravo ! C\'est correct !'
-      : '🔴 Pas tout à fait… Vérifie et réessaie !';
-    fb.className = 'feedback ' + (allOk ? 'ok' : 'bad');
-    if (allOk) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+    if (allOk) {
+      fb.textContent = '🎉 Bravo ! C\'est correct !';
+      fb.className = 'feedback ok';
+      playCorrect();
+      launchConfetti();
+    } else {
+      fb.textContent = `🔴 Pas tout à fait… Vérifie les ${wrongCols.join(', ')}.`;
+      fb.className = 'feedback bad';
+      playIncorrect();
+    }
   }
 
   function resetVerification() {
     if (!isVerified) return;
     isVerified = false;
-    document.querySelectorAll('.result-inp, .carry-inp').forEach(el => el.classList.remove('ok', 'bad'));
+    document.querySelectorAll('.result-inp').forEach(el => el.classList.remove('ok', 'bad'));
     document.getElementById('feedback').className = 'feedback';
   }
 
   // ── New exercise ───────────────────────────────────────────────────────────
   function newExercise() {
     isVerified = false;
+    gives = [];
     document.getElementById('feedback').className = 'feedback';
-    numbers = generate(level);
+    const [a, b] = generate(level);
+    minuend = a;
+    subtrahend = b;
+    gives = new Array(cols).fill(false);
     buildTable();
   }
 
