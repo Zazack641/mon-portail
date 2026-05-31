@@ -16,7 +16,7 @@ Référentiel pédagogique : **cycles HarmoS** (système scolaire romand/suisse)
 
 ```
 mon-portail/
-├── Mes outils pour apprendre.html   ← fichier principal (tout-en-un : HTML + CSS + JS)
+├── index.html                        ← fichier principal (tout-en-un : HTML + CSS + JS)
 └── Mes outils pour apprendre_files/ ← assets locaux (polices Google Fonts en cache)
 ```
 
