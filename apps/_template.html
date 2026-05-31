@@ -26,173 +26,16 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<!-- Styles partagés (reset, header, level-bar, feedback, boutons d'action…) -->
+<link rel="stylesheet" href="app-base.css">
 <style>
-  /* ── Reset ──────────────────────────────────────────────────────────────── */
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { -webkit-text-size-adjust: 100%; }
-  body {
-    font-family: 'Source Sans 3', sans-serif;
-    background: #F7F8FA;
-    color: #1A1A2E;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  /* ── Header ─────────────────────────────────────────────────────────────── */
-  /* NE PAS CHANGER les classes .app-header, .back-link, .header-spacer */
-  .app-header {
-    background: #1A3A5C;
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  .back-link {
-    color: rgba(255,255,255,0.85);
-    text-decoration: none;
-    font-size: 15px;
-    font-weight: 600;
-    white-space: nowrap;
-    touch-action: manipulation;
-  }
-  .back-link:hover { color: #fff; }
-  .app-header h1 {
-    font-family: 'Nunito', sans-serif;
-    font-size: clamp(18px, 4vw, 24px);
-    font-weight: 900;
-    color: #fff;
-    flex: 1;
-    text-align: center;
-  }
-  .header-spacer { width: 80px; }
-
-  /* ── Sélecteur de niveau ─────────────────────────────────────────────────── */
-  /* NE PAS CHANGER les classes .level-bar, .level-btn */
-  .level-bar {
-    background: #fff;
-    border-bottom: 1px solid #E2E8F0;
-    padding: 12px 20px;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-  .level-btn {
-    padding: 10px 24px;
-    border-radius: 999px;
-    border: 2px solid #E2E8F0;
-    background: #F8FAFC;
-    color: #4A5568;
-    font-family: 'Source Sans 3', sans-serif;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    min-height: 48px;
-    touch-action: manipulation;
-    -webkit-appearance: none;
-    transition: all 0.15s;
-  }
-  .level-btn.active        { background: #1A3A5C; color: #fff; border-color: #1A3A5C; }
-  .level-btn:not(.active):hover { background: #EEF2F7; border-color: #CBD5E0; }
-
-  /* ── Zone principale ─────────────────────────────────────────────────────── */
-  main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 24px 16px 40px;
-    gap: 24px;
-    max-width: 680px;
-    margin: 0 auto;
-    width: 100%;
-  }
-
-  /* ── Boîte de question ───────────────────────────────────────────────────── */
-  /* NE PAS CHANGER la classe .question-box */
-  .question-box {
-    background: #fff;
-    border: 1px solid #E2E8F0;
-    border-radius: 16px;
-    padding: 20px 24px;
-    text-align: center;
-    width: 100%;
-    font-family: 'Nunito', sans-serif;
-    font-size: clamp(17px, 3.5vw, 21px);
-    font-weight: 800;
-    color: #1A1A2E;
-    line-height: 1.4;
-  }
-
   /* ── TODO : styles spécifiques à l'app ──────────────────────────────────── */
   /*
-    Ajouter ici les styles propres à l'activité (canvas, SVG, grilles de choix…).
+    Ajouter ici uniquement les styles propres à cette activité (canvas, SVG,
+    grilles de choix…). Ne pas redéfinir ce qui est déjà dans app-base.css.
     Exemple :
-      .canvas-wrap { width: 100%; background: #fff; border: 1px solid #E2E8F0; border-radius: 16px; }
+      .canvas-wrap { width: 100%; background: #fff; border: 1px solid var(--app-border); border-radius: 16px; }
   */
-
-  /* ── Feedback ────────────────────────────────────────────────────────────── */
-  /* NE PAS CHANGER la classe .feedback */
-  .feedback {
-    width: 100%;
-    padding: 18px 24px;
-    border-radius: 14px;
-    text-align: center;
-    font-family: 'Nunito', sans-serif;
-    font-size: clamp(16px, 3vw, 19px);
-    font-weight: 800;
-    display: none;
-    line-height: 1.5;
-  }
-  .feedback.correct { background: #D1FAE5; color: #065F46; display: block; }
-  .feedback.wrong   { background: #FEE2E2; color: #991B1B; display: block; }
-
-  /* ── Boutons d'action ────────────────────────────────────────────────────── */
-  /* NE PAS CHANGER les classes .action-row, .verify-btn, .new-btn */
-  .action-row {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    flex-wrap: wrap;
-    width: 100%;
-  }
-  .verify-btn {
-    padding: 16px 36px;
-    background: #1A3A5C;
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    font-family: 'Nunito', sans-serif;
-    font-size: 18px;
-    font-weight: 800;
-    cursor: pointer;
-    min-height: 56px;
-    touch-action: manipulation;
-    -webkit-appearance: none;
-    transition: all 0.15s;
-  }
-  .verify-btn:hover    { background: #253F63; }
-  .verify-btn:disabled { background: #94A3B8; cursor: default; }
-  .new-btn {
-    padding: 16px 36px;
-    background: #0F7860;
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    font-family: 'Nunito', sans-serif;
-    font-size: 18px;
-    font-weight: 800;
-    cursor: pointer;
-    min-height: 56px;
-    touch-action: manipulation;
-    -webkit-appearance: none;
-    transition: all 0.15s;
-    display: none;
-  }
-  .new-btn.visible { display: block; }
-  .new-btn:hover   { background: #0A5C48; }
 </style>
 </head>
 <body>
@@ -234,6 +77,8 @@
 </main>
 
 <!-- ── Script de l'app ─────────────────────────────────────────────────────── -->
+<!-- appUtils.js expose : randInt, randBetween, shuffle, pick, colorForRank    -->
+<script src="appUtils.js"></script>
 <script>
   // ── Références DOM ─────────────────────────────────────────────────────────
   const questionBox = document.getElementById('question-box');
@@ -244,11 +89,6 @@
   // ── État ────────────────────────────────────────────────────────────────────
   let currentLevel = 1;
   let state = {};
-
-  // ── Utilitaires ─────────────────────────────────────────────────────────────
-  function randInt(a, b)  { return a + Math.floor(Math.random() * (b - a + 1)); }
-  function shuffle(arr)   { return [...arr].sort(() => Math.random() - 0.5); }
-  function pick(arr, n)   { return shuffle(arr).slice(0, n); }
 
   // ── Feedback unifié ─────────────────────────────────────────────────────────
   // Appeler showFeedback() depuis le point de validation unique de l'app.
@@ -277,7 +117,7 @@
       });
       btn.classList.add('active');
       btn.setAttribute('aria-pressed', 'true');
-      newExercise(); // remet aussi les compteurs de stats à zéro (point 5 futur)
+      newExercise();
     });
   });
 
@@ -285,7 +125,7 @@
   // verifyBtn.addEventListener('click', verify); // TODO : décommenter et implémenter
 
   // ── Logique de l'app ────────────────────────────────────────────────────────
-  // TODO : implémenter setup() et newExercise() selon le niveau.
+  // TODO : implémenter setupLevel1(), setupLevel2()… selon le nombre de niveaux.
 
   function setupLevel1() {
     resetFeedback();

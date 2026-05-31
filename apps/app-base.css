@@ -1,0 +1,179 @@
+/* app-base.css — Styles partagés entre toutes les apps pédagogiques.
+   NE PAS IMPORTER dans les apps existantes — uniquement pour les nouvelles apps
+   créées à partir de _template.html.                                          */
+
+/* ── Variables couleurs ──────────────────────────────────────────────────── */
+:root {
+  --color-units:    #3B7DD8; /* unités    — bleu  */
+  --color-tens:     #D64045; /* dizaines  — rouge */
+  --color-hundreds: #3A9E6F; /* centaines — vert  */
+
+  --app-bg:         #F7F8FA;
+  --app-text:       #1A1A2E;
+  --app-border:     #E2E8F0;
+  --app-header-bg:  #1A3A5C;
+  --app-correct-bg: #D1FAE5;
+  --app-correct-fg: #065F46;
+  --app-wrong-bg:   #FEE2E2;
+  --app-wrong-fg:   #991B1B;
+}
+
+/* ── Reset ───────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: 'Source Sans 3', sans-serif;
+  background: var(--app-bg);
+  color: var(--app-text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+/* NE PAS CHANGER les classes .app-header, .back-link, .header-spacer */
+.app-header {
+  background: var(--app-header-bg);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.back-link {
+  color: rgba(255,255,255,0.85);
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  touch-action: manipulation;
+}
+.back-link:hover { color: #fff; }
+.app-header h1 {
+  font-family: 'Nunito', sans-serif;
+  font-size: clamp(18px, 4vw, 24px);
+  font-weight: 900;
+  color: #fff;
+  flex: 1;
+  text-align: center;
+}
+.header-spacer { width: 80px; }
+
+/* ── Sélecteur de niveau ─────────────────────────────────────────────────── */
+/* NE PAS CHANGER les classes .level-bar, .level-btn */
+.level-bar {
+  background: #fff;
+  border-bottom: 1px solid var(--app-border);
+  padding: 12px 20px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.level-btn {
+  padding: 10px 24px;
+  border-radius: 999px;
+  border: 2px solid var(--app-border);
+  background: #F8FAFC;
+  color: #4A5568;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 48px;
+  touch-action: manipulation;
+  -webkit-appearance: none;
+  transition: all 0.15s;
+}
+.level-btn.active              { background: var(--app-header-bg); color: #fff; border-color: var(--app-header-bg); }
+.level-btn:not(.active):hover  { background: #EEF2F7; border-color: #CBD5E0; }
+
+/* ── Zone principale ─────────────────────────────────────────────────────── */
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 16px 40px;
+  gap: 24px;
+  max-width: 680px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ── Boîte de question ───────────────────────────────────────────────────── */
+/* NE PAS CHANGER la classe .question-box */
+.question-box {
+  background: #fff;
+  border: 1px solid var(--app-border);
+  border-radius: 16px;
+  padding: 20px 24px;
+  text-align: center;
+  width: 100%;
+  font-family: 'Nunito', sans-serif;
+  font-size: clamp(17px, 3.5vw, 21px);
+  font-weight: 800;
+  color: var(--app-text);
+  line-height: 1.4;
+}
+
+/* ── Feedback ────────────────────────────────────────────────────────────── */
+/* NE PAS CHANGER la classe .feedback */
+.feedback {
+  width: 100%;
+  padding: 18px 24px;
+  border-radius: 14px;
+  text-align: center;
+  font-family: 'Nunito', sans-serif;
+  font-size: clamp(16px, 3vw, 19px);
+  font-weight: 800;
+  display: none;
+  line-height: 1.5;
+}
+.feedback.correct { background: var(--app-correct-bg); color: var(--app-correct-fg); display: block; }
+.feedback.wrong   { background: var(--app-wrong-bg);   color: var(--app-wrong-fg);   display: block; }
+
+/* ── Boutons d'action ────────────────────────────────────────────────────── */
+/* NE PAS CHANGER les classes .action-row, .verify-btn, .new-btn */
+.action-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+}
+.verify-btn {
+  padding: 16px 36px;
+  background: var(--app-header-bg);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  cursor: pointer;
+  min-height: 56px;
+  touch-action: manipulation;
+  -webkit-appearance: none;
+  transition: all 0.15s;
+}
+.verify-btn:hover    { background: #253F63; }
+.verify-btn:disabled { background: #94A3B8; cursor: default; }
+.new-btn {
+  padding: 16px 36px;
+  background: #0F7860;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  cursor: pointer;
+  min-height: 56px;
+  touch-action: manipulation;
+  -webkit-appearance: none;
+  transition: all 0.15s;
+  display: none;
+}
+.new-btn.visible { display: block; }
+.new-btn:hover   { background: #0A5C48; }

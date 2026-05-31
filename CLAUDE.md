@@ -64,8 +64,19 @@ Les URLs des applications sont pour l'instant des placeholders `file:///apps/…
 
 Copier [`apps/_template.html`](apps/_template.html) sous le nom de la nouvelle app et suivre les instructions `TODO` inline. Ne jamais partir d'une app existante comme base : le squelette est la référence canonique (classes, IDs, structure JS, ordre des scripts).
 
+Le template référence automatiquement trois fichiers partagés :
+
+| Fichier | Rôle |
+|---------|------|
+| [`apps/app-base.css`](apps/app-base.css) | Reset, header, level-bar, question-box, feedback, boutons d'action, variables CSS couleurs |
+| [`apps/appUtils.js`](apps/appUtils.js) | `randInt`, `randBetween`, `shuffle`, `pick`, `colorForRank` |
+| [`apps/feedbackUtils.js`](apps/feedbackUtils.js) | `playCorrect`, `playIncorrect`, `launchConfetti` |
+
+**Ces fichiers ne doivent pas être ajoutés aux apps existantes** (elles embarquent leurs propres styles et utilitaires inline).  
+Dans les nouvelles apps, **ne pas redéfinir inline** ce qui est déjà fourni par `app-base.css` ou `appUtils.js` — ajouter uniquement les styles et fonctions spécifiques à l'activité.
+
 Règles à ne pas oublier :
-- `feedbackUtils.js` se charge **après** le script de l'app, juste avant `</body>`
+- `appUtils.js` se charge **avant** le script de l'app ; `feedbackUtils.js` se charge **après**, juste avant `</body>`
 - `playCorrect()` + `launchConfetti()` sur bonne réponse ; `playIncorrect()` seul sur mauvaise
 - Le changement de niveau appelle `newExercise()` qui doit remettre à zéro tout l'état
 - `aria-pressed` mis à jour dynamiquement sur chaque `.level-btn`
