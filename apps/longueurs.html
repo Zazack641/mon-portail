@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Les longueurs — Comparer des longueurs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: 'Source Sans 3', sans-serif;
+    background: #F7F8FA;
+    color: #1A1A2E;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .app-header {
+    background: #1A3A5C;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .back-link {
+    color: rgba(255,255,255,0.85);
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    touch-action: manipulation;
+  }
+  .back-link:hover { color: #fff; }
+  .app-header h1 {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(18px, 4vw, 24px);
+    font-weight: 900;
+    color: #fff;
+    flex: 1;
+    text-align: center;
+  }
+  .header-spacer { width: 80px; }
+
+  .level-bar {
+    background: #fff;
+    border-bottom: 1px solid #E2E8F0;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
+  .level-btn {
+    padding: 10px 24px;
+    border-radius: 999px;
+    border: 2px solid #E2E8F0;
+    background: #F8FAFC;
+    color: #4A5568;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    min-height: 48px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    transition: all 0.15s;
+  }
+  .level-btn.active { background: #1A3A5C; color: #fff; border-color: #1A3A5C; }
+  .level-btn:not(.active):hover { background: #EEF2F7; border-color: #CBD5E0; }
+
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 32px;
+    gap: 24px;
+    max-width: 700px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .question-box {
+    background: #fff;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    padding: 20px 24px;
+    text-align: center;
+    width: 100%;
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(17px, 3.5vw, 21px);
+    font-weight: 800;
+    color: #1A1A2E;
+    line-height: 1.4;
+  }
+
+  .canvas-wrap {
+    width: 100%;
+    background: #fff;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  #length-canvas {
+    width: 100%;
+    display: block;
+    touch-action: none;
+    cursor: default;
+  }
+  #length-canvas.clickable { cursor: pointer; }
+
+  .choices {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .choice-btn {
+    flex: 1;
+    min-width: 120px;
+    max-width: 200px;
+    padding: 16px 12px;
+    background: #fff;
+    border: 2px solid #E2E8F0;
+    border-radius: 14px;
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(15px, 3vw, 18px);
+    font-weight: 800;
+    color: #1A1A2E;
+    cursor: pointer;
+    min-height: 56px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .choice-btn:hover { background: #EEF2F7; border-color: #3B7DD8; }
+  .choice-btn:active { transform: scale(0.97); }
+  .choice-btn.correct { background: #D1FAE5; border-color: #10B981; color: #065F46; }
+  .choice-btn.wrong   { background: #FEE2E2; border-color: #EF4444; color: #991B1B; }
+  .choice-btn:disabled { cursor: default; }
+
+  .feedback {
+    width: 100%;
+    padding: 18px 24px;
+    border-radius: 14px;
+    text-align: center;
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(16px, 3vw, 19px);
+    font-weight: 800;
+    display: none;
+  }
+  .feedback.correct { background: #D1FAE5; color: #065F46; display: block; }
+  .feedback.wrong   { background: #FEE2E2; color: #991B1B; display: block; }
+
+  .action-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .verify-btn {
+    padding: 16px 36px;
+    background: #1A3A5C;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+    min-height: 56px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    transition: all 0.15s;
+    display: none;
+  }
+  .verify-btn.visible { display: block; }
+  .verify-btn:hover { background: #253F63; }
+  .verify-btn:active { transform: scale(0.97); }
+
+  .new-btn {
+    padding: 16px 36px;
+    background: #0F7860;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+    min-height: 56px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    transition: all 0.15s;
+    display: none;
+  }
+  .new-btn.visible { display: block; }
+  .new-btn:hover { background: #0A5C48; }
+  .new-btn:active { transform: scale(0.97); }
+
+  .hint {
+    width: 100%;
+    text-align: center;
+    color: #94A3B8;
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: -12px;
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <a href="../Mes outils pour apprendre.html" class="back-link">← Retour</a>
+  <h1>📏 Les longueurs</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<div class="level-bar">
+  <button class="level-btn active" data-level="1">Niveau 1</button>
+  <button class="level-btn" data-level="2">Niveau 2</button>
+  <button class="level-btn" data-level="3">Niveau 3</button>
+</div>
+
+<main>
+  <div class="question-box" id="question-box">Chargement…</div>
+
+  <div class="canvas-wrap">
+    <canvas id="length-canvas"></canvas>
+  </div>
+
+  <p class="hint" id="hint" style="display:none"></p>
+
+  <div class="choices" id="choices"></div>
+  <div class="feedback" id="feedback"></div>
+
+  <div class="action-row">
+    <button class="verify-btn" id="verify-btn">Vérifier</button>
+    <button class="new-btn" id="new-btn">Nouvel exercice</button>
+  </div>
+</main>
+
+<script>
+  const canvas = document.getElementById('length-canvas');
+  const ctx = canvas.getContext('2d');
+  const questionBox = document.getElementById('question-box');
+  const choicesDiv = document.getElementById('choices');
+  const feedbackEl = document.getElementById('feedback');
+  const newBtn = document.getElementById('new-btn');
+  const verifyBtn = document.getElementById('verify-btn');
+  const hintEl = document.getElementById('hint');
+
+  let currentLevel = 1;
+  let state = {};
+
+  const COLORS = ['#3B7DD8', '#D64045', '#3A9E6F', '#F59E0B'];
+
+  // ── helpers ──────────────────────────────────────────────────────────────
+
+  function randBetween(min, max) {
+    return min + Math.random() * (max - min);
+  }
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  // ── canvas sizing ─────────────────────────────────────────────────────────
+
+  function resizeCanvas() {
+    const wrap = canvas.parentElement;
+    const w = wrap.clientWidth;
+    canvas.width = w;
+    if (currentLevel === 1) {
+      canvas.height = Math.max(160, w * 0.32);
+    } else if (currentLevel === 2) {
+      canvas.height = Math.max(220, w * 0.55);
+    } else {
+      canvas.height = Math.max(260, w * 0.60);
+    }
+    draw();
+  }
+
+  // ── NIVEAU 1 : deux barres horizontales, partent toutes du même bord gauche ─
+
+  function setupL1() {
+    const isLongest = Math.random() < 0.5;
+    const lenA = randBetween(0.22, 0.80);
+    let lenB;
+    do { lenB = randBetween(0.22, 0.80); } while (Math.abs(lenA - lenB) < 0.10);
+
+    state = {
+      level: 1,
+      lines: [
+        { name: 'A', len: lenA, color: COLORS[0] },
+        { name: 'B', len: lenB, color: COLORS[1] },
+      ],
+      isLongest,
+      correctName: isLongest ? (lenA > lenB ? 'A' : 'B') : (lenA < lenB ? 'A' : 'B'),
+      answered: false,
+    };
+
+    questionBox.textContent = isLongest
+      ? 'Quelle barre est la plus longue ?'
+      : 'Quelle barre est la plus courte ?';
+
+    resetUI();
+    canvas.classList.add('clickable');
+    hintEl.textContent = 'Tape directement sur la barre.';
+    hintEl.style.display = 'block';
+  }
+
+  function answerL12(name) {
+    if (state.answered) return;
+    state.answered = true;
+    state.chosenName = name;
+    canvas.classList.remove('clickable');
+    hintEl.style.display = 'none';
+
+    const correct = name === state.correctName;
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = correct
+      ? '✅ Bravo ! C\'est exact !'
+      : `❌ Pas tout à fait. La bonne réponse est la barre ${state.correctName}.`;
+    if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+    newBtn.classList.add('visible');
+    draw();
+  }
+
+  // ── NIVEAU 2 : 3 barres dans des directions et positions variées ──────────
+
+  function tryPlaceBar(lenFrac, W, H, pad, maxBarPx) {
+    const barPx = lenFrac * maxBarPx;
+    // Try multiple random angles until the bar fits entirely inside the safe zone
+    for (let attempt = 0; attempt < 80; attempt++) {
+      const deg = randBetween(-65, 65);
+      const angle = (deg * Math.PI) / 180;
+      const ex = Math.cos(angle) * barPx;
+      const ey = Math.sin(angle) * barPx;
+
+      const minSx = pad + Math.max(0, -ex);
+      const maxSx = W - pad - Math.max(0, ex);
+      const minSy = pad + Math.max(0, -ey);
+      const maxSy = H - pad - Math.max(0, ey);
+
+      if (maxSx - minSx > 10 && maxSy - minSy > 10) {
+        return {
+          sx: randBetween(minSx, maxSx),
+          sy: randBetween(minSy, maxSy),
+          angle,
+          barPx,
+        };
+      }
+    }
+    return null;
+  }
+
+  function setupL2() {
+    const isLongest = Math.random() < 0.5;
+    const COUNT = 3;
+    const fracs = [];
+    while (fracs.length < COUNT) {
+      const f = randBetween(0.20, 0.85);
+      if (fracs.every(g => Math.abs(g - f) >= 0.10)) fracs.push(f);
+    }
+
+    const lines = fracs.map((len, i) => ({
+      name: ['A', 'B', 'C'][i],
+      len,
+      color: COLORS[i],
+      placement: null,
+    }));
+
+    const sorted = [...lines].sort((a, b) => a.len - b.len);
+    state = {
+      level: 2,
+      lines,
+      isLongest,
+      correctName: isLongest ? sorted[COUNT - 1].name : sorted[0].name,
+      answered: false,
+    };
+
+    questionBox.textContent = isLongest
+      ? 'Quelle barre est la plus longue ?'
+      : 'Quelle barre est la plus courte ?';
+
+    resetUI();
+    canvas.classList.add('clickable');
+    hintEl.textContent = 'Tape directement sur la barre.';
+    hintEl.style.display = 'block';
+  }
+
+  // ── NIVEAU 3 : 4 barres à classer dans l'ordre ───────────────────────────
+
+  function setupL3() {
+    const sortAsc = Math.random() < 0.5; // true = du plus court au plus long
+    const COUNT = 4;
+    const fracs = [];
+    while (fracs.length < COUNT) {
+      const f = randBetween(0.15, 0.85);
+      if (fracs.every(g => Math.abs(g - f) >= 0.10)) fracs.push(f);
+    }
+
+    const lines = shuffle(fracs.map((len, i) => ({
+      name: ['A', 'B', 'C', 'D'][i],
+      len,
+      color: COLORS[i],
+      rank: null, // 1..4 assigned by user taps
+    })));
+
+    // Reattribute names based on shuffled order for display
+    lines.forEach((l, i) => { l.name = ['A', 'B', 'C', 'D'][i]; l.color = COLORS[i]; });
+
+    state = {
+      level: 3,
+      lines,
+      sortAsc,
+      answered: false,
+    };
+
+    questionBox.textContent = sortAsc
+      ? 'Clique sur les barres dans l\'ordre : de la plus courte à la plus longue.'
+      : 'Clique sur les barres dans l\'ordre : de la plus longue à la plus courte.';
+
+    resetUI();
+    canvas.classList.add('clickable');
+    hintEl.textContent = 'Tape les barres une par une dans le bon ordre.';
+    hintEl.style.display = 'block';
+  }
+
+  function verifyL3() {
+    state.answered = true;
+    canvas.classList.remove('clickable');
+    verifyBtn.classList.remove('visible');
+    hintEl.style.display = 'none';
+
+    // Build expected order: rank 1 = smallest if sortAsc, largest if !sortAsc
+    const sorted = [...state.lines].sort((a, b) =>
+      state.sortAsc ? a.len - b.len : b.len - a.len
+    );
+    // sorted[0] should have rank 1, sorted[1] rank 2, etc.
+    let allCorrect = true;
+    sorted.forEach((line, i) => {
+      if (line.rank !== i + 1) allCorrect = false;
+    });
+
+    // Mark each line correct/wrong
+    state.lines.forEach(line => {
+      const expectedRank = sorted.findIndex(l => l === line) + 1;
+      line.correct = line.rank === expectedRank;
+      if (!line.correct) allCorrect = false;
+    });
+
+    feedbackEl.className = 'feedback ' + (allCorrect ? 'correct' : 'wrong');
+    feedbackEl.textContent = allCorrect
+      ? '✅ Bravo ! Toutes les barres sont dans le bon ordre !'
+      : '❌ Pas tout à fait. Regarde l\'ordre correct en rouge/vert.';
+    if (allCorrect) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+    newBtn.classList.add('visible');
+    draw();
+  }
+
+  // ── DESSIN ────────────────────────────────────────────────────────────────
+
+  function draw() {
+    if (!state.lines) return;
+    if (state.level === 1) drawL1();
+    else if (state.level === 2) drawL2();
+    else drawL3();
+  }
+
+  function drawL1() {
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+    const lines = state.lines;
+    const n = lines.length;
+    const padLeft = 52, padRight = 24, padV = 24;
+    const availW = W - padLeft - padRight;
+    const rowH = (H - padV * 2) / n;
+
+    lines.forEach((line, i) => {
+      const y = padV + rowH * i + rowH / 2;
+      const barPx = line.len * availW;
+
+      // Label
+      ctx.font = `bold 18px 'Nunito', sans-serif`;
+      ctx.fillStyle = line.color;
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(line.name, padLeft - 10, y);
+
+      let barColor = line.color;
+      if (state.answered) {
+        barColor = line.name === state.correctName ? '#10B981' : line.color + '55';
+      }
+      drawBar(padLeft, y, barPx, 0, barColor);
+
+      // Checkmark on correct bar after answer
+      if (state.answered && line.name === state.correctName) {
+        ctx.font = `bold 16px 'Nunito', sans-serif`;
+        ctx.fillStyle = '#10B981';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('✓', padLeft + barPx + 10, y);
+      }
+      // Cross on chosen-wrong bar
+      if (state.answered && state.chosenName === line.name && line.name !== state.correctName) {
+        ctx.font = `bold 16px 'Nunito', sans-serif`;
+        ctx.fillStyle = '#EF4444';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('✗', padLeft + barPx + 10, y);
+      }
+    });
+  }
+
+  function drawL2() {
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+    const pad = 36;
+    const maxBarPx = W * 0.70;
+
+    state.lines.forEach((line, i) => {
+      if (!line.placement) {
+        line.placement = tryPlaceBar(line.len, W, H, pad, maxBarPx);
+        if (!line.placement) {
+          const barPx = line.len * maxBarPx;
+          line.placement = { sx: pad, sy: pad + (H - pad * 2) * i / state.lines.length + 20, angle: 0, barPx };
+        }
+      }
+      const { sx, sy, angle, barPx } = line.placement;
+
+      let barColor = line.color;
+      if (state.answered) {
+        barColor = line.name === state.correctName ? '#10B981' : line.color + '55';
+      }
+      drawBar(sx, sy, barPx, angle, barColor);
+
+      // Label near start of bar
+      const labelOff = 14;
+      ctx.font = `bold 17px 'Nunito', sans-serif`;
+      ctx.fillStyle = state.answered
+        ? (line.name === state.correctName ? '#10B981' : line.color + '99')
+        : line.color;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(line.name, sx, sy - labelOff);
+
+      // Marker at end of correct bar after answer
+      if (state.answered && line.name === state.correctName) {
+        const ex = sx + Math.cos(angle) * barPx;
+        const ey = sy + Math.sin(angle) * barPx;
+        ctx.font = `bold 18px 'Nunito', sans-serif`;
+        ctx.fillStyle = '#10B981';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('✓', ex + Math.cos(angle) * 18, ey + Math.sin(angle) * 18);
+      }
+    });
+  }
+
+  function drawL3() {
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+    const lines = state.lines;
+    const n = lines.length;
+    const padLeft = 52, padRight = 24, padV = 20;
+    const availW = W - padLeft - padRight;
+    const rowH = (H - padV * 2) / n;
+
+    lines.forEach((line, i) => {
+      const y = padV + rowH * i + rowH / 2;
+      const barPx = line.len * availW;
+
+      // Label
+      ctx.font = `bold 18px 'Nunito', sans-serif`;
+      ctx.fillStyle = line.color;
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(line.name, padLeft - 10, y);
+
+      // Bar color based on answer state
+      let barColor = line.color;
+      if (state.answered) {
+        barColor = line.correct ? '#10B981' : '#EF4444';
+      }
+
+      drawBar(padLeft, y, barPx, 0, barColor);
+
+      // Rank badge
+      if (line.rank !== null) {
+        const badgeR = 14;
+        const bx = padLeft - 36;
+        const by = y;
+        ctx.beginPath();
+        ctx.arc(bx, by, badgeR, 0, Math.PI * 2);
+        ctx.fillStyle = state.answered
+          ? (line.correct ? '#10B981' : '#EF4444')
+          : '#1A3A5C';
+        ctx.fill();
+        ctx.font = `bold 15px 'Nunito', sans-serif`;
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(line.rank), bx, by);
+      }
+
+      // After answer: show correct rank
+      if (state.answered) {
+        const sorted = [...state.lines].sort((a, b) =>
+          state.sortAsc ? a.len - b.len : b.len - a.len
+        );
+        const correctRank = sorted.findIndex(l => l === line) + 1;
+        if (!line.correct) {
+          const bx2 = padLeft + barPx + 16;
+          ctx.font = `bold 14px 'Nunito', sans-serif`;
+          ctx.fillStyle = '#10B981';
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('→ ' + correctRank, bx2, y);
+        }
+      }
+    });
+  }
+
+  // ── Dessin d'une barre ────────────────────────────────────────────────────
+
+  function drawBar(sx, sy, barPx, angle, color) {
+    const BAR_H = 13;
+    ctx.save();
+    ctx.translate(sx, sy);
+    ctx.rotate(angle);
+
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    // Fallback for iOS < 15.4 without roundRect
+    if (ctx.roundRect) {
+      ctx.roundRect(0, -BAR_H / 2, barPx, BAR_H, BAR_H / 2);
+    } else {
+      const r = BAR_H / 2;
+      ctx.moveTo(r, -r);
+      ctx.lineTo(barPx - r, -r);
+      ctx.arcTo(barPx, -r, barPx, 0, r);
+      ctx.arcTo(barPx, r, barPx - r, r, r);
+      ctx.lineTo(r, r);
+      ctx.arcTo(0, r, 0, 0, r);
+      ctx.arcTo(0, -r, r, -r, r);
+    }
+    ctx.fill();
+
+    // End dots
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(barPx, 0, 5, 0, Math.PI * 2); ctx.fill();
+
+    ctx.restore();
+  }
+
+  // ── resetUI ───────────────────────────────────────────────────────────────
+
+  function resetUI() {
+    choicesDiv.innerHTML = '';
+    feedbackEl.className = 'feedback';
+    newBtn.classList.remove('visible');
+    verifyBtn.classList.remove('visible');
+    canvas.classList.remove('clickable');
+  }
+
+  // ── Hit testing ───────────────────────────────────────────────────────────
+
+  // L1: bars are in horizontal rows — detect by y coordinate
+  function hitTestL1(cx, cy) {
+    const W = canvas.width, H = canvas.height;
+    const n = state.lines.length;
+    const padLeft = 52, padV = 24;
+    const rowH = (H - padV * 2) / n;
+    const idx = Math.floor((cy - padV) / rowH);
+    if (idx < 0 || idx >= n) return null;
+    return state.lines[idx].name;
+  }
+
+  // L2: hit test on rotated bar — transform click into bar's local space
+  function hitTestL2(cx, cy) {
+    const TOL = 18; // px tolerance around bar
+    for (const line of state.lines) {
+      if (!line.placement) continue;
+      const { sx, sy, angle, barPx } = line.placement;
+      // Translate + rotate into bar local space
+      const dx = cx - sx, dy = cy - sy;
+      const lx =  dx * Math.cos(-angle) - dy * Math.sin(-angle);
+      const ly =  dx * Math.sin(-angle) + dy * Math.cos(-angle);
+      if (lx >= -TOL && lx <= barPx + TOL && ly >= -TOL && ly <= TOL) {
+        return line.name;
+      }
+    }
+    return null;
+  }
+
+  // ── Unified canvas click handler ──────────────────────────────────────────
+
+  function handleCanvasClick(e) {
+    if (state.answered) return;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width  / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const cx = (e.clientX - rect.left)  * scaleX;
+    const cy = (e.clientY - rect.top)   * scaleY;
+
+    if (state.level === 1) {
+      const name = hitTestL1(cx, cy);
+      if (name) answerL12(name);
+    } else if (state.level === 2) {
+      const name = hitTestL2(cx, cy);
+      if (name) answerL12(name);
+    } else if (state.level === 3) {
+      handleL3Click(cx, cy);
+    }
+  }
+
+  function handleL3Click(cx, cy) {
+    if (state.answered) return;
+    const W = canvas.width, H = canvas.height;
+    const n = state.lines.length;
+    const padV = 20;
+    const rowH = (H - padV * 2) / n;
+    const idx = Math.floor((cy - padV) / rowH);
+    if (idx < 0 || idx >= n) return;
+
+    const line = state.lines[idx];
+    if (line.rank !== null) {
+      const removed = line.rank;
+      line.rank = null;
+      state.lines.forEach(l => { if (l.rank !== null && l.rank > removed) l.rank--; });
+    } else {
+      line.rank = state.lines.filter(l => l.rank !== null).length + 1;
+    }
+
+    verifyBtn.classList.toggle('visible', state.lines.every(l => l.rank !== null));
+    draw();
+  }
+
+  // ── Events ────────────────────────────────────────────────────────────────
+
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLevel = parseInt(btn.dataset.level);
+      document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      newExercise();
+    });
+  });
+
+  newBtn.addEventListener('click', newExercise);
+  verifyBtn.addEventListener('click', verifyL3);
+
+  canvas.addEventListener('click', e => handleCanvasClick(e));
+  canvas.addEventListener('touchend', e => {
+    e.preventDefault();
+    handleCanvasClick(e.changedTouches[0]);
+  }, { passive: false });
+
+  function newExercise() {
+    if (currentLevel === 1) setupL1();
+    else if (currentLevel === 2) setupL2();
+    else setupL3();
+    resizeCanvas();
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+  newExercise();
+</script>
+<script src="feedbackUtils.js"></script>
+</body>
+</html>

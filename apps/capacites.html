@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Les capacités — Comparer des récipients</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: 'Source Sans 3', sans-serif;
+    background: #F7F8FA;
+    color: #1A1A2E;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .app-header {
+    background: #1A3A5C;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .back-link {
+    color: rgba(255,255,255,0.85);
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+    touch-action: manipulation;
+  }
+  .back-link:hover { color: #fff; }
+  .app-header h1 {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(18px, 4vw, 24px);
+    font-weight: 900;
+    color: #fff;
+    flex: 1;
+    text-align: center;
+  }
+  .header-spacer { width: 80px; }
+
+  .level-bar {
+    background: #fff;
+    border-bottom: 1px solid #E2E8F0;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
+  .level-btn {
+    padding: 10px 24px;
+    border-radius: 999px;
+    border: 2px solid #E2E8F0;
+    background: #F8FAFC;
+    color: #4A5568;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    min-height: 48px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    transition: all 0.15s;
+  }
+  .level-btn.active { background: #1A3A5C; color: #fff; border-color: #1A3A5C; }
+  .level-btn:not(.active):hover { background: #EEF2F7; border-color: #CBD5E0; }
+
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 32px;
+    gap: 24px;
+    max-width: 720px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .question-box {
+    background: #fff;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    padding: 20px 24px;
+    text-align: center;
+    width: 100%;
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(17px, 3.5vw, 21px);
+    font-weight: 800;
+    color: #1A1A2E;
+    line-height: 1.4;
+  }
+
+  /* Containers display */
+  .containers-row {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: clamp(16px, 4vw, 40px);
+    flex-wrap: wrap;
+    width: 100%;
+    padding: 8px 0;
+  }
+
+  .container-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .container-item .label {
+    font-family: 'Nunito', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    color: #64748B;
+  }
+  .container-svg-wrap {
+    border: 3px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 8px;
+    background: #fff;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .container-item:hover .container-svg-wrap { border-color: #3B7DD8; background: #EFF6FF; }
+  .container-item.selected .container-svg-wrap { border-color: #3B7DD8; background: #DBEAFE; }
+  .container-item.correct .container-svg-wrap { border-color: #10B981; background: #D1FAE5; }
+  .container-item.wrong .container-svg-wrap   { border-color: #EF4444; background: #FEE2E2; }
+
+  .feedback {
+    width: 100%;
+    padding: 18px 24px;
+    border-radius: 14px;
+    text-align: center;
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(16px, 3vw, 19px);
+    font-weight: 800;
+    display: none;
+  }
+  .feedback.correct { background: #D1FAE5; color: #065F46; display: block; }
+  .feedback.wrong   { background: #FEE2E2; color: #991B1B; display: block; }
+
+  .action-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; width: 100%; }
+  .verify-btn {
+    padding: 16px 36px;
+    background: #1A3A5C;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+    min-height: 56px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    transition: all 0.15s;
+  }
+  .verify-btn:hover { background: #253F63; }
+  .verify-btn:disabled { background: #94A3B8; cursor: default; }
+  .new-btn {
+    padding: 16px 36px;
+    background: #0F7860;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+    min-height: 56px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    transition: all 0.15s;
+    display: none;
+  }
+  .new-btn.visible { display: block; }
+  .new-btn:hover { background: #0A5C48; }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <a href="../Mes outils pour apprendre.html" class="back-link">← Retour</a>
+  <h1>🥛 Les capacités</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<div class="level-bar">
+  <button class="level-btn active" data-level="1">Niveau 1</button>
+  <button class="level-btn" data-level="2">Niveau 2</button>
+</div>
+
+<main>
+  <div class="question-box" id="question-box">Chargement…</div>
+  <div class="containers-row" id="containers-row"></div>
+  <div class="feedback" id="feedback"></div>
+  <div class="action-row">
+    <button class="verify-btn" id="verify-btn" disabled>Vérifier</button>
+    <button class="new-btn" id="new-btn">Nouvel exercice</button>
+  </div>
+</main>
+
+<script>
+  // Container shapes: each has a draw function(ctx, w, h, fillRatio, color)
+  // fillRatio = volume / maxVolume for visual fill
+
+  const WATER_COLOR = '#3B7DD8';
+  const WATER_ALPHA = 'rgba(59,125,216,0.25)';
+
+  // Shape definitions: { name, draw(ctx,w,h,fill), label }
+  const SHAPES = [
+    {
+      id: 'verre',
+      label: 'Verre',
+      draw(ctx, w, h, fill) {
+        const bw = w * 0.55, tw = w * 0.45;
+        const x0 = (w - bw) / 2, x1 = (w - tw) / 2;
+        ctx.beginPath();
+        ctx.moveTo(x0, h); ctx.lineTo(x1, 0);
+        ctx.lineTo(x1 + tw, 0); ctx.lineTo(x0 + bw, h);
+        ctx.closePath();
+        ctx.strokeStyle = '#475569'; ctx.lineWidth = 2.5; ctx.stroke();
+        // fill
+        const fillH = h * fill;
+        const fy = h - fillH;
+        const fBotL = x0, fBotR = x0 + bw;
+        const t = fy / h;
+        const fTopL = x0 + (x1 - x0) * (1 - t);
+        const fTopR = x0 + bw - (x0 + bw - (x1 + tw)) * (1 - t);
+        ctx.beginPath();
+        ctx.moveTo(fBotL, h); ctx.lineTo(fTopL, fy);
+        ctx.lineTo(fTopR, fy); ctx.lineTo(fBotR, h);
+        ctx.closePath();
+        ctx.fillStyle = WATER_ALPHA; ctx.fill();
+        ctx.strokeStyle = WATER_COLOR; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(fTopL, fy); ctx.lineTo(fTopR, fy); ctx.stroke();
+      }
+    },
+    {
+      id: 'bouteille',
+      label: 'Bouteille',
+      draw(ctx, w, h, fill) {
+        const bw = w * 0.5, nw = w * 0.2;
+        const neckH = h * 0.25;
+        const bx = (w - bw) / 2, nx = (w - nw) / 2;
+        ctx.beginPath();
+        ctx.moveTo(bx, h);
+        ctx.lineTo(bx, h * 0.75);
+        ctx.quadraticCurveTo(bx, h * 0.65, nx, neckH);
+        ctx.lineTo(nx, 0);
+        ctx.lineTo(nx + nw, 0);
+        ctx.lineTo(nx + nw, neckH);
+        ctx.quadraticCurveTo(bx + bw, h * 0.65, bx + bw, h * 0.75);
+        ctx.lineTo(bx + bw, h);
+        ctx.closePath();
+        ctx.strokeStyle = '#475569'; ctx.lineWidth = 2.5; ctx.stroke();
+        // fill — approximate rectangular fill in body
+        const bodyH = h * 0.75;
+        const fillH = bodyH * fill;
+        const fy = h - fillH;
+        ctx.beginPath();
+        ctx.rect(bx, Math.max(fy, h * 0.65), bw, Math.min(fillH, h - h * 0.65));
+        ctx.fillStyle = WATER_ALPHA; ctx.fill();
+        ctx.strokeStyle = WATER_COLOR; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(bx, Math.max(fy, h * 0.65)); ctx.lineTo(bx + bw, Math.max(fy, h * 0.65)); ctx.stroke();
+      }
+    },
+    {
+      id: 'bol',
+      label: 'Bol',
+      draw(ctx, w, h, fill) {
+        const cx = w / 2, cy = h * 0.7;
+        const rx = w * 0.44, ry = h * 0.5;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, rx, ry, 0, Math.PI, 0);
+        ctx.lineTo(cx + rx, cy);
+        ctx.closePath();
+        ctx.strokeStyle = '#475569'; ctx.lineWidth = 2.5; ctx.stroke();
+        // fill
+        const maxFillY = h * 0.08;
+        const fillTop = cy - ry * fill * 0.85;
+        if (fill > 0) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, rx, ry, 0, Math.PI, 0);
+          ctx.clip();
+          ctx.fillStyle = WATER_ALPHA;
+          ctx.fillRect(cx - rx, fillTop, rx * 2, cy - fillTop + ry);
+          ctx.restore();
+          ctx.strokeStyle = WATER_COLOR; ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          const wRx = rx * Math.sqrt(Math.max(0, 1 - Math.pow((fillTop - cy) / ry, 2)));
+          ctx.ellipse(cx, fillTop, wRx, wRx * 0.18, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+    },
+    {
+      id: 'seau',
+      label: 'Seau',
+      draw(ctx, w, h, fill) {
+        const bw = w * 0.65, tw = w * 0.5;
+        const bx = (w - bw) / 2, tx = (w - tw) / 2;
+        ctx.beginPath();
+        ctx.moveTo(bx, h); ctx.lineTo(tx, 0);
+        ctx.lineTo(tx + tw, 0); ctx.lineTo(bx + bw, h);
+        ctx.closePath();
+        ctx.strokeStyle = '#475569'; ctx.lineWidth = 2.5; ctx.stroke();
+        // fill
+        const fillH = h * fill;
+        const fy = h - fillH;
+        const t = fy / h;
+        const fTopL = bx + (tx - bx) * (1 - t);
+        const fTopR = bx + bw - (bx + bw - (tx + tw)) * (1 - t);
+        ctx.beginPath();
+        ctx.moveTo(bx, h); ctx.lineTo(fTopL, fy);
+        ctx.lineTo(fTopR, fy); ctx.lineTo(bx + bw, h);
+        ctx.closePath();
+        ctx.fillStyle = WATER_ALPHA; ctx.fill();
+        ctx.strokeStyle = WATER_COLOR; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(fTopL, fy); ctx.lineTo(fTopR, fy); ctx.stroke();
+        // handle
+        ctx.strokeStyle = '#94A3B8'; ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(w / 2, -8, tw * 0.4, 0, Math.PI);
+        ctx.stroke();
+      }
+    },
+    {
+      id: 'pichet',
+      label: 'Pichet',
+      draw(ctx, w, h, fill) {
+        const bw = w * 0.55;
+        const bx = (w - bw) / 2;
+        // Body
+        ctx.beginPath();
+        ctx.roundRect(bx, h * 0.15, bw, h * 0.85, [0, 0, 8, 8]);
+        ctx.strokeStyle = '#475569'; ctx.lineWidth = 2.5; ctx.stroke();
+        // Spout
+        ctx.beginPath();
+        ctx.moveTo(bx, h * 0.25);
+        ctx.quadraticCurveTo(bx - w * 0.15, h * 0.1, bx - w * 0.05, h * 0.05);
+        ctx.strokeStyle = '#475569'; ctx.lineWidth = 2.5; ctx.stroke();
+        // Handle
+        ctx.beginPath();
+        ctx.arc(bx + bw + w * 0.1, h * 0.45, h * 0.2, -Math.PI * 0.4, Math.PI * 0.4);
+        ctx.strokeStyle = '#94A3B8'; ctx.lineWidth = 2.5; ctx.stroke();
+        // Fill
+        const fillH = h * 0.85 * fill;
+        const fy = h - fillH;
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(bx, h * 0.15, bw, h * 0.85);
+        ctx.clip();
+        ctx.fillStyle = WATER_ALPHA;
+        ctx.fillRect(bx, fy, bw, fillH);
+        ctx.restore();
+        if (fill > 0) {
+          ctx.strokeStyle = WATER_COLOR; ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.moveTo(bx, fy); ctx.lineTo(bx + bw, fy); ctx.stroke();
+        }
+      }
+    },
+  ];
+
+  let currentLevel = 1;
+  let state = {};
+
+  const questionBox = document.getElementById('question-box');
+  const containersRow = document.getElementById('containers-row');
+  const feedbackEl = document.getElementById('feedback');
+  const verifyBtn = document.getElementById('verify-btn');
+  const newBtn = document.getElementById('new-btn');
+
+  function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+  function pick(arr, n) { return shuffle(arr).slice(0, n); }
+
+  function drawContainer(shape, volume, maxVolume, size) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size * 1.3;
+    const ctx = canvas.getContext('2d');
+    const fill = volume / maxVolume;
+    ctx.save();
+    ctx.translate(4, 8);
+    shape.draw(ctx, size - 8, canvas.height - 16, fill);
+    ctx.restore();
+    return canvas;
+  }
+
+  function buildContainers(items) {
+    containersRow.innerHTML = '';
+    const size = Math.min(110, Math.floor((window.innerWidth - 80) / items.length));
+    items.forEach((item, i) => {
+      const div = document.createElement('div');
+      div.className = 'container-item';
+      div.dataset.index = i;
+
+      const svgWrap = document.createElement('div');
+      svgWrap.className = 'container-svg-wrap';
+      const cv = drawContainer(item.shape, item.volume, item.maxVolume, size);
+      svgWrap.appendChild(cv);
+
+      const lbl = document.createElement('div');
+      lbl.className = 'label';
+      lbl.textContent = item.shape.label;
+
+      div.appendChild(svgWrap);
+      div.appendChild(lbl);
+      div.addEventListener('click', () => selectContainer(i, div));
+      containersRow.appendChild(div);
+    });
+  }
+
+  function selectContainer(idx, div) {
+    if (state.answered) return;
+    document.querySelectorAll('.container-item').forEach(d => d.classList.remove('selected'));
+    div.classList.add('selected');
+    state.selected = idx;
+    verifyBtn.disabled = false;
+  }
+
+  function setupL1() {
+    const shapes = pick(SHAPES, 2);
+    const isMost = Math.random() < 0.5;
+    let volA, volB;
+    do {
+      volA = 0.2 + Math.random() * 0.7;
+      volB = 0.2 + Math.random() * 0.7;
+    } while (Math.abs(volA - volB) < 0.15);
+
+    const maxVol = 1;
+    const items = [
+      { shape: shapes[0], volume: volA, maxVolume: maxVol },
+      { shape: shapes[1], volume: volB, maxVolume: maxVol },
+    ];
+    const correctIdx = isMost
+      ? (volA > volB ? 0 : 1)
+      : (volA < volB ? 0 : 1);
+
+    state = { items, correctIdx, selected: null, answered: false, isMost };
+    questionBox.textContent = isMost
+      ? 'Quel récipient contient le plus d\'eau ?'
+      : 'Quel récipient contient le moins d\'eau ?';
+
+    buildContainers(items);
+    feedbackEl.className = 'feedback';
+    verifyBtn.disabled = true;
+    newBtn.classList.remove('visible');
+    state.answered = false;
+  }
+
+  function setupL2() {
+    const count = 3 + Math.floor(Math.random() * 2);
+    const shapes = pick(SHAPES, count);
+    const isMost = Math.random() < 0.5;
+    const maxVol = 1;
+    const volumes = [];
+    while (volumes.length < count) {
+      const v = 0.15 + Math.random() * 0.75;
+      if (volumes.every(x => Math.abs(x - v) > 0.1)) volumes.push(v);
+    }
+    const items = shapes.map((shape, i) => ({ shape, volume: volumes[i], maxVolume: maxVol }));
+    const sorted = [...items.map((it, i) => ({ ...it, i }))].sort((a, b) => a.volume - b.volume);
+    const correctIdx = isMost ? sorted[sorted.length - 1].i : sorted[0].i;
+
+    state = { items, correctIdx, selected: null, answered: false, isMost };
+    questionBox.textContent = isMost
+      ? 'Quel récipient contient le plus d\'eau ?'
+      : 'Quel récipient contient le moins d\'eau ?';
+
+    buildContainers(items);
+    feedbackEl.className = 'feedback';
+    verifyBtn.disabled = true;
+    newBtn.classList.remove('visible');
+    state.answered = false;
+  }
+
+  verifyBtn.addEventListener('click', () => {
+    if (state.selected === null) return;
+    state.answered = true;
+    const correct = state.selected === state.correctIdx;
+    document.querySelectorAll('.container-item').forEach((div, i) => {
+      div.classList.remove('selected');
+      if (i === state.correctIdx) div.classList.add('correct');
+      else if (i === state.selected) div.classList.add('wrong');
+    });
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = correct
+      ? '✅ Bravo ! Tu as bien comparé les quantités !'
+      : `❌ Pas tout à fait. Regarde bien le niveau de remplissage !`;
+    if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+    verifyBtn.disabled = true;
+    newBtn.classList.add('visible');
+  });
+
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLevel = parseInt(btn.dataset.level);
+      document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      newExercise();
+    });
+  });
+
+  newBtn.addEventListener('click', newExercise);
+
+  function newExercise() {
+    if (currentLevel === 1) setupL1();
+    else setupL2();
+  }
+
+  newExercise();
+</script>
+<script src="feedbackUtils.js"></script>
+</body>
+</html>

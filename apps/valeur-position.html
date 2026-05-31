@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Valeur de position</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --color-units:    #3B7DD8;
+    --color-tens:     #D64045;
+    --color-hundreds: #3A9E6F;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: 'Source Sans 3', sans-serif;
+    background: #F7F8FA;
+    color: #1A1A2E;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .app-header {
+    background: #1A3A5C;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .back-link {
+    color: rgba(255,255,255,0.85);
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+    touch-action: manipulation;
+  }
+  .back-link:hover { color: #fff; }
+  .app-header h1 {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(18px, 4vw, 24px);
+    font-weight: 900;
+    color: #fff;
+    flex: 1;
+    text-align: center;
+  }
+  .header-spacer { width: 80px; }
+
+  .level-bar {
+    background: #fff;
+    border-bottom: 1px solid #E2E8F0;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .level-btn {
+    padding: 10px 20px;
+    border-radius: 999px;
+    border: 2px solid #E2E8F0;
+    background: #F8FAFC;
+    color: #4A5568;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    min-height: 48px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    transition: all 0.15s;
+  }
+  .level-btn.active { background: #1A3A5C; color: #fff; border-color: #1A3A5C; }
+  .level-btn:not(.active):hover { background: #EEF2F7; border-color: #CBD5E0; }
+
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 28px 16px 40px;
+    gap: 28px;
+    max-width: 640px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .question-box {
+    background: #fff;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    padding: 20px 24px;
+    text-align: center;
+    width: 100%;
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(17px, 3.5vw, 21px);
+    font-weight: 800;
+    color: #1A1A2E;
+    line-height: 1.4;
+  }
+
+  /* Number with highlighted digit */
+  .number-display {
+    display: flex;
+    gap: 2px;
+    align-items: flex-end;
+    justify-content: center;
+    flex-wrap: nowrap;
+  }
+  .digit-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .digit-char {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(56px, 14vw, 88px);
+    font-weight: 900;
+    line-height: 1;
+    color: #CBD5E0;
+    transition: color 0.2s;
+  }
+  .digit-char.highlighted {
+    filter: drop-shadow(0 0 12px currentColor);
+  }
+  .digit-underline {
+    height: 5px;
+    width: 80%;
+    border-radius: 3px;
+    background: transparent;
+    transition: background 0.2s;
+  }
+  .digit-underline.highlighted { }
+
+  /* Answer choices */
+  .choices {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .choice-btn {
+    flex: 1;
+    min-width: 100px;
+    max-width: 180px;
+    padding: 16px 12px;
+    background: #fff;
+    border: 2.5px solid #E2E8F0;
+    border-radius: 14px;
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(16px, 3.5vw, 20px);
+    font-weight: 800;
+    color: #1A1A2E;
+    cursor: pointer;
+    min-height: 56px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .choice-btn:hover { background: #EEF2F7; border-color: #3B7DD8; }
+  .choice-btn:active { transform: scale(0.97); }
+  .choice-btn.correct { background: #D1FAE5; border-color: #10B981; color: #065F46; }
+  .choice-btn.wrong   { background: #FEE2E2; border-color: #EF4444; color: #991B1B; }
+  .choice-btn:disabled { cursor: default; }
+
+  /* Place value table */
+  .place-table {
+    display: flex;
+    gap: 0;
+    border: 2px solid #E2E8F0;
+    border-radius: 14px;
+    overflow: hidden;
+    width: 100%;
+    max-width: 400px;
+  }
+  .place-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .place-col:not(:last-child) { border-right: 2px solid #E2E8F0; }
+  .place-header {
+    padding: 8px 4px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    width: 100%;
+    text-align: center;
+  }
+  .place-value {
+    padding: 12px 4px;
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(28px, 6vw, 40px);
+    font-weight: 900;
+    width: 100%;
+    text-align: center;
+    border-top: 2px solid #E2E8F0;
+  }
+
+  .feedback {
+    width: 100%;
+    padding: 18px 24px;
+    border-radius: 14px;
+    text-align: center;
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(16px, 3vw, 19px);
+    font-weight: 800;
+    display: none;
+  }
+  .feedback.correct { background: #D1FAE5; color: #065F46; display: block; }
+  .feedback.wrong   { background: #FEE2E2; color: #991B1B; display: block; }
+
+  .action-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; width: 100%; }
+  .new-btn {
+    padding: 16px 36px;
+    background: #0F7860;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+    min-height: 56px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    transition: all 0.15s;
+    display: none;
+  }
+  .new-btn.visible { display: block; }
+  .new-btn:hover { background: #0A5C48; }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <a href="../Mes outils pour apprendre.html" class="back-link">← Retour</a>
+  <h1>🧩 Valeur de position</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<div class="level-bar">
+  <button class="level-btn active" data-level="1">Niveau 1 · jusqu'à 99</button>
+  <button class="level-btn" data-level="2">Niveau 2 · jusqu'à 999</button>
+</div>
+
+<main>
+  <div class="question-box" id="question-box">Chargement…</div>
+
+  <div class="number-display" id="number-display"></div>
+
+  <div class="place-table" id="place-table"></div>
+
+  <div class="choices" id="choices"></div>
+
+  <div class="feedback" id="feedback"></div>
+
+  <div class="action-row">
+    <button class="new-btn" id="new-btn">Nouvel exercice</button>
+  </div>
+</main>
+
+<script>
+  const PLACE_COLORS = ['--color-units', '--color-tens', '--color-hundreds'];
+  const PLACE_NAMES  = ['unités', 'dizaines', 'centaines'];
+  const PLACE_BG     = ['#EFF6FF', '#FEF2F2', '#ECFDF5'];
+  const PLACE_TEXT   = ['#1E40AF', '#991B1B', '#065F46'];
+
+  function colorForRank(rank) { return `var(${PLACE_COLORS[rank % 3]})`; }
+
+  let currentLevel = 1;
+  let state = {};
+
+  const numberDisplay = document.getElementById('number-display');
+  const placeTable = document.getElementById('place-table');
+  const choicesDiv = document.getElementById('choices');
+  const feedbackEl = document.getElementById('feedback');
+  const newBtn = document.getElementById('new-btn');
+  const questionBox = document.getElementById('question-box');
+
+  function randInt(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
+  function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+
+  function setup() {
+    const max = currentLevel === 1 ? 99 : 999;
+    const min = currentLevel === 1 ? 10 : 100;
+    const n = randInt(min, max);
+    const digits = String(n).split('').map(Number);
+    const len = digits.length;
+
+    // Pick a random digit position to ask about
+    const posIdx = Math.floor(Math.random() * len); // 0=leftmost
+    const rank = len - 1 - posIdx; // rank 0=units, 1=tens, 2=hundreds
+    const highlightedDigit = digits[posIdx];
+    const rankName = PLACE_NAMES[rank];
+    const correctAnswer = PLACE_NAMES[rank];
+
+    // Distractors: other rank names (always offer all available ranks)
+    const allRanks = currentLevel === 1
+      ? ['unités', 'dizaines']
+      : ['unités', 'dizaines', 'centaines'];
+    const options = shuffle(allRanks);
+
+    state = { n, digits, rank, posIdx, len, correctAnswer, answered: false };
+
+    questionBox.textContent = `Le chiffre ${highlightedDigit} est dans les… ?`;
+
+    // Render number with highlighted digit
+    numberDisplay.innerHTML = '';
+    digits.forEach((d, i) => {
+      const r = len - 1 - i;
+      const isHL = i === posIdx;
+      const wrap = document.createElement('div');
+      wrap.className = 'digit-wrap';
+
+      const char = document.createElement('div');
+      char.className = 'digit-char' + (isHL ? ' highlighted' : '');
+      char.style.color = isHL ? colorForRank(r) : '#CBD5E0';
+      char.textContent = d;
+
+      const line = document.createElement('div');
+      line.className = 'digit-underline' + (isHL ? ' highlighted' : '');
+      if (isHL) line.style.background = colorForRank(r);
+
+      wrap.appendChild(char);
+      wrap.appendChild(line);
+      numberDisplay.appendChild(wrap);
+    });
+
+    // Place value table
+    placeTable.innerHTML = '';
+    const tableRanks = currentLevel === 1
+      ? [{ rank: 1, label: 'Dizaines' }, { rank: 0, label: 'Unités' }]
+      : [{ rank: 2, label: 'Centaines' }, { rank: 1, label: 'Dizaines' }, { rank: 0, label: 'Unités' }];
+
+    tableRanks.forEach(({ rank: r, label }) => {
+      const col = document.createElement('div');
+      col.className = 'place-col';
+
+      const hdr = document.createElement('div');
+      hdr.className = 'place-header';
+      hdr.style.background = PLACE_BG[r];
+      hdr.style.color = PLACE_TEXT[r];
+      hdr.textContent = label;
+
+      const val = document.createElement('div');
+      val.className = 'place-value';
+      val.style.color = colorForRank(r);
+      // Find digit for this rank
+      const digitIdx = len - 1 - r;
+      val.textContent = digitIdx >= 0 ? digits[digitIdx] : '0';
+
+      col.appendChild(hdr);
+      col.appendChild(val);
+      placeTable.appendChild(col);
+    });
+
+    // Choices
+    choicesDiv.innerHTML = '';
+    options.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.textContent = opt.charAt(0).toUpperCase() + opt.slice(1);
+      btn.addEventListener('click', () => answer(opt, btn));
+      choicesDiv.appendChild(btn);
+    });
+
+    feedbackEl.className = 'feedback';
+    newBtn.classList.remove('visible');
+  }
+
+  function answer(opt, btn) {
+    if (state.answered) return;
+    state.answered = true;
+    const correct = opt === state.correctAnswer;
+
+    document.querySelectorAll('.choice-btn').forEach(b => {
+      b.disabled = true;
+      const bOpt = b.textContent.toLowerCase();
+      if (bOpt === state.correctAnswer) b.classList.add('correct');
+      else if (b === btn) b.classList.add('wrong');
+    });
+
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = correct
+      ? `✅ Bravo ! Le chiffre ${state.digits[state.posIdx]} est bien dans les ${state.correctAnswer} de ${state.n}.`
+      : `❌ Non. Le chiffre ${state.digits[state.posIdx]} est dans les ${state.correctAnswer} de ${state.n}.`;
+    if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+    newBtn.classList.add('visible');
+  }
+
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLevel = parseInt(btn.dataset.level);
+      document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      setup();
+    });
+  });
+
+  newBtn.addEventListener('click', setup);
+  setup();
+</script>
+<script src="feedbackUtils.js"></script>
+</body>
+</html>

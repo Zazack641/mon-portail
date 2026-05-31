@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>La balance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: 'Source Sans 3', sans-serif;
+    background: #F7F8FA;
+    color: #1A1A2E;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .app-header {
+    background: #1A3A5C;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .back-link { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 15px; font-weight: 600; white-space: nowrap; touch-action: manipulation; }
+  .back-link:hover { color: #fff; }
+  .app-header h1 { font-family: 'Nunito', sans-serif; font-size: clamp(18px,4vw,24px); font-weight: 900; color: #fff; flex: 1; text-align: center; }
+  .header-spacer { width: 80px; }
+
+  .level-bar { background: #fff; border-bottom: 1px solid #E2E8F0; padding: 12px 20px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+  .level-btn { padding: 10px 24px; border-radius: 999px; border: 2px solid #E2E8F0; background: #F8FAFC; color: #4A5568; font-family: 'Source Sans 3', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; min-height: 48px; touch-action: manipulation; -webkit-appearance: none; transition: all 0.15s; }
+  .level-btn.active { background: #1A3A5C; color: #fff; border-color: #1A3A5C; }
+  .level-btn:not(.active):hover { background: #EEF2F7; border-color: #CBD5E0; }
+
+  main { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 24px 16px 40px; gap: 20px; max-width: 600px; margin: 0 auto; width: 100%; }
+
+  .question-box { background: #fff; border: 1px solid #E2E8F0; border-radius: 16px; padding: 20px 24px; text-align: center; width: 100%; font-family: 'Nunito', sans-serif; font-size: clamp(17px,3.5vw,21px); font-weight: 800; color: #1A1A2E; line-height: 1.4; }
+
+  /* Hint sous la question */
+  .click-hint { font-size: 13px; color: #94A3B8; text-align: center; font-style: italic; }
+
+  /* SVG */
+  .svg-wrap { width: 100%; background: #fff; border: 1px solid #E2E8F0; border-radius: 16px; padding: 8px; }
+  #balance-svg { width: 100%; height: auto; display: block; overflow: visible; }
+
+  /* Panneau UI */
+  .ui-panel { display: none; flex-direction: column; gap: 12px; align-items: center; width: 100%; }
+  .ui-panel.active { display: flex; }
+
+  /* Bouton Égal (N2 uniquement) */
+  .egal-btn { padding: 16px 40px; background: #fff; border: 2px solid #E2E8F0; border-radius: 14px; font-family: 'Nunito', sans-serif; font-size: clamp(16px,3vw,19px); font-weight: 800; color: #1A1A2E; cursor: pointer; min-height: 56px; touch-action: manipulation; -webkit-appearance: none; transition: all 0.15s; }
+  .egal-btn:not(:disabled):hover { background: #EEF2F7; border-color: #3B7DD8; }
+  .egal-btn.correct { background: #D1FAE5; border-color: #10B981; color: #065F46; }
+  .egal-btn.wrong   { background: #FEE2E2; border-color: #EF4444; color: #991B1B; }
+  .egal-btn:disabled { cursor: default; }
+
+  /* Contrôles N3 */
+  .n3-sides { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; width: 100%; }
+  .n3-side { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .n3-side-label { font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; }
+  .n3-side-btns { display: flex; gap: 8px; }
+  .ctrl-btn { padding: 14px 18px; border-radius: 12px; border: 2px solid; background: #fff; font-family: 'Nunito', sans-serif; font-size: 20px; font-weight: 900; cursor: pointer; min-height: 52px; min-width: 52px; touch-action: manipulation; -webkit-appearance: none; transition: all 0.15s; }
+  .ctrl-btn.add    { border-color: #3B7DD8; color: #3B7DD8; }
+  .ctrl-btn.add:not(:disabled):hover    { background: #EFF6FF; }
+  .ctrl-btn.remove { border-color: #D64045; color: #D64045; }
+  .ctrl-btn.remove:not(:disabled):hover { background: #FEF2F2; }
+  .ctrl-btn:disabled { opacity: 0.3; cursor: default; }
+  .n3-count { font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700; color: #94A3B8; }
+
+  /* Feedback */
+  .feedback { width: 100%; padding: 18px 24px; border-radius: 14px; text-align: center; font-family: 'Nunito', sans-serif; font-size: clamp(15px,2.8vw,18px); font-weight: 800; display: none; line-height: 1.5; }
+  .feedback.correct { background: #D1FAE5; color: #065F46; display: block; }
+  .feedback.wrong   { background: #FEE2E2; color: #991B1B; display: block; }
+
+  .action-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .verify-btn { padding: 16px 36px; background: #1A3A5C; color: #fff; border: none; border-radius: 12px; font-family: 'Nunito', sans-serif; font-size: 18px; font-weight: 800; cursor: pointer; min-height: 56px; touch-action: manipulation; -webkit-appearance: none; transition: all 0.15s; }
+  .verify-btn:hover { background: #253F63; }
+  .verify-btn:disabled { background: #94A3B8; cursor: default; }
+  .new-btn { padding: 16px 36px; background: #0F7860; color: #fff; border: none; border-radius: 12px; font-family: 'Nunito', sans-serif; font-size: 18px; font-weight: 800; cursor: pointer; min-height: 56px; touch-action: manipulation; -webkit-appearance: none; transition: all 0.15s; display: none; }
+  .new-btn.visible { display: block; }
+  .new-btn:hover { background: #0A5C48; }
+
+  /* Hover sur les plateaux cliquables */
+  .plat-hover { transition: filter 0.15s; }
+  .plat-hover:hover { filter: brightness(0.82); }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <a href="../Mes outils pour apprendre.html" class="back-link">← Retour</a>
+  <h1>⚖️ La balance</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<div class="level-bar">
+  <button class="level-btn active" data-level="1">Niveau 1</button>
+  <button class="level-btn" data-level="2">Niveau 2</button>
+  <button class="level-btn" data-level="3">Niveau 3</button>
+</div>
+
+<main>
+  <div class="question-box" id="question-box">Chargement…</div>
+  <div class="click-hint" id="click-hint"></div>
+
+  <div class="svg-wrap">
+    <svg id="balance-svg" viewBox="0 0 500 242" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+
+  <!-- N2 : bouton Égal seulement (gauche/droite = clic sur les plateaux) -->
+  <div class="ui-panel" id="ui-n2">
+    <button class="egal-btn" id="btn-egal">= Égal</button>
+  </div>
+
+  <!-- N3 : contrôles pour les deux côtés -->
+  <div class="ui-panel" id="ui-n3">
+    <div class="n3-sides">
+      <div class="n3-side">
+        <div class="n3-side-label">Plateau gauche</div>
+        <div class="n3-side-btns">
+          <button class="ctrl-btn remove" id="btn-remove-l" disabled>−</button>
+          <button class="ctrl-btn add"    id="btn-add-l">+</button>
+        </div>
+        <div class="n3-count" id="n3-count-l"></div>
+      </div>
+      <div class="n3-side">
+        <div class="n3-side-label">Plateau droit</div>
+        <div class="n3-side-btns">
+          <button class="ctrl-btn remove" id="btn-remove-r" disabled>−</button>
+          <button class="ctrl-btn add"    id="btn-add-r">+</button>
+        </div>
+        <div class="n3-count" id="n3-count-r"></div>
+      </div>
+    </div>
+    <div class="action-row">
+      <button class="verify-btn" id="btn-verify" disabled>Vérifier</button>
+    </div>
+  </div>
+
+  <div class="feedback" id="feedback"></div>
+  <button class="new-btn" id="new-btn">Nouvel exercice</button>
+</main>
+
+<script>
+// ── Constantes géométriques ────────────────────────────────────────────────
+const SVG_NS  = 'http://www.w3.org/2000/svg';
+const CX      = 250;
+const CY      = 112;
+const ARM     = 168;
+const TILT    = 10 * Math.PI / 180;
+const CHAIN   = 46;
+const PLAT_RX = 52, PLAT_RY = 8;
+
+const CUBE_COLORS = ['#3B7DD8','#D64045','#3A9E6F','#F59E0B','#8B5CF6','#EC4899'];
+const N1_SIZES    = [[30,27],[44,38],[58,50],[70,60]];
+const N2_SIZES    = [[28,24],[40,34],[50,42]];
+const N3_CUBE_BASE  = { w:36, h:28, color:'#1A3A5C' }; // cubes de base (sombres)
+const N3_CUBE_ADDED = { w:36, h:28, color:'#3B7DD8' }; // cubes ajoutés (bleus)
+
+// ── Utilitaires ────────────────────────────────────────────────────────────
+function mk(tag, attrs) {
+  const el = document.createElementNS(SVG_NS, tag);
+  Object.entries(attrs).forEach(([k,v]) => el.setAttribute(k, v));
+  return el;
+}
+function randInt(a, b)  { return a + Math.floor(Math.random()*(b-a+1)); }
+function shuffle(arr)   { return [...arr].sort(()=>Math.random()-.5); }
+function pick(arr, n)   { return shuffle(arr).slice(0,n); }
+
+// ── Géométrie ─────────────────────────────────────────────────────────────
+function geom(tiltDir) {
+  const a  = tiltDir==='left' ? TILT : tiltDir==='right' ? -TILT : 0;
+  const lx = CX - ARM*Math.cos(a), ly = CY + ARM*Math.sin(a);
+  const rx = CX + ARM*Math.cos(a), ry = CY - ARM*Math.sin(a);
+  return { lx, ly, rx, ry, lpx:lx, lpy:ly+CHAIN, rpx:rx, rpy:ry+CHAIN };
+}
+
+// ── Dessin de la balance ───────────────────────────────────────────────────
+// platHL      : { left:'#color', right:'#color' }  — couleur des plateaux après réponse
+// onLeftClick / onRightClick : callbacks pour clic sur plateau (N1/N2)
+function drawBalance(leftCubes, rightCubes, tiltDir, platHL={}, onLeftClick, onRightClick) {
+  svg.innerHTML = '';
+  const g = geom(tiltDir);
+
+  // Socle
+  svg.appendChild(mk('rect',{x:193,y:226,width:114,height:12,fill:'#475569',rx:6}));
+  // Poteau
+  svg.appendChild(mk('rect',{x:241,y:CY,width:18,height:120,fill:'#94A3B8',rx:4}));
+  // Fléau
+  svg.appendChild(mk('line',{x1:g.lx,y1:g.ly,x2:g.rx,y2:g.ry,
+    stroke:'#475569','stroke-width':10,'stroke-linecap':'round'}));
+  // Pivot
+  svg.appendChild(mk('circle',{cx:CX,cy:CY,r:12,fill:'#334155'}));
+
+  // Chaînes
+  svg.appendChild(mk('line',{x1:g.lx,y1:g.ly,x2:g.lpx,y2:g.lpy,stroke:'#94A3B8','stroke-width':2.5}));
+  svg.appendChild(mk('line',{x1:g.rx,y1:g.ry,x2:g.rpx,y2:g.rpy,stroke:'#94A3B8','stroke-width':2.5}));
+
+  // Plateaux
+  const lPlatFill = platHL.left  || '#CBD5E0';
+  const rPlatFill = platHL.right || '#CBD5E0';
+
+  const lPlat = mk('ellipse',{cx:g.lpx,cy:g.lpy,rx:PLAT_RX,ry:PLAT_RY,fill:lPlatFill});
+  const rPlat = mk('ellipse',{cx:g.rpx,cy:g.rpy,rx:PLAT_RX,ry:PLAT_RY,fill:rPlatFill});
+  svg.appendChild(lPlat);
+  svg.appendChild(rPlat);
+
+  // Cubes
+  stackCubes(leftCubes,  g.lpx, g.lpy);
+  stackCubes(rightCubes, g.rpx, g.rpy);
+
+  // Zones de clic sur les plateaux (N1 et N2)
+  if (onLeftClick || onRightClick) {
+    // Grande zone transparente sur toute la hauteur de chaque côté
+    [
+      { cx:g.lpx, cy:g.lpy, cb:onLeftClick  },
+      { cx:g.rpx, cy:g.rpy, cb:onRightClick },
+    ].forEach(({cx:px, cy:py, cb}) => {
+      if (!cb) return;
+      // Rectangle couvrant plateau + cubes empilés
+      const hit = mk('rect',{
+        x: px-60, y: py-130,
+        width:120, height:150,
+        fill:'transparent',
+        style:'cursor:pointer'
+      });
+      hit.classList.add('plat-hover');
+      // Hover : teinte le plateau visible
+      hit.addEventListener('mouseenter', () => { lPlatFill; /* via CSS hover */ });
+      hit.addEventListener('click', cb);
+      svg.appendChild(hit);
+    });
+  }
+}
+
+function stackCubes(cubes, px, py) {
+  let y = py - PLAT_RY;
+  for (const c of cubes) {
+    const x   = px - c.w/2;
+    const top = y - c.h;
+    svg.appendChild(mk('rect',{x,y:top,width:c.w,height:c.h,fill:c.color,opacity:0.20,rx:5}));
+    svg.appendChild(mk('rect',{x,y:top,width:c.w,height:c.h,fill:'none',stroke:c.color,'stroke-width':2.5,rx:5}));
+    y = top;
+  }
+}
+
+// ── Références DOM ─────────────────────────────────────────────────────────
+const svg         = document.getElementById('balance-svg');
+const questionBox = document.getElementById('question-box');
+const clickHint   = document.getElementById('click-hint');
+const feedbackEl  = document.getElementById('feedback');
+const newBtn      = document.getElementById('new-btn');
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function showUI(id) {
+  ['ui-n2','ui-n3'].forEach(p => document.getElementById(p).classList.remove('active'));
+  if (id) document.getElementById(id).classList.add('active');
+}
+function showFeedback(correct, msg) {
+  feedbackEl.className = 'feedback '+(correct?'correct':'wrong');
+  feedbackEl.textContent = msg;
+  newBtn.classList.add('visible');
+  if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+}
+function resetUI() {
+  feedbackEl.className = 'feedback';
+  newBtn.classList.remove('visible');
+  clickHint.textContent = '';
+}
+
+let level = 1;
+let state = {};
+
+// ══════════════════════════════════════════════════════════════════════════
+// NIVEAU 1 — Un cube de chaque côté
+// L'élève clique sur le plateau pour désigner le plus lourd / plus léger.
+// Taille indépendante du poids (concept de densité).
+// ══════════════════════════════════════════════════════════════════════════
+function setupN1() {
+  resetUI(); showUI(null);
+
+  const [szL, szR] = pick(N1_SIZES, 2);
+  const [colL, colR] = pick(CUBE_COLORS, 2);
+
+  let wL, wR;
+  do { wL = randInt(1,9); wR = randInt(1,9); } while (wL===wR);
+
+  const tilt     = wL>wR ? 'left' : 'right';
+  const askHeavy = Math.random() < .5;
+  const correct  = askHeavy ? tilt : (tilt==='left' ? 'right' : 'left');
+
+  state = {
+    leftCubes:  [{w:szL[0],h:szL[1],color:colL}],
+    rightCubes: [{w:szR[0],h:szR[1],color:colR}],
+    tilt, correct, askHeavy, answered: false,
+  };
+
+  questionBox.textContent = askHeavy
+    ? 'Clique sur le plateau le plus lourd.'
+    : 'Clique sur le plateau le plus léger.';
+  clickHint.textContent = 'Clique directement sur un plateau pour répondre.';
+
+  drawBalance(state.leftCubes, state.rightCubes, tilt,
+    {}, () => answerN1('left'), () => answerN1('right'));
+}
+
+function answerN1(side) {
+  if (state.answered) return;
+  state.answered = true;
+
+  const correct = side === state.correct;
+  const basCote = state.tilt === 'left' ? 'gauche' : 'droit';
+
+  drawBalance(state.leftCubes, state.rightCubes, state.tilt, {
+    left:  state.correct==='left'  ? '#6EE7B7' : (side==='left'  ? '#FCA5A5' : '#CBD5E0'),
+    right: state.correct==='right' ? '#6EE7B7' : (side==='right' ? '#FCA5A5' : '#CBD5E0'),
+  });
+  clickHint.textContent = '';
+
+  showFeedback(correct,
+    correct
+      ? `✅ Bravo ! Le plateau ${basCote} est plus bas → il est plus lourd.`
+      : `❌ Le plateau ${basCote} est plus bas → il est plus ${state.askHeavy?'lourd':'léger'}.`
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// NIVEAU 2 — Cubes trompeurs (taille/nombre ≠ poids)
+// L'élève clique sur un plateau (Gauche/Droite) ou sur le bouton Égal.
+// ══════════════════════════════════════════════════════════════════════════
+function setupN2() {
+  resetUI(); showUI('ui-n2');
+
+  const isEqual = Math.random() < .2;
+
+  function makeSide(n) {
+    return Array.from({length:n}, ()=>{
+      const [w,h] = N2_SIZES[randInt(0,N2_SIZES.length-1)];
+      return {w, h, color:CUBE_COLORS[randInt(0,CUBE_COLORS.length-1)]};
+    });
+  }
+
+  const leftCubes  = makeSide(randInt(1,3));
+  const rightCubes = makeSide(randInt(1,3));
+
+  let wL, wR;
+  if (isEqual) { wL = wR = randInt(3,8); }
+  else { do { wL=randInt(1,9); wR=randInt(1,9); } while(wL===wR); }
+
+  const tilt     = wL>wR ? 'left' : wR>wL ? 'right' : 'equal';
+  const askHeavy = Math.random() < .5;
+
+  let correct;
+  if      (tilt==='equal')   correct = 'equal';
+  else if (askHeavy)         correct = tilt;
+  else correct = tilt==='left' ? 'right' : 'left';
+
+  state = { leftCubes, rightCubes, tilt, correct, askHeavy, answered:false };
+
+  questionBox.textContent = askHeavy
+    ? 'Quel plateau est le plus lourd ?'
+    : 'Quel plateau est le plus léger ?';
+  clickHint.textContent = 'Clique sur un plateau ou sur le bouton Égal.';
+
+  const egalBtn = document.getElementById('btn-egal');
+  egalBtn.className = 'egal-btn';
+  egalBtn.disabled = false;
+
+  drawBalance(leftCubes, rightCubes, tilt,
+    {}, () => answerN2('left'), () => answerN2('right'));
+}
+
+function answerN2(answer) {
+  if (state.answered) return;
+  state.answered = true;
+  clickHint.textContent = '';
+
+  document.getElementById('btn-egal').disabled = true;
+
+  const correct  = answer === state.correct;
+  const basCote  = state.tilt==='left' ? 'gauche' : state.tilt==='right' ? 'droit' : null;
+  const regle    = basCote
+    ? `Le plateau ${basCote} est plus bas → il est plus lourd.`
+    : 'Les deux plateaux sont au même niveau → ils sont égaux.';
+
+  // Mettre le bouton Égal en couleur si c'est la bonne réponse
+  if (state.correct === 'equal') {
+    document.getElementById('btn-egal').classList.add('correct');
+  } else if (answer === 'equal') {
+    document.getElementById('btn-egal').classList.add('wrong');
+  }
+
+  // Colorier les plateaux
+  let platHL;
+  if (state.tilt==='equal') {
+    platHL = {left:'#6EE7B7', right:'#6EE7B7'};
+  } else {
+    platHL = {
+      left:  state.tilt==='left'  ? '#6EE7B7' : '#CBD5E0',
+      right: state.tilt==='right' ? '#6EE7B7' : '#CBD5E0',
+    };
+    if (answer!=='equal' && answer!==state.correct) {
+      platHL[answer] = '#FCA5A5'; // mauvais plateau en rouge
+    }
+  }
+  drawBalance(state.leftCubes, state.rightCubes, state.tilt, platHL);
+
+  const names = {left:'gauche', right:'droit', equal:'égaux'};
+  showFeedback(correct,
+    correct
+      ? `✅ Bravo ! ${regle}`
+      : `❌ ${regle} La bonne réponse était « ${names[state.correct]} ».`
+  );
+}
+
+document.getElementById('btn-egal').addEventListener('click', () => answerN2('equal'));
+
+// ══════════════════════════════════════════════════════════════════════════
+// NIVEAU 3 — Équilibrer avec des cubes identiques
+// Cubes de base (sombres) présents dès le départ sur les deux plateaux.
+// L'élève ajoute ou enlève des cubes (bleus) sur chaque côté.
+// Il ne peut pas descendre sous le nombre de cubes de base.
+// ══════════════════════════════════════════════════════════════════════════
+function setupN3() {
+  resetUI(); showUI('ui-n3');
+
+  // Cubes de base différents des deux côtés
+  let baseL, baseR;
+  do { baseL = randInt(1,4); baseR = randInt(1,4); } while (baseL===baseR);
+
+  state = { baseL, baseR, addedL:0, addedR:0 };
+
+  questionBox.textContent = 'Ajoute ou enlève des cubes pour équilibrer les deux plateaux.';
+  clickHint.textContent = '';
+  document.getElementById('btn-verify').disabled = true;
+  refreshN3();
+}
+
+function refreshN3() {
+  const { baseL, baseR, addedL, addedR } = state;
+  const totalL = baseL + addedL;
+  const totalR = baseR + addedR;
+
+  // Visuels : cubes de base (sombres) + cubes ajoutés (bleus)
+  const leftCubes  = [...Array(baseL).fill(N3_CUBE_BASE),  ...Array(addedL).fill(N3_CUBE_ADDED)];
+  const rightCubes = [...Array(baseR).fill(N3_CUBE_BASE),  ...Array(addedR).fill(N3_CUBE_ADDED)];
+
+  const tilt = totalL>totalR ? 'left' : totalL<totalR ? 'right' : 'equal';
+  drawBalance(leftCubes, rightCubes, tilt);
+
+  // Boutons − : désactivés si 0 cubes ajoutés sur ce côté
+  document.getElementById('btn-remove-l').disabled = addedL <= 0;
+  document.getElementById('btn-remove-r').disabled = addedR <= 0;
+  // Boutons + : désactivés si total atteint 8
+  document.getElementById('btn-add-l').disabled = totalL >= 8;
+  document.getElementById('btn-add-r').disabled = totalR >= 8;
+
+  document.getElementById('n3-count-l').textContent =
+    `${totalL} cube${totalL>1?'s':''} (${baseL} fixe${baseL>1?'s':''} + ${addedL} ajouté${addedL>1?'s':''})`;
+  document.getElementById('n3-count-r').textContent =
+    `${totalR} cube${totalR>1?'s':''} (${baseR} fixe${baseR>1?'s':''} + ${addedR} ajouté${addedR>1?'s':''})`;
+
+  document.getElementById('btn-verify').disabled = (addedL===0 && addedR===0);
+}
+
+document.getElementById('btn-add-l').addEventListener('click', () => {
+  if (state.baseL+state.addedL < 8) { state.addedL++; refreshN3(); }
+});
+document.getElementById('btn-remove-l').addEventListener('click', () => {
+  if (state.addedL > 0) { state.addedL--; refreshN3(); }
+});
+document.getElementById('btn-add-r').addEventListener('click', () => {
+  if (state.baseR+state.addedR < 8) { state.addedR++; refreshN3(); }
+});
+document.getElementById('btn-remove-r').addEventListener('click', () => {
+  if (state.addedR > 0) { state.addedR--; refreshN3(); }
+});
+
+document.getElementById('btn-verify').addEventListener('click', () => {
+  const { baseL, baseR, addedL, addedR } = state;
+  const totalL = baseL + addedL;
+  const totalR = baseR + addedR;
+  const correct = totalL === totalR;
+
+  ['btn-add-l','btn-remove-l','btn-add-r','btn-remove-r','btn-verify'].forEach(id =>
+    document.getElementById(id).disabled = true
+  );
+
+  const leftCubes  = [...Array(baseL).fill(N3_CUBE_BASE), ...Array(addedL).fill(N3_CUBE_ADDED)];
+  const rightCubes = [...Array(baseR).fill(N3_CUBE_BASE), ...Array(addedR).fill(N3_CUBE_ADDED)];
+
+  if (correct) {
+    drawBalance(leftCubes, rightCubes, 'equal', {left:'#6EE7B7', right:'#6EE7B7'});
+  }
+
+  showFeedback(correct,
+    correct
+      ? `✅ Parfait ! Les deux plateaux ont ${totalL} cube${totalL>1?'s':''} chacun.`
+      : totalL > totalR
+        ? `❌ Le plateau gauche est trop lourd (${totalL} vs ${totalR}). Essaie encore !`
+        : `❌ Le plateau droit est trop lourd (${totalR} vs ${totalL}). Essaie encore !`
+  );
+
+  // Si raté, réactiver les contrôles
+  if (!correct) {
+    ['btn-add-l','btn-remove-l','btn-add-r','btn-remove-r'].forEach(id =>
+      document.getElementById(id).disabled = false
+    );
+    document.getElementById('btn-remove-l').disabled = addedL <= 0;
+    document.getElementById('btn-remove-r').disabled = addedR <= 0;
+    document.getElementById('btn-verify').disabled = false;
+    newBtn.classList.remove('visible');
+  }
+});
+
+// ── Navigation ─────────────────────────────────────────────────────────────
+document.querySelectorAll('.level-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    level = parseInt(btn.dataset.level);
+    document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    newExercise();
+  });
+});
+
+newBtn.addEventListener('click', newExercise);
+
+function newExercise() {
+  state = {};
+  if      (level===1) setupN1();
+  else if (level===2) setupN2();
+  else                setupN3();
+}
+
+newExercise();
+</script>
+<script src="feedbackUtils.js"></script>
+</body>
+</html>

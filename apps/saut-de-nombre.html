@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Le saut de nombre</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --color-units:    #3B7DD8;
+    --color-tens:     #D64045;
+    --color-hundreds: #3A9E6F;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: 'Source Sans 3', sans-serif;
+    background: #F7F8FA;
+    color: #1A1A2E;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .app-header {
+    background: #1A3A5C;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .back-link {
+    color: rgba(255,255,255,0.85);
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+    touch-action: manipulation;
+  }
+  .back-link:hover { color: #fff; }
+  .app-header h1 {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(18px, 4vw, 24px);
+    font-weight: 900;
+    color: #fff;
+    flex: 1;
+    text-align: center;
+  }
+  .header-spacer { width: 80px; }
+
+  .level-bar {
+    background: #fff;
+    border-bottom: 1px solid #E2E8F0;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .level-btn {
+    padding: 10px 20px;
+    border-radius: 999px;
+    border: 2px solid #E2E8F0;
+    background: #F8FAFC;
+    color: #4A5568;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    min-height: 48px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    transition: all 0.15s;
+  }
+  .level-btn.active { background: #1A3A5C; color: #fff; border-color: #1A3A5C; }
+  .level-btn:not(.active):hover { background: #EEF2F7; border-color: #CBD5E0; }
+
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 28px 16px 40px;
+    gap: 28px;
+    max-width: 640px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .question-box {
+    background: #fff;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    padding: 20px 24px;
+    text-align: center;
+    width: 100%;
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(17px, 3.5vw, 21px);
+    font-weight: 800;
+    color: #1A1A2E;
+    line-height: 1.4;
+  }
+
+  /* Current number display */
+  .number-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .number-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+  .current-number {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(56px, 14vw, 88px);
+    font-weight: 900;
+    line-height: 1;
+    display: flex;
+    gap: 2px;
+  }
+
+  /* Jump buttons grid */
+  .jump-grid {
+    display: grid;
+    gap: 12px;
+    width: 100%;
+  }
+  .jump-grid.l1 { grid-template-columns: 1fr 1fr; }
+  .jump-grid.l2 { grid-template-columns: 1fr 1fr 1fr; }
+
+  .jump-btn {
+    padding: 18px 8px;
+    border-radius: 14px;
+    border: 2.5px solid;
+    background: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(18px, 4vw, 24px);
+    font-weight: 900;
+    cursor: pointer;
+    min-height: 64px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .jump-btn:active { transform: scale(0.95); }
+  .jump-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+
+  .jump-btn.units-pos  { color: var(--color-units);    border-color: var(--color-units);    }
+  .jump-btn.units-neg  { color: var(--color-units);    border-color: var(--color-units);    background: #EFF6FF; }
+  .jump-btn.tens-pos   { color: var(--color-tens);     border-color: var(--color-tens);     }
+  .jump-btn.tens-neg   { color: var(--color-tens);     border-color: var(--color-tens);     background: #FEF2F2; }
+  .jump-btn.hunds-pos  { color: var(--color-hundreds); border-color: var(--color-hundreds); }
+  .jump-btn.hunds-neg  { color: var(--color-hundreds); border-color: var(--color-hundreds); background: #ECFDF5; }
+
+  .jump-btn:not(:disabled):hover { filter: brightness(0.93); }
+
+  /* Target display */
+  .target-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    width: 100%;
+    background: #fff;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    padding: 16px 24px;
+    flex-wrap: wrap;
+  }
+  .target-label {
+    font-size: 15px;
+    font-weight: 700;
+    color: #64748B;
+  }
+  .target-number {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(28px, 6vw, 40px);
+    font-weight: 900;
+    color: #0F7860;
+    display: flex;
+    gap: 2px;
+  }
+
+  .feedback {
+    width: 100%;
+    padding: 18px 24px;
+    border-radius: 14px;
+    text-align: center;
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(16px, 3vw, 19px);
+    font-weight: 800;
+    display: none;
+  }
+  .feedback.correct { background: #D1FAE5; color: #065F46; display: block; }
+  .feedback.wrong   { background: #FEE2E2; color: #991B1B; display: block; }
+
+  .action-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; width: 100%; }
+  .verify-btn {
+    padding: 16px 36px;
+    background: #1A3A5C;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+    min-height: 56px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    transition: all 0.15s;
+  }
+  .verify-btn:hover { background: #253F63; }
+  .new-btn {
+    padding: 16px 36px;
+    background: #0F7860;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+    min-height: 56px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    transition: all 0.15s;
+    display: none;
+  }
+  .new-btn.visible { display: block; }
+  .new-btn:hover { background: #0A5C48; }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <a href="../Mes outils pour apprendre.html" class="back-link">← Retour</a>
+  <h1>🦘 Le saut de nombre</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<div class="level-bar">
+  <button class="level-btn active" data-level="1">Niveau 1 · ±1 et ±10</button>
+  <button class="level-btn" data-level="2">Niveau 2 · ±1, ±10, ±100</button>
+</div>
+
+<main>
+  <div class="question-box" id="question-box">Utilise les boutons pour atteindre le nombre cible.</div>
+
+  <div class="number-display">
+    <div class="number-label">Nombre actuel</div>
+    <div class="current-number" id="current-number"></div>
+  </div>
+
+  <div class="jump-grid l1" id="jump-grid"></div>
+
+  <div class="target-row">
+    <div class="target-label">Nombre à atteindre :</div>
+    <div class="target-number" id="target-number"></div>
+  </div>
+
+  <div class="feedback" id="feedback"></div>
+
+  <div class="action-row">
+    <button class="verify-btn" id="verify-btn">Vérifier</button>
+    <button class="new-btn" id="new-btn">Nouvel exercice</button>
+  </div>
+</main>
+
+<script>
+  const PLACE_COLORS = ['--color-units', '--color-tens', '--color-hundreds'];
+  function colorForRank(rank) { return `var(${PLACE_COLORS[rank % 3]})`; }
+
+  let currentLevel = 1;
+  let state = {};
+
+  const currentNumberEl = document.getElementById('current-number');
+  const targetNumberEl = document.getElementById('target-number');
+  const jumpGrid = document.getElementById('jump-grid');
+  const feedbackEl = document.getElementById('feedback');
+  const verifyBtn = document.getElementById('verify-btn');
+  const newBtn = document.getElementById('new-btn');
+  const questionBox = document.getElementById('question-box');
+
+  function randInt(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
+
+  function renderColoredNumber(el, n) {
+    el.innerHTML = '';
+    const digits = String(n).split('');
+    const len = digits.length;
+    digits.forEach((d, i) => {
+      const rank = len - 1 - i;
+      const span = document.createElement('span');
+      span.style.color = colorForRank(rank);
+      span.textContent = d;
+      el.appendChild(span);
+    });
+  }
+
+  function updateCurrentDisplay() {
+    renderColoredNumber(currentNumberEl, state.current);
+    // Disable buttons that would go out of bounds
+    document.querySelectorAll('.jump-btn').forEach(btn => {
+      const delta = parseInt(btn.dataset.delta);
+      const next = state.current + delta;
+      btn.disabled = next < 0 || next > 999;
+    });
+    // Check win condition live
+    if (state.current === state.target && !state.answered) {
+      autoCorrect();
+    }
+  }
+
+  function autoCorrect() {
+    state.answered = true;
+    feedbackEl.className = 'feedback correct';
+    feedbackEl.textContent = `✅ Bravo ! Tu as atteint ${state.target} !`;
+    playCorrect(); launchConfetti();
+    document.querySelectorAll('.jump-btn').forEach(b => b.disabled = true);
+    newBtn.classList.add('visible');
+    verifyBtn.style.display = 'none';
+  }
+
+  function setup() {
+    const max = currentLevel === 1 ? 99 : 999;
+    const min = currentLevel === 1 ? 10 : 100;
+
+    let start, target;
+    do {
+      start = randInt(min, max);
+      // Choose a target reachable by jumps
+      const jumps = currentLevel === 1 ? [1, 10] : [1, 10, 100];
+      const steps = randInt(2, 5);
+      target = start;
+      for (let i = 0; i < steps; i++) {
+        const j = jumps[Math.floor(Math.random() * jumps.length)];
+        const sign = Math.random() < 0.5 ? 1 : -1;
+        const next = target + sign * j;
+        if (next >= 0 && next <= max + 10) target = next;
+      }
+    } while (start === target || target < 0 || target > 999);
+
+    state = { start, current: start, target, answered: false };
+
+    questionBox.textContent = `Utilise les boutons pour atteindre le nombre cible.`;
+    renderColoredNumber(targetNumberEl, target);
+    feedbackEl.className = 'feedback';
+    verifyBtn.style.display = 'block';
+    newBtn.classList.remove('visible');
+
+    // Build jump buttons
+    jumpGrid.className = 'jump-grid ' + (currentLevel === 1 ? 'l1' : 'l2');
+    jumpGrid.innerHTML = '';
+
+    const btns = currentLevel === 1
+      ? [
+          { delta: +1,  label: '+1',   cls: 'units-pos' },
+          { delta: -1,  label: '−1',   cls: 'units-neg' },
+          { delta: +10, label: '+10',  cls: 'tens-pos' },
+          { delta: -10, label: '−10',  cls: 'tens-neg' },
+        ]
+      : [
+          { delta: +1,   label: '+1',    cls: 'units-pos' },
+          { delta: -1,   label: '−1',    cls: 'units-neg' },
+          { delta: +10,  label: '+10',   cls: 'tens-pos' },
+          { delta: -10,  label: '−10',   cls: 'tens-neg' },
+          { delta: +100, label: '+100',  cls: 'hunds-pos' },
+          { delta: -100, label: '−100',  cls: 'hunds-neg' },
+        ];
+
+    btns.forEach(({ delta, label, cls }) => {
+      const btn = document.createElement('button');
+      btn.className = 'jump-btn ' + cls;
+      btn.textContent = label;
+      btn.dataset.delta = delta;
+      btn.addEventListener('click', () => {
+        if (state.answered) return;
+        state.current += delta;
+        updateCurrentDisplay();
+      });
+      jumpGrid.appendChild(btn);
+    });
+
+    updateCurrentDisplay();
+  }
+
+  verifyBtn.addEventListener('click', () => {
+    if (state.answered) return;
+    state.answered = true;
+    const correct = state.current === state.target;
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = correct
+      ? `✅ Bravo ! Tu as atteint ${state.target} !`
+      : `❌ Tu es à ${state.current}, mais le but était ${state.target}. Essaie encore !`;
+    if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+    if (!correct) {
+      state.answered = false;
+      return;
+    }
+    document.querySelectorAll('.jump-btn').forEach(b => b.disabled = true);
+    newBtn.classList.add('visible');
+    verifyBtn.style.display = 'none';
+  });
+
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLevel = parseInt(btn.dataset.level);
+      document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      setup();
+    });
+  });
+
+  newBtn.addEventListener('click', setup);
+  setup();
+</script>
+<script src="feedbackUtils.js"></script>
+</body>
+</html>

@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Les surfaces — Comparer des aires</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: 'Source Sans 3', sans-serif;
+    background: #F7F8FA;
+    color: #1A1A2E;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .app-header {
+    background: #1A3A5C;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .back-link {
+    color: rgba(255,255,255,0.85);
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+    touch-action: manipulation;
+  }
+  .back-link:hover { color: #fff; }
+  .app-header h1 {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(18px, 4vw, 24px);
+    font-weight: 900;
+    color: #fff;
+    flex: 1;
+    text-align: center;
+  }
+  .header-spacer { width: 80px; }
+
+  .level-bar {
+    background: #fff;
+    border-bottom: 1px solid #E2E8F0;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
+  .level-btn {
+    padding: 10px 24px;
+    border-radius: 999px;
+    border: 2px solid #E2E8F0;
+    background: #F8FAFC;
+    color: #4A5568;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    min-height: 48px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    transition: all 0.15s;
+  }
+  .level-btn.active { background: #1A3A5C; color: #fff; border-color: #1A3A5C; }
+  .level-btn:not(.active):hover { background: #EEF2F7; border-color: #CBD5E0; }
+
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 32px;
+    gap: 24px;
+    max-width: 720px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .question-box {
+    background: #fff;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    padding: 20px 24px;
+    text-align: center;
+    width: 100%;
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(17px, 3.5vw, 21px);
+    font-weight: 800;
+    color: #1A1A2E;
+    line-height: 1.4;
+  }
+
+  .shapes-row {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: clamp(12px, 3vw, 32px);
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .shape-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    touch-action: manipulation;
+    padding: 8px;
+    border: 3px solid #E2E8F0;
+    border-radius: 14px;
+    background: #fff;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .shape-item:hover { border-color: #3B7DD8; background: #EFF6FF; }
+  .shape-item.selected { border-color: #3B7DD8; background: #DBEAFE; }
+  .shape-item.correct  { border-color: #10B981; background: #D1FAE5; }
+  .shape-item.wrong    { border-color: #EF4444; background: #FEE2E2; }
+  .shape-label {
+    font-family: 'Nunito', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    color: #64748B;
+  }
+
+  .feedback {
+    width: 100%;
+    padding: 18px 24px;
+    border-radius: 14px;
+    text-align: center;
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(16px, 3vw, 19px);
+    font-weight: 800;
+    display: none;
+  }
+  .feedback.correct { background: #D1FAE5; color: #065F46; display: block; }
+  .feedback.wrong   { background: #FEE2E2; color: #991B1B; display: block; }
+
+  .action-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; width: 100%; }
+  .verify-btn {
+    padding: 16px 36px;
+    background: #1A3A5C;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+    min-height: 56px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    transition: all 0.15s;
+  }
+  .verify-btn:hover { background: #253F63; }
+  .verify-btn:disabled { background: #94A3B8; cursor: default; }
+  .new-btn {
+    padding: 16px 36px;
+    background: #0F7860;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+    min-height: 56px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    transition: all 0.15s;
+    display: none;
+  }
+  .new-btn.visible { display: block; }
+  .new-btn:hover { background: #0A5C48; }
+
+  /* Grid hint for level 1 */
+  .grid-note {
+    font-size: 13px;
+    color: #94A3B8;
+    font-style: italic;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <a href="../Mes outils pour apprendre.html" class="back-link">← Retour</a>
+  <h1>📐 Les surfaces</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<div class="level-bar">
+  <button class="level-btn active" data-level="1">Niveau 1</button>
+  <button class="level-btn" data-level="2">Niveau 2</button>
+</div>
+
+<main>
+  <div class="question-box" id="question-box">Chargement…</div>
+  <div class="grid-note" id="grid-note"></div>
+  <div class="shapes-row" id="shapes-row"></div>
+  <div class="feedback" id="feedback"></div>
+  <div class="action-row">
+    <button class="verify-btn" id="verify-btn" disabled>Vérifier</button>
+    <button class="new-btn" id="new-btn">Nouvel exercice</button>
+  </div>
+</main>
+
+<script>
+  const COLORS = ['#3B7DD8', '#D64045', '#3A9E6F', '#F59E0B'];
+  const NAMES = ['A', 'B', 'C', 'D'];
+
+  let currentLevel = 1;
+  let state = {};
+
+  const questionBox = document.getElementById('question-box');
+  const shapesRow = document.getElementById('shapes-row');
+  const feedbackEl = document.getElementById('feedback');
+  const verifyBtn = document.getElementById('verify-btn');
+  const newBtn = document.getElementById('new-btn');
+  const gridNote = document.getElementById('grid-note');
+
+  function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+  function pick(arr, n) { return shuffle(arr).slice(0, n); }
+  function randInt(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
+
+  // ---- Level 1: rectangles on grid ----
+  function makeRect() {
+    const cols = randInt(2, 6), rows = randInt(2, 5);
+    return { type: 'rect', cols, rows, area: cols * rows };
+  }
+
+  function drawGridShape(shape, color, cellSize) {
+    const GRID = 12;
+    const pad = 4;
+    const canvW = shape.cols * cellSize + pad * 2;
+    const canvH = shape.rows * cellSize + pad * 2;
+    const cv = document.createElement('canvas');
+    cv.width = canvW;
+    cv.height = canvH;
+    const ctx = cv.getContext('2d');
+
+    // Fill
+    ctx.fillStyle = color + '33';
+    ctx.fillRect(pad, pad, shape.cols * cellSize, shape.rows * cellSize);
+
+    // Grid lines
+    ctx.strokeStyle = color + '66';
+    ctx.lineWidth = 1;
+    for (let c = 0; c <= shape.cols; c++) {
+      ctx.beginPath();
+      ctx.moveTo(pad + c * cellSize, pad);
+      ctx.lineTo(pad + c * cellSize, pad + shape.rows * cellSize);
+      ctx.stroke();
+    }
+    for (let r = 0; r <= shape.rows; r++) {
+      ctx.beginPath();
+      ctx.moveTo(pad, pad + r * cellSize);
+      ctx.lineTo(pad + shape.cols * cellSize, pad + r * cellSize);
+      ctx.stroke();
+    }
+    // Border
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(pad, pad, shape.cols * cellSize, shape.rows * cellSize);
+
+    return cv;
+  }
+
+  function setupL1() {
+    const count = 2;
+    const cellSize = 24;
+    const shapes = [];
+    const usedAreas = [];
+    while (shapes.length < count) {
+      const s = makeRect();
+      if (!usedAreas.includes(s.area) && Math.abs(s.area - (usedAreas[0] || 0)) > 1) {
+        shapes.push(s);
+        usedAreas.push(s.area);
+      }
+    }
+    shapes.forEach((s, i) => { s.name = NAMES[i]; s.color = COLORS[i]; });
+
+    const isLargest = Math.random() < 0.5;
+    const sorted = [...shapes].sort((a, b) => a.area - b.area);
+    const correctName = isLargest ? sorted[sorted.length - 1].name : sorted[0].name;
+
+    state = { shapes, correctName, selected: null, answered: false };
+    questionBox.textContent = isLargest
+      ? 'Quelle surface est la plus grande ?'
+      : 'Quelle surface est la plus petite ?';
+    gridNote.textContent = 'Les cases de la grille ont toutes la même taille.';
+
+    shapesRow.innerHTML = '';
+    shapes.forEach(shape => {
+      const item = document.createElement('div');
+      item.className = 'shape-item';
+
+      const cv = drawGridShape(shape, shape.color, cellSize);
+      item.appendChild(cv);
+
+      const lbl = document.createElement('div');
+      lbl.className = 'shape-label';
+      lbl.textContent = 'Surface ' + shape.name;
+      item.appendChild(lbl);
+
+      item.addEventListener('click', () => selectShape(shape.name, item));
+      shapesRow.appendChild(item);
+    });
+
+    feedbackEl.className = 'feedback';
+    verifyBtn.disabled = true;
+    newBtn.classList.remove('visible');
+    state.answered = false;
+  }
+
+  // ---- Level 2: mixed shapes (rects + circles) ----
+  function drawMixedShape(shape, color, size) {
+    const cv = document.createElement('canvas');
+    cv.width = size;
+    cv.height = size;
+    const ctx = cv.getContext('2d');
+    const pad = 6;
+
+    ctx.fillStyle = color + '33';
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.5;
+
+    if (shape.type === 'rect') {
+      const w = (size - pad * 2) * shape.wRatio;
+      const h = (size - pad * 2) * shape.hRatio;
+      const x = pad + ((size - pad * 2) - w) / 2;
+      const y = pad + ((size - pad * 2) - h) / 2;
+      ctx.fillRect(x, y, w, h);
+      ctx.strokeRect(x, y, w, h);
+    } else if (shape.type === 'circle') {
+      const r = (size - pad * 2) / 2 * shape.rRatio;
+      ctx.beginPath();
+      ctx.arc(size / 2, size / 2, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    } else if (shape.type === 'triangle') {
+      const base = (size - pad * 2) * shape.baseRatio;
+      const h = (size - pad * 2) * shape.hRatio;
+      const cx = size / 2;
+      const bot = size - pad;
+      ctx.beginPath();
+      ctx.moveTo(cx, bot - h);
+      ctx.lineTo(cx - base / 2, bot);
+      ctx.lineTo(cx + base / 2, bot);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+    return cv;
+  }
+
+  function setupL2() {
+    const count = 3 + Math.floor(Math.random() * 2);
+    const size = 100;
+    const typePool = ['rect', 'rect', 'circle', 'circle', 'triangle'];
+    const types = pick(typePool, count);
+
+    const shapes = types.map((type, i) => {
+      let area, shape;
+      if (type === 'rect') {
+        const wR = 0.4 + Math.random() * 0.5;
+        const hR = 0.3 + Math.random() * 0.5;
+        area = wR * hR;
+        shape = { type, wRatio: wR, hRatio: hR, area };
+      } else if (type === 'circle') {
+        const rR = 0.25 + Math.random() * 0.35;
+        area = Math.PI * rR * rR;
+        shape = { type, rRatio: rR, area };
+      } else {
+        const bR = 0.5 + Math.random() * 0.4;
+        const hR = 0.4 + Math.random() * 0.4;
+        area = 0.5 * bR * hR;
+        shape = { type, baseRatio: bR, hRatio: hR, area };
+      }
+      shape.name = NAMES[i];
+      shape.color = COLORS[i];
+      return shape;
+    });
+
+    // Ensure no two areas are too close
+    const isLargest = Math.random() < 0.5;
+    const sorted = [...shapes].sort((a, b) => a.area - b.area);
+    const correctName = isLargest ? sorted[sorted.length - 1].name : sorted[0].name;
+
+    state = { shapes, correctName, selected: null, answered: false };
+    questionBox.textContent = isLargest
+      ? 'Quelle surface est la plus grande ?'
+      : 'Quelle surface est la plus petite ?';
+    gridNote.textContent = '';
+
+    shapesRow.innerHTML = '';
+    shapes.forEach(shape => {
+      const item = document.createElement('div');
+      item.className = 'shape-item';
+
+      const cv = drawMixedShape(shape, shape.color, size);
+      item.appendChild(cv);
+
+      const lbl = document.createElement('div');
+      lbl.className = 'shape-label';
+      lbl.textContent = 'Surface ' + shape.name;
+      item.appendChild(lbl);
+
+      item.addEventListener('click', () => selectShape(shape.name, item));
+      shapesRow.appendChild(item);
+    });
+
+    feedbackEl.className = 'feedback';
+    verifyBtn.disabled = true;
+    newBtn.classList.remove('visible');
+    state.answered = false;
+  }
+
+  function selectShape(name, item) {
+    if (state.answered) return;
+    document.querySelectorAll('.shape-item').forEach(d => d.classList.remove('selected'));
+    item.classList.add('selected');
+    state.selected = name;
+    verifyBtn.disabled = false;
+  }
+
+  verifyBtn.addEventListener('click', () => {
+    if (!state.selected) return;
+    state.answered = true;
+    const correct = state.selected === state.correctName;
+    document.querySelectorAll('.shape-item').forEach((div, i) => {
+      div.classList.remove('selected');
+      if (state.shapes[i].name === state.correctName) div.classList.add('correct');
+      else if (state.shapes[i].name === state.selected) div.classList.add('wrong');
+    });
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = correct
+      ? '✅ Bravo ! Tu as bien comparé les surfaces !'
+      : `❌ Pas tout à fait. La surface ${state.correctName} est la bonne réponse.`;
+    if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+    verifyBtn.disabled = true;
+    newBtn.classList.add('visible');
+  });
+
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLevel = parseInt(btn.dataset.level);
+      document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      newExercise();
+    });
+  });
+
+  newBtn.addEventListener('click', newExercise);
+
+  function newExercise() {
+    if (currentLevel === 1) setupL1();
+    else setupL2();
+  }
+
+  newExercise();
+</script>
+<script src="feedbackUtils.js"></script>
+</body>
+</html>

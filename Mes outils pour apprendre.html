@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<!-- saved from url=(0062)file:///Users/isaacferretti/Downloads/portail-pedagogique.html -->
+<html lang="fr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Mes outils pour apprendre</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+<link href="./Mes outils pour apprendre_files/css2" rel="stylesheet">
+<style>
+  /* ===== RESET & BASE ===== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: 'Source Sans 3', sans-serif;
+    background: #F0F4F8;
+    color: #1A2535;
+    min-height: 100vh;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ===== HEADER ===== */
+  .site-header {
+    background: #1A3A5C;
+    padding: 36px 24px 30px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .site-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 30% 50%, rgba(52,130,210,0.28) 0%, transparent 60%),
+                radial-gradient(ellipse at 75% 20%, rgba(52,180,150,0.18) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  .site-header h1 {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(26px, 5.5vw, 38px);
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -0.5px;
+    position: relative;
+  }
+  .site-header p {
+    font-size: clamp(16px, 2.5vw, 19px);
+    color: rgba(255,255,255,0.78);
+    margin-top: 8px;
+    position: relative;
+    font-weight: 600;
+  }
+
+  /* ===== CONTROLS BAR ===== */
+  .controls {
+    background: #fff;
+    border-bottom: 1px solid #E2E8F0;
+    padding: 16px 18px 14px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+  }
+
+  /* Search */
+  .search-wrap {
+    position: relative;
+    margin-bottom: 14px;
+  }
+  .search-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    color: #94A3B8;
+    pointer-events: none;
+  }
+  .search-input {
+    width: 100%;
+    padding: 13px 16px 13px 46px;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 12px;
+    font-size: 17px;
+    font-family: 'Source Sans 3', sans-serif;
+    background: #F8FAFC;
+    color: #1A2535;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    -webkit-appearance: none;
+  }
+  .search-input:focus {
+    border-color: #3482D2;
+    box-shadow: 0 0 0 3px rgba(52,130,210,0.15);
+    background: #fff;
+  }
+  .search-input::placeholder { color: #94A3B8; }
+
+  /* Filter groups */
+  .filter-group { margin-bottom: 12px; }
+  .filter-group:last-child { margin-bottom: 0; }
+  .filter-group-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.9px;
+    color: #94A3B8;
+    margin-bottom: 8px;
+  }
+  .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .filter-btn {
+    padding: 9px 18px;
+    border-radius: 999px;
+    border: 1.5px solid #E2E8F0;
+    background: #F8FAFC;
+    color: #4A5568;
+    font-size: 14px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    -webkit-appearance: none;
+    touch-action: manipulation;
+  }
+  .filter-btn:hover { background: #EEF2F7; border-color: #CBD5E0; }
+  .filter-btn:active { transform: scale(0.97); }
+  .filter-btn.active-domain {
+    background: #1A3A5C;
+    color: #fff;
+    border-color: #1A3A5C;
+    font-weight: 700;
+  }
+  .filter-btn.active-cycle {
+    background: #0F7860;
+    color: #fff;
+    border-color: #0F7860;
+    font-weight: 700;
+  }
+  .filter-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* Result count */
+  .result-count {
+    font-size: 13px;
+    color: #94A3B8;
+    margin-top: 12px;
+    min-height: 18px;
+    font-weight: 500;
+  }
+
+  /* ===== GRID ===== */
+  .app-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 18px;
+    padding: 22px 18px 40px;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  /* ===== CARD ===== */
+  .app-card {
+    background: #fff;
+    border: 1px solid #E8EEF4;
+    border-radius: 18px;
+    padding: 26px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+    animation: cardIn 0.3s ease both;
+    touch-action: manipulation;
+  }
+  .app-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.10);
+    border-color: #CBD5E0;
+  }
+  .app-card.hidden { display: none; }
+
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Card header */
+  .card-header { display: flex; align-items: flex-start; gap: 16px; }
+  .card-icon {
+    width: 64px; height: 64px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px;
+    flex-shrink: 0;
+  }
+  .icon-math { background: #EBF3FC; }
+  .icon-fr   { background: #E6F5F0; }
+
+  .card-title-wrap { flex: 1; min-width: 0; padding-top: 4px; }
+  .card-title {
+    font-family: 'Nunito', sans-serif;
+    font-size: 19px;
+    font-weight: 800;
+    color: #1A2535;
+    line-height: 1.25;
+  }
+
+  /* Description */
+  .card-desc {
+    font-size: 15.5px;
+    color: #64748B;
+    line-height: 1.6;
+    flex: 1;
+  }
+
+  /* Badges */
+  .card-badges { display: flex; flex-wrap: wrap; gap: 7px; }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1px;
+  }
+  .badge-math  { background: #EBF3FC; color: #1A5FA8; }
+  .badge-fr    { background: #E6F5F0; color: #0A6048; }
+  .badge-c1    { background: #FEF3E2; color: #8A4E00; }
+  .badge-c2    { background: #F0EAFF; color: #5B2D9E; }
+  .badge-theme { background: #F1F5F9; color: #475569; }
+
+  /* Launch button */
+  .launch-btn {
+    display: block;
+    width: 100%;
+    padding: 17px 14px;
+    background: #1A3A5C;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 17px;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+    margin-top: auto;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    letter-spacing: 0.2px;
+  }
+  .launch-btn:hover  { background: #253F63; box-shadow: 0 4px 14px rgba(26,58,92,0.30); }
+  .launch-btn:active { transform: scale(0.98); }
+  .launch-btn.fr     { background: #0F7860; }
+  .launch-btn.fr:hover { background: #0A5C48; box-shadow: 0 4px 14px rgba(15,120,96,0.30); }
+
+  /* ===== NO RESULTS ===== */
+  .no-results {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 56px 20px;
+    color: #94A3B8;
+    display: none;
+  }
+  .no-results.visible { display: block; }
+  .no-results-icon { font-size: 48px; margin-bottom: 12px; }
+  .no-results p { font-size: 17px; }
+
+  /* ===== FOOTER ===== */
+  .site-footer {
+    text-align: center;
+    padding: 20px;
+    font-size: 13px;
+    color: #94A3B8;
+    border-top: 1px solid #E2E8F0;
+  }
+
+  /* ===== RESPONSIVE IPAD ===== */
+  @media (min-width: 768px) {
+    .app-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; padding: 24px 28px 48px; }
+    .controls { padding: 18px 28px 16px; }
+    .filter-btn { min-height: 40px; font-size: 15px; padding: 10px 20px; }
+    .launch-btn { padding: 18px; font-size: 18px; }
+    .card-title { font-size: 20px; }
+    .card-desc { font-size: 16px; }
+  }
+  @media (min-width: 1024px) {
+    .app-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 22px; }
+    .app-card { padding: 28px 26px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header" role="banner">
+  <h1>Mes outils pour apprendre</h1>
+  <p>Choisis une activité et commence !</p>
+</header>
+
+<nav class="controls" aria-label="Filtres et recherche">
+
+  <div class="search-wrap">
+    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    </svg>
+    <input type="search" id="search-input" class="search-input" placeholder="Rechercher une activité..." autocomplete="off" aria-label="Rechercher une activité">
+  </div>
+
+  <div class="filter-group">
+    <div class="filter-group-label">Branche</div>
+    <div class="filter-row" id="domain-filters" role="group" aria-label="Filtrer par branche">
+      <button class="filter-btn active-domain" data-domain="all" aria-pressed="true">Toutes les branches</button>
+      <button class="filter-btn" data-domain="math" aria-pressed="false">
+        <span class="filter-dot" style="background:#3482D2"></span>Mathématiques
+      </button>
+      <button class="filter-btn" data-domain="fr" aria-pressed="false">
+        <span class="filter-dot" style="background:#1D9E75"></span>Français
+      </button>
+    </div>
+  </div>
+
+  <div class="filter-group">
+    <div class="filter-group-label">Cycle HarmoS</div>
+    <div class="filter-row" id="cycle-filters" role="group" aria-label="Filtrer par cycle">
+      <button class="filter-btn active-cycle" data-cycle="all" aria-pressed="true">Tous les cycles</button>
+      <button class="filter-btn" data-cycle="c1" aria-pressed="false">Cycle 1 · 1H–4H</button>
+      <button class="filter-btn" data-cycle="c2" aria-pressed="false">Cycle 2 · 5H–8H</button>
+    </div>
+  </div>
+
+  <div class="result-count" id="result-count" aria-live="polite" aria-atomic="true">16 activités affichées</div>
+</nav>
+
+<main>
+  <div class="app-grid" id="app-grid">
+
+    <!-- ======= MATHÉMATIQUES — GRANDEURS ET MESURES ======= -->
+
+    <article class="app-card" data-domain="math" data-cycle="c1" data-keywords="aire surface grande petite formes grille grandeurs mesures" style="animation-delay: 0ms;">
+      <div class="card-header">
+        <div class="card-icon icon-math">📐</div>
+        <div class="card-title-wrap">
+          <h2 class="card-title">Les surfaces</h2>
+        </div>
+      </div>
+      <p class="card-desc">Compare des surfaces sur grille, puis des formes variées (rectangles, cercles, triangles) pour trouver la plus grande ou la plus petite.</p>
+      <div class="card-badges">
+        <span class="badge badge-math">Mathématiques</span>
+        <span class="badge badge-c1">Cycle 1</span>
+        <span class="badge badge-theme">Grandeurs et mesures</span>
+      </div>
+      <a href="apps/surfaces.html" class="launch-btn">Lancer l'activité</a>
+    </article>
+
+    <article class="app-card" data-domain="math" data-cycle="c1" data-keywords="capacité récipients contient plus moins formes grandeurs mesures" style="animation-delay: 60ms;">
+      <div class="card-header">
+        <div class="card-icon icon-math">🥛</div>
+        <div class="card-title-wrap">
+          <h2 class="card-title">Les capacités</h2>
+        </div>
+      </div>
+      <p class="card-desc">Compare des récipients de formes différentes pour trouver lequel contient le plus ou le moins d'eau.</p>
+      <div class="card-badges">
+        <span class="badge badge-math">Mathématiques</span>
+        <span class="badge badge-c1">Cycle 1</span>
+        <span class="badge badge-theme">Grandeurs et mesures</span>
+      </div>
+      <a href="apps/capacites.html" class="launch-btn">Lancer l'activité</a>
+    </article>
+
+    <article class="app-card" data-domain="math" data-cycle="c1" data-keywords="longueur barres long court orientations grandeurs mesures" style="animation-delay: 120ms;">
+      <div class="card-header">
+        <div class="card-icon icon-math">📏</div>
+        <div class="card-title-wrap">
+          <h2 class="card-title">Les longueurs</h2>
+        </div>
+      </div>
+      <p class="card-desc">Compare des barres pour trouver la plus longue ou la plus courte, même avec des orientations variées.</p>
+      <div class="card-badges">
+        <span class="badge badge-math">Mathématiques</span>
+        <span class="badge badge-c1">Cycle 1</span>
+        <span class="badge badge-theme">Grandeurs et mesures</span>
+      </div>
+      <a href="apps/longueurs.html" class="launch-btn">Lancer l'activité</a>
+    </article>
+
+    <article class="app-card" data-domain="math" data-cycle="c1" data-keywords="balance masse lourd léger blocs équilibrer grandeurs mesures" style="animation-delay: 180ms;">
+      <div class="card-header">
+        <div class="card-icon icon-math">⚖️</div>
+        <div class="card-title-wrap">
+          <h2 class="card-title">La balance</h2>
+        </div>
+      </div>
+      <p class="card-desc">Compare des masses, équilibre la balance et découvre que la taille peut être trompeuse !</p>
+      <div class="card-badges">
+        <span class="badge badge-math">Mathématiques</span>
+        <span class="badge badge-c1">Cycle 1</span>
+        <span class="badge badge-theme">Grandeurs et mesures</span>
+      </div>
+      <a href="apps/balance.html" class="launch-btn">Lancer l'activité</a>
+    </article>
+
+    <!-- ======= MATHÉMATIQUES — NOMBRES ======= -->
+
+    <article class="app-card" data-domain="math" data-cycle="c2" data-keywords="nombres flèches droite graduée mille situer nombres" style="animation-delay: 270ms;">
+      <div class="card-header">
+        <div class="card-icon icon-math">↗️</div>
+        <div class="card-title-wrap">
+          <h2 class="card-title">Nombres Flèches</h2>
+        </div>
+      </div>
+      <p class="card-desc">Exerce-toi à lire et à situer des nombres jusqu'à 1000 sur une droite graduée.</p>
+      <div class="card-badges">
+        <span class="badge badge-math">Mathématiques</span>
+        <span class="badge badge-c2">Cycle 2</span>
+        <span class="badge badge-theme">Nombres</span>
+      </div>
+      <a href="apps/droite-graduee.html" class="launch-btn">Lancer l'activité</a>
+    </article>
+
+    <article class="app-card" data-domain="math" data-cycle="c2" data-keywords="comparer nombres comparateur grand petit nombres" style="animation-delay: 300ms;">
+      <div class="card-header">
+        <div class="card-icon icon-math">🔢</div>
+        <div class="card-title-wrap">
+          <h2 class="card-title">Le comparateur de nombres</h2>
+        </div>
+      </div>
+      <p class="card-desc">Exerce-toi à comparer des nombres entre eux.</p>
+      <div class="card-badges">
+        <span class="badge badge-math">Mathématiques</span>
+        <span class="badge badge-c2">Cycle 2</span>
+        <span class="badge badge-theme">Nombres</span>
+      </div>
+      <a href="apps/comparaison-nombres.html" class="launch-btn">Lancer l'activité</a>
+    </article>
+
+    <article class="app-card" data-domain="math" data-cycle="c2" data-keywords="saut dizaines centaines ajouter enlever nombres" style="animation-delay: 330ms;">
+      <div class="card-header">
+        <div class="card-icon icon-math">🦘</div>
+        <div class="card-title-wrap">
+          <h2 class="card-title">Le Grand Saut</h2>
+        </div>
+      </div>
+      <p class="card-desc">Ajoute ou enlève des dizaines et des centaines sur la droite des nombres.</p>
+      <div class="card-badges">
+        <span class="badge badge-math">Mathématiques</span>
+        <span class="badge badge-c2">Cycle 2</span>
+        <span class="badge badge-theme">Nombres</span>
+      </div>
+      <a href="apps/saut-de-nombre.html" class="launch-btn">Lancer l'activité</a>
+    </article>
+
+    <article class="app-card" data-domain="math" data-cycle="c2" data-keywords="extracteur décomposer dizaines unités centaines nombres" style="animation-delay: 360ms;">
+      <div class="card-header">
+        <div class="card-icon icon-math">🧩</div>
+        <div class="card-title-wrap">
+          <h2 class="card-title">L'extracteur</h2>
+        </div>
+      </div>
+      <p class="card-desc">Décompose des nombres en centaines, dizaines et unités.</p>
+      <div class="card-badges">
+        <span class="badge badge-math">Mathématiques</span>
+        <span class="badge badge-c2">Cycle 2</span>
+        <span class="badge badge-theme">Nombres</span>
+      </div>
+      <a href="apps/valeur-position.html" class="launch-btn">Lancer l'activité</a>
+    </article>
+
+    <article class="app-card" data-domain="math" data-cycle="c2" data-keywords="calcul colonne posé addition soustraction opérations" style="animation-delay: 390ms;">
+      <div class="card-header">
+        <div class="card-icon icon-math">🧮</div>
+        <div class="card-title-wrap">
+          <h2 class="card-title">Calcul en Colonne</h2>
+        </div>
+      </div>
+      <p class="card-desc">Entraîne-toi au calcul posé en colonnes.</p>
+      <div class="card-badges">
+        <span class="badge badge-math">Mathématiques</span>
+        <span class="badge badge-c2">Cycle 2</span>
+        <span class="badge badge-theme">Opérations</span>
+      </div>
+      <!-- ADD APP URL HERE -->
+      <a href="file:///apps/vertical-calculation" class="launch-btn">Lancer l'activité</a>
+    </article>
+
+    <!-- ======= FRANÇAIS ======= -->
+
+    <article class="app-card" data-domain="fr" data-cycle="c2" data-keywords="lecture compréhension textes questions lire français" style="animation-delay: 420ms;">
+      <div class="card-header">
+        <div class="card-icon icon-fr">📖</div>
+        <div class="card-title-wrap">
+          <h2 class="card-title">Compréhension de lecture</h2>
+        </div>
+      </div>
+      <p class="card-desc">Lis des textes et réponds aux questions de compréhension.</p>
+      <div class="card-badges">
+        <span class="badge badge-fr">Français</span>
+        <span class="badge badge-c2">Cycle 2</span>
+        <span class="badge badge-theme">Compréhension</span>
+      </div>
+      <a href="apps/comprehension.html" class="launch-btn fr">Lancer l'activité</a>
+    </article>
+
+    <article class="app-card" data-domain="fr" data-cycle="c1" data-keywords="vocabulaire mots apprendre langue français" style="animation-delay: 450ms;">
+      <div class="card-header">
+        <div class="card-icon icon-fr">🔤</div>
+        <div class="card-title-wrap">
+          <h2 class="card-title">Vocabulaire</h2>
+        </div>
+      </div>
+      <p class="card-desc">Apprends du nouveau vocabulaire de manière interactive.</p>
+      <div class="card-badges">
+        <span class="badge badge-fr">Français</span>
+        <span class="badge badge-c1">Cycle 1</span>
+        <span class="badge badge-theme">Langue</span>
+      </div>
+      <a href="apps/vocabulaire.html" class="launch-btn fr">Lancer l'activité</a>
+    </article>
+
+    <!-- No results -->
+    <div class="no-results" id="no-results" role="status">
+      <div class="no-results-icon">🔍</div>
+      <p>Aucune activité trouvée pour cette recherche.</p>
+    </div>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  Ressources pédagogiques indépendantes &nbsp;·&nbsp; <span id="year">2026</span>
+</footer>
+
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  const cards = Array.from(document.querySelectorAll('.app-card'));
+  const noResults = document.getElementById('no-results');
+  const countEl = document.getElementById('result-count');
+  const domainBtns = document.querySelectorAll('#domain-filters .filter-btn');
+  const cycleBtns  = document.querySelectorAll('#cycle-filters .filter-btn');
+
+  let activeDomain = 'all';
+  let activeCycle  = 'all';
+  let query = '';
+
+  function applyFilters() {
+    let visible = 0;
+    cards.forEach((card, i) => {
+      const domainOk = activeDomain === 'all' || card.dataset.domain === activeDomain;
+      const cycleOk  = activeCycle  === 'all' || card.dataset.cycle  === activeCycle;
+      const kw = (card.dataset.keywords + ' ' + card.querySelector('.card-title').textContent + ' ' + card.querySelector('.card-desc').textContent).toLowerCase();
+      const searchOk = !query || kw.includes(query);
+      const show = domainOk && cycleOk && searchOk;
+      card.classList.toggle('hidden', !show);
+      if (show) {
+        card.style.animationDelay = (visible * 30) + 'ms';
+        visible++;
+      }
+    });
+    noResults.classList.toggle('visible', visible === 0);
+    countEl.textContent = visible + ' activité' + (visible > 1 ? 's' : '') + ' affichée' + (visible > 1 ? 's' : '');
+  }
+
+  document.getElementById('domain-filters').addEventListener('click', e => {
+    const btn = e.target.closest('.filter-btn');
+    if (!btn) return;
+    activeDomain = btn.dataset.domain;
+    domainBtns.forEach(b => {
+      b.classList.toggle('active-domain', b === btn);
+      b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+    });
+    applyFilters();
+  });
+
+  document.getElementById('cycle-filters').addEventListener('click', e => {
+    const btn = e.target.closest('.filter-btn');
+    if (!btn) return;
+    activeCycle = btn.dataset.cycle;
+    cycleBtns.forEach(b => {
+      b.classList.toggle('active-cycle', b === btn);
+      b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+    });
+    applyFilters();
+  });
+
+  document.getElementById('search-input').addEventListener('input', e => {
+    query = e.target.value.trim().toLowerCase();
+    applyFilters();
+  });
+
+  applyFilters();
+</script>
+
+
+</body></html>
