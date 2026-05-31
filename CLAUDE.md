@@ -282,3 +282,13 @@ playIncorrect();  // descente sawtooth, ~0,4s — aucune animation
 3. **Les classes de state** : `.active-domain`, `.active-cycle`, `.hidden`, `.visible`.
 4. **Le CSS de la barre `controls`** : `position: sticky; top: 0; z-index: 100` — nécessaire pour que les filtres restent visibles lors du scroll.
 5. **Les polices Google Fonts** : les deux familles (Nunito + Source Sans 3) doivent toujours être chargées ensemble.
+
+---
+
+## Conventions de langue
+
+### Typographie française
+- Les titres et noms d'activités suivent les règles françaises : seul le premier mot prend une majuscule, sauf noms propres.
+- Exemples corrects : "Calcul en colonne", "Le grand saut", "Nombres flèches"
+- Exemples incorrects : "Calcul en Colonne", "Le Grand Saut", "Nombres Flèches"
+- Ne jamais appliquer de capitalisation à l'anglaise (title case).
