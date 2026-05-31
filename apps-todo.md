@@ -2,7 +2,7 @@
 
 Ce fichier pilote la création des applications une par une.
 Pour chaque app : créer le fichier, mettre à jour les hrefs dans
-`Mes outils pour apprendre.html`, marquer comme DONE.
+`index.html`, marquer comme DONE.
 
 ---
 
@@ -11,7 +11,7 @@ Pour chaque app : créer le fichier, mettre à jour les hrefs dans
 - Police : Nunito + Source Sans 3 (Google Fonts)
 - Fond : #F7F8FA, texte : #1A1A2E, accent : #3B7DD8
 - Boutons tactiles : min 48px de hauteur
-- Retour portail : <a href="../Mes outils pour apprendre.html">← Retour</a>
+- Retour portail : <a href="../index.html">← Retour</a>
 - Fichier unique HTML/CSS/JS vanilla, pas de framework
 - Couleurs valeurs de position (toutes les apps maths avec des chiffres) :
   - Unités : #3B7DD8 (bleu)
@@ -25,7 +25,7 @@ Pour chaque app : créer le fichier, mettre à jour les hrefs dans
 ## App 1 — balance.html [DONE]
 
 Fichier à créer : apps/balance.html
-Cartes à mettre à jour dans "Mes outils pour apprendre.html" :
+Cartes à mettre à jour dans "index.html" :
   - file:///apps/mass-comparison → apps/balance.html
   - file:///apps/mass-comparison-simple → supprimer la carte
   - file:///apps/mass-comparison-advanced → supprimer la carte

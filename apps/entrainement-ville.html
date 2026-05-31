@@ -54,7 +54,6 @@
   .phase { display: none; }
   .phase.active { display: flex; flex-direction: column; }
 
-  /* ── Layout commun ── */
   .phase-inner {
     max-width: 680px;
     margin: 0 auto;
@@ -64,6 +63,83 @@
     flex-direction: column;
     gap: 20px;
     align-items: stretch;
+  }
+
+  /* ── Cartes exercices (accueil) ── */
+  .exercise-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .exercise-card {
+    background: #fff;
+    border: 2px solid #E2E8F0;
+    border-radius: 16px;
+    padding: 20px 22px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    text-align: left;
+    width: 100%;
+    font-family: inherit;
+  }
+  .exercise-card:hover { border-color: #B35400; box-shadow: 0 2px 12px rgba(179,84,0,0.12); }
+  .exercise-card:active { transform: scale(0.99); }
+  .exercise-card.done { border-color: #10B981; }
+  .exercise-card-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #FFF3E0;
+    border-radius: 12px;
+  }
+  .exercise-card.done .exercise-card-icon { background: #D1FAE5; }
+  .exercise-card-body { flex: 1; }
+  .exercise-card-title {
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    color: #1A1A2E;
+    margin-bottom: 3px;
+  }
+  .exercise-card-desc {
+    font-size: 14px;
+    color: #64748B;
+  }
+  .exercise-card-badge {
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    padding: 4px 12px;
+    border-radius: 999px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .badge-todo  { background: #F1F5F9; color: #64748B; }
+  .badge-done  { background: #D1FAE5; color: #065F46; }
+
+  /* ── Intro accueil ── */
+  .home-title {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(20px, 4vw, 26px);
+    font-weight: 900;
+    color: #1A1A2E;
+    text-align: center;
+  }
+  .home-desc {
+    font-size: 15px;
+    color: #64748B;
+    text-align: center;
+    line-height: 1.6;
+    margin-top: -12px;
   }
 
   /* ── Progress ── */
@@ -102,59 +178,21 @@
     gap: 16px;
   }
 
-  /* ── Écran d'accueil ── */
-  .start-icon {
-    font-size: 56px;
-    text-align: center;
-  }
-  .start-title {
-    font-family: 'Nunito', sans-serif;
-    font-size: clamp(22px, 5vw, 28px);
-    font-weight: 900;
-    color: #1A1A2E;
-    text-align: center;
-  }
-  .start-desc {
-    font-size: clamp(15px, 2.5vw, 17px);
-    color: #64748B;
-    text-align: center;
-    line-height: 1.6;
-  }
-  .start-steps {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-  }
-  .start-step {
-    background: #FFF3E0;
-    border-radius: 12px;
-    padding: 14px 10px;
-    text-align: center;
-  }
-  .start-step-icon { font-size: 24px; margin-bottom: 6px; }
-  .start-step-label {
-    font-size: 12px;
-    font-weight: 700;
-    color: #7C4700;
-    line-height: 1.4;
-  }
-
-  /* ── Boutons principaux ── */
+  /* ── Boutons ── */
   .primary-btn {
-    padding: 18px 36px;
+    padding: 14px 24px;
     background: #B35400;
     color: #fff;
     border: none;
     border-radius: 12px;
     font-family: 'Nunito', sans-serif;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 800;
     cursor: pointer;
-    min-height: 56px;
+    min-height: 52px;
     touch-action: manipulation;
     -webkit-appearance: none;
     transition: all 0.15s;
-    align-self: center;
   }
   .primary-btn:hover { background: #8C4000; }
   .primary-btn:active { transform: scale(0.97); }
@@ -180,6 +218,23 @@
   .next-btn:hover { background: #253F63; }
   .next-btn:active { transform: scale(0.98); }
 
+  .home-btn {
+    padding: 16px 32px;
+    background: #B35400;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 17px;
+    font-weight: 800;
+    cursor: pointer;
+    min-height: 56px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    transition: all 0.15s;
+  }
+  .home-btn:hover { background: #8C4000; }
+
   /* ── Exercice 1 : Classement ── */
   .sort-question {
     font-family: 'Nunito', sans-serif;
@@ -194,7 +249,6 @@
     color: #94A3B8;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    margin-bottom: -8px;
   }
   .card-pool {
     display: flex;
@@ -236,11 +290,10 @@
     cursor: pointer;
     transition: border-color 0.15s, background 0.15s;
   }
-  .drop-zone:hover { border-color: #B35400; background: #FFF8F0; }
   .drop-zone.drop-ville { border-color: #7BB8F5; }
   .drop-zone.drop-ville:hover { background: #EBF3FC; border-color: #5A9ED6; }
-  .drop-zone.drop-camp { border-color: #A0C96A; }
-  .drop-zone.drop-camp:hover { background: #EAF3DE; border-color: #7BB240; }
+  .drop-zone.drop-camp  { border-color: #A0C96A; }
+  .drop-zone.drop-camp:hover  { background: #EAF3DE; border-color: #7BB240; }
   .drop-zone-label {
     font-family: 'Nunito', sans-serif;
     font-size: 14px;
@@ -251,7 +304,7 @@
     text-align: center;
   }
   .drop-ville .drop-zone-label { background: #EBF3FC; color: #185FA5; }
-  .drop-camp .drop-zone-label { background: #EAF3DE; color: #3B6D11; }
+  .drop-camp  .drop-zone-label { background: #EAF3DE; color: #3B6D11; }
   .drop-zone-items { display: flex; flex-direction: column; gap: 6px; }
 
   /* ── Feedback ── */
@@ -268,7 +321,7 @@
   .feedback.wrong   { background: #FEE2E2; color: #991B1B; display: block; }
   .feedback.warning { background: #FEF3C7; color: #92400E; display: block; }
 
-  /* ── Exercice 2 : QCM ── */
+  /* ── QCM ── */
   .question-text {
     font-family: 'Nunito', sans-serif;
     font-size: clamp(17px, 3.5vw, 20px);
@@ -276,11 +329,7 @@
     color: #1A1A2E;
     line-height: 1.4;
   }
-  .answer-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
+  .answer-list { display: flex; flex-direction: column; gap: 10px; }
   .answer-btn {
     width: 100%;
     padding: 16px 20px;
@@ -304,7 +353,6 @@
   .answer-btn.correct { background: #D1FAE5; border-color: #10B981; color: #065F46; font-weight: 700; }
   .answer-btn.wrong   { background: #FEE2E2; border-color: #EF4444; color: #991B1B; }
   .answer-btn:disabled { cursor: default; }
-
   .score-badge {
     font-family: 'Nunito', sans-serif;
     font-size: 14px;
@@ -316,7 +364,7 @@
     align-self: flex-end;
   }
 
-  /* ── Exercice 3 : Définition à trous ── */
+  /* ── Gap fill ── */
   .gap-sentence-card {
     background: #fff;
     border: 1px solid #E2E8F0;
@@ -340,11 +388,7 @@
     color: #B35400;
     padding: 0 4px;
   }
-  .gap-options {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
+  .gap-options { display: flex; gap: 8px; flex-wrap: wrap; }
   .gap-option {
     padding: 10px 16px;
     border: 2px solid #E2E8F0;
@@ -365,69 +409,29 @@
   .gap-option:hover { background: #FFF3E0; border-color: #B35400; }
   .gap-option.selected { background: #FFF3E0; border-color: #B35400; color: #7C4700; }
 
-  /* ── Résultat ── */
-  #phase-result {
-    align-items: center;
+  /* ── Résultat par exercice ── */
+  .mini-result {
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
   }
-  .result-emoji { font-size: 72px; }
-  .result-title {
+  .mini-result-emoji { font-size: 64px; }
+  .mini-result-score {
     font-family: 'Nunito', sans-serif;
-    font-size: clamp(24px, 5vw, 32px);
-    font-weight: 900;
-    color: #1A1A2E;
-  }
-  .result-score {
-    font-family: 'Nunito', sans-serif;
-    font-size: clamp(40px, 10vw, 60px);
+    font-size: clamp(36px, 9vw, 52px);
     font-weight: 900;
     color: #B35400;
   }
-  .result-msg {
-    font-size: clamp(16px, 2.5vw, 18px);
+  .mini-result-msg {
+    font-size: clamp(15px, 2.5vw, 17px);
     color: #64748B;
     line-height: 1.6;
   }
-  .result-detail {
-    background: #fff;
-    border: 1px solid #E2E8F0;
-    border-radius: 14px;
-    padding: 18px 24px;
-    font-size: 15px;
-    color: #64748B;
-    line-height: 1.9;
-    text-align: left;
-    width: 100%;
-    max-width: 400px;
-  }
-  .result-detail strong { color: #1A1A2E; }
-  .result-actions {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  .retry-btn {
-    padding: 16px 32px;
-    background: #B35400;
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    font-family: 'Nunito', sans-serif;
-    font-size: 17px;
-    font-weight: 800;
-    cursor: pointer;
-    min-height: 56px;
-    touch-action: manipulation;
-    -webkit-appearance: none;
-    transition: all 0.15s;
-  }
-  .retry-btn:hover { background: #8C4000; }
 
   @media (max-width: 480px) {
-    .start-steps { grid-template-columns: 1fr; }
     .drop-zones { grid-template-columns: 1fr; }
-    .primary-btn { width: 100%; justify-content: center; }
     .next-btn { align-self: stretch; text-align: center; }
   }
 </style>
@@ -435,48 +439,56 @@
 <body>
 
 <header class="app-header" role="banner">
-  <a href="../Mes outils pour apprendre.html" class="back-link" aria-label="Retour au portail">← Retour</a>
+  <a href="../index.html" class="back-link" aria-label="Retour au portail">← Retour</a>
   <h1>🏙️ Entraînement — La ville</h1>
   <div class="header-spacer" aria-hidden="true"></div>
 </header>
 
-<!-- ══ Phase : Accueil ══ -->
-<div class="phase active" id="phase-start">
+<!-- ══ Accueil ══ -->
+<div class="phase active" id="phase-home">
   <div class="phase-inner">
-    <div class="content-card" style="align-items:center; text-align:center; gap:20px; padding:32px 24px;">
-      <div class="start-icon" aria-hidden="true">🏙️</div>
-      <div class="start-title">Entraînement — La ville</div>
-      <div class="start-desc">3 exercices courts pour consolider ce que tu as appris sur les villes.</div>
-      <div class="start-steps" role="list">
-        <div class="start-step" role="listitem">
-          <div class="start-step-icon" aria-hidden="true">🗂️</div>
-          <div class="start-step-label">Classer ville / village</div>
+    <div class="home-title">Choisis un exercice</div>
+    <div class="home-desc">Tu peux faire les exercices dans n'importe quel ordre.</div>
+    <div class="exercise-list" role="list">
+
+      <button class="exercise-card" id="btn-sort" role="listitem" aria-label="Lancer l'exercice : Classer ville / village">
+        <div class="exercise-card-icon" aria-hidden="true" id="icon-sort">🗂️</div>
+        <div class="exercise-card-body">
+          <div class="exercise-card-title">Classer ville / village</div>
+          <div class="exercise-card-desc">Place chaque élément dans la bonne colonne.</div>
         </div>
-        <div class="start-step" role="listitem">
-          <div class="start-step-icon" aria-hidden="true">❓</div>
-          <div class="start-step-label">Questions sur les mots-clés</div>
+        <div class="exercise-card-badge badge-todo" id="badge-sort">À faire</div>
+      </button>
+
+      <button class="exercise-card" id="btn-qcm" role="listitem" aria-label="Lancer l'exercice : Questions sur les mots-clés">
+        <div class="exercise-card-icon" aria-hidden="true" id="icon-qcm">❓</div>
+        <div class="exercise-card-body">
+          <div class="exercise-card-title">Questions sur les mots-clés</div>
+          <div class="exercise-card-desc">Réponds à 5 questions de géographie.</div>
         </div>
-        <div class="start-step" role="listitem">
-          <div class="start-step-icon" aria-hidden="true">✏️</div>
-          <div class="start-step-label">Compléter une définition</div>
+        <div class="exercise-card-badge badge-todo" id="badge-qcm">À faire</div>
+      </button>
+
+      <button class="exercise-card" id="btn-gap" role="listitem" aria-label="Lancer l'exercice : Compléter une définition">
+        <div class="exercise-card-icon" aria-hidden="true" id="icon-gap">✏️</div>
+        <div class="exercise-card-body">
+          <div class="exercise-card-title">Compléter une définition</div>
+          <div class="exercise-card-desc">Clique sur le bon mot pour compléter chaque phrase.</div>
         </div>
-      </div>
-      <button class="primary-btn" id="start-btn">Commencer →</button>
+        <div class="exercise-card-badge badge-todo" id="badge-gap">À faire</div>
+      </button>
+
     </div>
   </div>
 </div>
 
-<!-- ══ Phase : Exercice 1 — Classement ══ -->
+<!-- ══ Exercice 1 — Classement ══ -->
 <div class="phase" id="phase-sort">
   <div class="phase-inner">
-    <div class="progress-wrap">
-      <div class="progress-label" id="sort-progress-label">Exercice 1 sur 3</div>
-      <div class="progress-bar-bg"><div class="progress-bar-fill" id="sort-progress-bar" style="width:33%"></div></div>
-    </div>
     <div class="content-card">
       <div class="sort-question">Place chaque élément dans la bonne colonne.<br><span style="font-size:14px;font-weight:600;color:#64748B;">Clique sur un élément, puis sur la colonne.</span></div>
-      <div class="pool-label" id="pool-label">Éléments à classer</div>
-      <div class="card-pool" id="card-pool" role="list" aria-label="Éléments à classer"></div>
+      <div class="pool-label" aria-label="Éléments à classer">Éléments à classer</div>
+      <div class="card-pool" id="card-pool" role="list"></div>
       <div class="drop-zones" role="group" aria-label="Colonnes de classement">
         <div class="drop-zone drop-ville" id="col-ville" role="button" tabindex="0" aria-label="Colonne Ville">
           <div class="drop-zone-label">🏢 Ville</div>
@@ -488,15 +500,29 @@
         </div>
       </div>
       <div class="feedback" id="fb-sort" role="status" aria-live="polite"></div>
-      <div style="display:flex; gap:12px; flex-wrap:wrap;">
-        <button class="primary-btn" style="padding:14px 24px;font-size:16px;min-height:52px;" id="check-sort-btn">Vérifier mes réponses</button>
-        <button class="next-btn visible" id="next-sort-btn" style="display:none;">Exercice suivant →</button>
+      <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+        <button class="primary-btn" id="check-sort-btn">Vérifier mes réponses</button>
+        <button class="next-btn" id="next-sort-btn">Voir mon résultat →</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══ Phase : Exercice 2 — QCM ══ -->
+<!-- ══ Résultat exercice 1 ══ -->
+<div class="phase" id="phase-sort-result">
+  <div class="phase-inner">
+    <div class="content-card">
+      <div class="mini-result">
+        <div class="mini-result-emoji" id="sort-result-emoji">🎉</div>
+        <div class="mini-result-score" id="sort-result-score"></div>
+        <div class="mini-result-msg" id="sort-result-msg"></div>
+      </div>
+      <button class="home-btn" id="sort-home-btn" style="align-self:center;">← Retour aux exercices</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Exercice 2 — QCM ══ -->
 <div class="phase" id="phase-qcm">
   <div class="phase-inner">
     <div class="progress-wrap">
@@ -513,35 +539,45 @@
   </div>
 </div>
 
-<!-- ══ Phase : Exercice 3 — Définition à trous ══ -->
+<!-- ══ Résultat exercice 2 ══ -->
+<div class="phase" id="phase-qcm-result">
+  <div class="phase-inner">
+    <div class="content-card">
+      <div class="mini-result">
+        <div class="mini-result-emoji" id="qcm-result-emoji">🎉</div>
+        <div class="mini-result-score" id="qcm-result-score"></div>
+        <div class="mini-result-msg" id="qcm-result-msg"></div>
+      </div>
+      <button class="home-btn" id="qcm-home-btn" style="align-self:center;">← Retour aux exercices</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Exercice 3 — Définition à trous ══ -->
 <div class="phase" id="phase-gap">
   <div class="phase-inner">
-    <div class="progress-wrap">
-      <div class="progress-label">Exercice 3 sur 3</div>
-      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:100%"></div></div>
-    </div>
     <div class="content-card">
       <div class="question-text">Clique sur le bon mot pour compléter chaque phrase.</div>
       <div id="gap-sentences" style="display:flex;flex-direction:column;gap:12px;"></div>
       <div class="feedback" id="fb-gap" role="status" aria-live="polite"></div>
-      <div style="display:flex; gap:12px; flex-wrap:wrap;">
-        <button class="primary-btn" style="padding:14px 24px;font-size:16px;min-height:52px;" id="check-gap-btn">Vérifier</button>
+      <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+        <button class="primary-btn" id="check-gap-btn">Vérifier</button>
         <button class="next-btn" id="next-gap-btn">Voir mon résultat →</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══ Phase : Résultat ══ -->
-<div class="phase" id="phase-result">
-  <div class="phase-inner" style="align-items:center;text-align:center;">
-    <div class="result-emoji" id="result-emoji">🎉</div>
-    <div class="result-title">Terminé !</div>
-    <div class="result-score" id="result-score"></div>
-    <div class="result-msg" id="result-msg"></div>
-    <div class="result-detail" id="result-detail"></div>
-    <div class="result-actions">
-      <button class="retry-btn" id="retry-btn">↺ Recommencer</button>
+<!-- ══ Résultat exercice 3 ══ -->
+<div class="phase" id="phase-gap-result">
+  <div class="phase-inner">
+    <div class="content-card">
+      <div class="mini-result">
+        <div class="mini-result-emoji" id="gap-result-emoji">🎉</div>
+        <div class="mini-result-score" id="gap-result-score"></div>
+        <div class="mini-result-msg" id="gap-result-msg"></div>
+      </div>
+      <button class="home-btn" id="gap-home-btn" style="align-self:center;">← Retour aux exercices</button>
     </div>
   </div>
 </div>
@@ -549,16 +585,16 @@
 <script>
   /* ── Données ── */
   const SORT_ITEMS = [
-    { label: 'Un hôpital',       cat: 'v' },
-    { label: 'Des champs de blé', cat: 'c' },
-    { label: 'Un grand stade',   cat: 'v' },
-    { label: 'Des vaches',       cat: 'c' },
-    { label: 'Une grande gare',  cat: 'v' },
-    { label: 'Une ferme',        cat: 'c' },
-    { label: 'Un théâtre',       cat: 'v' },
-    { label: 'Un chemin de terre', cat: 'c' },
-    { label: 'Un grand magasin', cat: 'v' },
-    { label: 'Une forêt',        cat: 'c' },
+    { label: 'Un hôpital',          cat: 'v' },
+    { label: 'Des champs de blé',   cat: 'c' },
+    { label: 'Un grand stade',      cat: 'v' },
+    { label: 'Des vaches',          cat: 'c' },
+    { label: 'Une grande gare',     cat: 'v' },
+    { label: 'Une ferme',           cat: 'c' },
+    { label: 'Un théâtre',          cat: 'v' },
+    { label: 'Un chemin de terre',  cat: 'c' },
+    { label: 'Un grand magasin',    cat: 'v' },
+    { label: 'Une forêt',           cat: 'c' },
   ];
 
   const QCM = [
@@ -600,61 +636,75 @@
   ];
 
   const GAP = [
-    {
-      before: "Une ville attire beaucoup d'",
-      after: ".",
-      options: ["habitants", "arbres", "animaux"],
-      correct: "habitants",
-    },
-    {
-      before: "Les géographes regardent les",
-      after: " d'une ville pour savoir à quoi elle sert.",
-      options: ["fonctions", "photos", "frontières"],
-      correct: "fonctions",
-    },
-    {
-      before: "En ville, les bâtiments sont très proches. On dit que c'est",
-      after: ".",
-      options: ["dense", "vide", "calme"],
-      correct: "dense",
-    },
-    {
-      before: "Un hôpital, une gare, un marché : ce sont des",
-      after: " que la ville offre.",
-      options: ["services", "paysages", "animaux"],
-      correct: "services",
-    },
+    { before: "Une ville attire beaucoup d'", after: ".", options: ["habitants", "arbres", "animaux"], correct: "habitants" },
+    { before: "Les géographes regardent les", after: " d'une ville pour savoir à quoi elle sert.", options: ["fonctions", "photos", "frontières"], correct: "fonctions" },
+    { before: "En ville, les bâtiments sont très proches. On dit que c'est", after: ".", options: ["dense", "vide", "calme"], correct: "dense" },
+    { before: "Un hôpital, une gare, un marché : ce sont des", after: " que la ville offre.", options: ["services", "paysages", "animaux"], correct: "services" },
   ];
 
   /* ── État ── */
-  let selected = null;
-  let sortDone = false;
-  let sortScore = 0;
-  let qcmIdx = 0;
-  let qcmOk = 0;
-  let gapAnswers = [];
-  let gapOk = 0;
+  const scores = { sort: null, qcm: null, gap: null };
+  let sortSelected = null, sortDone = false;
+  let qcmIdx = 0, qcmOk = 0;
+  let gapAnswers = [], gapOk = 0;
 
-  /* ── Navigation entre phases ── */
+  /* ── Navigation ── */
   function showPhase(id) {
     document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     window.scrollTo(0, 0);
   }
 
+  function goHome() {
+    updateHomeBadges();
+    showPhase('phase-home');
+  }
+
+  function updateHomeBadges() {
+    ['sort', 'qcm', 'gap'].forEach(key => {
+      const s = scores[key];
+      const card = document.getElementById('btn-' + key);
+      const badge = document.getElementById('badge-' + key);
+      const icon = document.getElementById('icon-' + key);
+      if (s !== null) {
+        card.classList.add('done');
+        badge.className = 'exercise-card-badge badge-done';
+        badge.textContent = s.got + ' / ' + s.max;
+        icon.textContent = s.got === s.max ? '✅' : '🔁';
+        card.setAttribute('aria-label', 'Refaire l\'exercice : ' + card.querySelector('.exercise-card-title').textContent);
+      }
+    });
+  }
+
+  function miniResult(phaseId, emojiId, scoreId, msgId, got, max) {
+    const pct = Math.round(got / max * 100);
+    document.getElementById(scoreId).textContent = got + ' / ' + max;
+    let emoji, msg;
+    if (pct === 100) {
+      emoji = '🏆'; msg = 'Parfait ! Tu as tout réussi.';
+      launchConfetti(); playCorrect();
+    } else if (pct >= 60) {
+      emoji = '👍'; msg = 'Bien joué ! Tu peux recommencer pour t\'améliorer.';
+    } else {
+      emoji = '📖'; msg = 'Continue à t\'entraîner, tu vas y arriver !';
+    }
+    document.getElementById(emojiId).textContent = emoji;
+    document.getElementById(msgId).textContent = msg;
+    showPhase(phaseId);
+  }
+
   /* ════════════════════════════════
      EXERCICE 1 — Classement
   ════════════════════════════════ */
-  function buildSort() {
+  function startSort() {
     const pool = document.getElementById('card-pool');
     pool.innerHTML = '';
     document.getElementById('placed-ville').innerHTML = '';
     document.getElementById('placed-camp').innerHTML = '';
     document.getElementById('fb-sort').className = 'feedback';
-    document.getElementById('next-sort-btn').style.display = 'none';
+    document.getElementById('next-sort-btn').classList.remove('visible');
     document.getElementById('check-sort-btn').style.display = '';
-    sortDone = false;
-    selected = null;
+    sortDone = false; sortSelected = null;
 
     SORT_ITEMS.forEach((item, i) => {
       const btn = document.createElement('button');
@@ -663,39 +713,37 @@
       btn.dataset.idx = i;
       btn.dataset.placed = '';
       btn.setAttribute('role', 'listitem');
-      btn.addEventListener('click', () => onSortItemClick(btn, i));
+      btn.addEventListener('click', () => onItemClick(btn, i));
       pool.appendChild(btn);
     });
 
-    ['col-ville', 'col-camp'].forEach(id => {
-      const col = document.getElementById(id);
-      col.addEventListener('click', () => onDropZoneClick(id));
-      col.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') onDropZoneClick(id); });
-    });
+    document.getElementById('col-ville').onclick = () => onDropClick('col-ville');
+    document.getElementById('col-camp').onclick  = () => onDropClick('col-camp');
+    document.getElementById('col-ville').onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') onDropClick('col-ville'); };
+    document.getElementById('col-camp').onkeydown  = e => { if (e.key === 'Enter' || e.key === ' ') onDropClick('col-camp'); };
+
+    showPhase('phase-sort');
   }
 
-  function onSortItemClick(btn, idx) {
+  function onItemClick(btn, idx) {
     if (sortDone) return;
-    if (selected && selected.btn === btn) {
-      btn.classList.remove('selected');
-      selected = null;
-      return;
+    if (sortSelected && sortSelected.btn === btn) {
+      btn.classList.remove('selected'); sortSelected = null; return;
     }
     document.querySelectorAll('.sort-item').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
-    selected = { btn, idx };
+    sortSelected = { btn, idx };
   }
 
-  function onDropZoneClick(colId) {
-    if (!selected || sortDone) return;
-    const { btn, idx } = selected;
+  function onDropClick(colId) {
+    if (!sortSelected || sortDone) return;
+    const { btn, idx } = sortSelected;
     const cat = colId === 'col-ville' ? 'v' : 'c';
     btn.dataset.placed = cat;
     btn.classList.remove('selected');
     btn.classList.add(cat === 'v' ? 'placed-v' : 'placed-c');
-    const targetId = cat === 'v' ? 'placed-ville' : 'placed-camp';
-    document.getElementById(targetId).appendChild(btn);
-    selected = null;
+    document.getElementById(cat === 'v' ? 'placed-ville' : 'placed-camp').appendChild(btn);
+    sortSelected = null;
     btn.addEventListener('click', () => returnToPool(btn, idx), { once: true });
   }
 
@@ -704,7 +752,7 @@
     btn.dataset.placed = '';
     btn.classList.remove('placed-v', 'placed-c', 'selected');
     document.getElementById('card-pool').appendChild(btn);
-    btn.addEventListener('click', () => onSortItemClick(btn, idx));
+    btn.addEventListener('click', () => onItemClick(btn, idx));
   }
 
   document.getElementById('check-sort-btn').addEventListener('click', () => {
@@ -719,7 +767,6 @@
       if (placed === SORT_ITEMS[idx].cat) correct++;
       else errors.push(SORT_ITEMS[idx].label);
     });
-    sortScore = correct;
     const fb = document.getElementById('fb-sort');
     if (total < SORT_ITEMS.length) {
       fb.className = 'feedback warning';
@@ -727,28 +774,36 @@
       return;
     }
     sortDone = true;
+    scores.sort = { got: correct, max: SORT_ITEMS.length };
     document.getElementById('check-sort-btn').style.display = 'none';
-    document.getElementById('next-sort-btn').style.display = 'block';
+    document.getElementById('next-sort-btn').classList.add('visible');
     if (errors.length === 0) {
       fb.className = 'feedback correct';
       fb.textContent = '✅ Parfait ! Tous les éléments sont bien classés.';
       launchConfetti(); playCorrect();
     } else {
       fb.className = 'feedback wrong';
-      fb.innerHTML = '❌ Quelques erreurs : <strong>' + errors.join(', ') + '</strong>. Les éléments de ville : hôpital, stade, grande gare, théâtre, grand magasin.';
+      fb.innerHTML = '❌ Quelques erreurs : <strong>' + errors.join(', ') + '</strong>.';
       playIncorrect();
     }
   });
 
   document.getElementById('next-sort-btn').addEventListener('click', () => {
-    qcmIdx = 0; qcmOk = 0;
-    renderQcm();
-    showPhase('phase-qcm');
+    const s = scores.sort;
+    miniResult('phase-sort-result', 'sort-result-emoji', 'sort-result-score', 'sort-result-msg', s.got, s.max);
   });
+
+  document.getElementById('sort-home-btn').addEventListener('click', goHome);
 
   /* ════════════════════════════════
      EXERCICE 2 — QCM
   ════════════════════════════════ */
+  function startQcm() {
+    qcmIdx = 0; qcmOk = 0;
+    renderQcm();
+    showPhase('phase-qcm');
+  }
+
   function renderQcm() {
     const q = QCM[qcmIdx];
     const total = QCM.length;
@@ -782,9 +837,9 @@
     fb.className = 'feedback ' + (ok ? 'correct' : 'wrong');
     fb.textContent = ok ? q.fb_ok : q.fb_ko;
     document.getElementById('qcm-score-badge').textContent = qcmOk + ' / ' + (qcmIdx + 1);
-    const nextBtn = document.getElementById('next-qcm-btn');
-    nextBtn.textContent = qcmIdx < QCM.length - 1 ? 'Question suivante →' : 'Exercice suivant →';
-    nextBtn.classList.add('visible');
+    const nxt = document.getElementById('next-qcm-btn');
+    nxt.textContent = qcmIdx < QCM.length - 1 ? 'Question suivante →' : 'Voir mon résultat →';
+    nxt.classList.add('visible');
   }
 
   document.getElementById('next-qcm-btn').addEventListener('click', () => {
@@ -792,15 +847,17 @@
     if (qcmIdx < QCM.length) {
       renderQcm();
     } else {
-      buildGap();
-      showPhase('phase-gap');
+      scores.qcm = { got: qcmOk, max: QCM.length };
+      miniResult('phase-qcm-result', 'qcm-result-emoji', 'qcm-result-score', 'qcm-result-msg', qcmOk, QCM.length);
     }
   });
+
+  document.getElementById('qcm-home-btn').addEventListener('click', goHome);
 
   /* ════════════════════════════════
      EXERCICE 3 — Définition à trous
   ════════════════════════════════ */
-  function buildGap() {
+  function startGap() {
     gapAnswers = new Array(GAP.length).fill(null);
     gapOk = 0;
     document.getElementById('fb-gap').className = 'feedback';
@@ -809,7 +866,6 @@
 
     const container = document.getElementById('gap-sentences');
     container.innerHTML = '';
-
     GAP.forEach((s, si) => {
       const card = document.createElement('div');
       card.className = 'gap-sentence-card';
@@ -837,6 +893,8 @@
       card.appendChild(opts);
       container.appendChild(card);
     });
+
+    showPhase('phase-gap');
   }
 
   function pickGap(si, opt, btn, opts) {
@@ -870,48 +928,17 @@
     document.getElementById('next-gap-btn').classList.add('visible');
   });
 
-  document.getElementById('next-gap-btn').addEventListener('click', () => showResult());
-
-  /* ════════════════════════════════
-     RÉSULTAT
-  ════════════════════════════════ */
-  function showResult() {
-    const totalMax = SORT_ITEMS.length + QCM.length + GAP.length;
-    const total = sortScore + qcmOk + gapOk;
-    const pct = Math.round(total / totalMax * 100);
-    document.getElementById('result-score').textContent = pct + ' %';
-    let emoji, msg;
-    if (pct >= 80) {
-      emoji = '🏆'; msg = 'Excellent travail ! Tu as bien compris les notions de la séance.';
-      launchConfetti(); playCorrect();
-    } else if (pct >= 55) {
-      emoji = '👍'; msg = 'Bien ! Quelques points à revoir, mais les bases sont là.';
-    } else {
-      emoji = '📖'; msg = 'Continue à t\'entraîner. Relis tes notes et recommence !';
-    }
-    document.getElementById('result-emoji').textContent = emoji;
-    document.getElementById('result-msg').textContent = msg;
-    document.getElementById('result-detail').innerHTML =
-      'Exercice 1 — classement : <strong>' + sortScore + ' / ' + SORT_ITEMS.length + '</strong><br>' +
-      'Exercice 2 — questions : <strong>' + qcmOk + ' / ' + QCM.length + '</strong><br>' +
-      'Exercice 3 — définition : <strong>' + gapOk + ' / ' + GAP.length + '</strong>';
-    showPhase('phase-result');
-  }
-
-  /* ════════════════════════════════
-     INIT
-  ════════════════════════════════ */
-  document.getElementById('start-btn').addEventListener('click', () => {
-    buildSort();
-    showPhase('phase-sort');
+  document.getElementById('next-gap-btn').addEventListener('click', () => {
+    scores.gap = { got: gapOk, max: GAP.length };
+    miniResult('phase-gap-result', 'gap-result-emoji', 'gap-result-score', 'gap-result-msg', gapOk, GAP.length);
   });
 
-  document.getElementById('retry-btn').addEventListener('click', () => {
-    selected = null; sortDone = false; sortScore = 0;
-    qcmIdx = 0; qcmOk = 0;
-    gapAnswers = []; gapOk = 0;
-    showPhase('phase-start');
-  });
+  document.getElementById('gap-home-btn').addEventListener('click', goHome);
+
+  /* ── Boutons d'accueil ── */
+  document.getElementById('btn-sort').addEventListener('click', startSort);
+  document.getElementById('btn-qcm').addEventListener('click', startQcm);
+  document.getElementById('btn-gap').addEventListener('click', startGap);
 </script>
 <script src="feedbackUtils.js"></script>
 </body>

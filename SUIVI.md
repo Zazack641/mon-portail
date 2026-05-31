@@ -15,7 +15,7 @@ Serveur local : `node server.js` → http://localhost:8766
 
 ```
 mon-portail/
-├── Mes outils pour apprendre.html   ← portail principal (à jour)
+├── index.html                        ← portail principal (à jour)
 ├── apps-todo.md                      ← toutes les apps marquées [DONE]
 ├── apps-review.md                    ← revue didactique de chaque app
 ├── SUIVI.md                          ← ce fichier

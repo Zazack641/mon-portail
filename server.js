@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const dir = __dirname;
 http.createServer((req, res) => {
-  let filePath = path.join(dir, decodeURIComponent(req.url === '/' ? '/Mes outils pour apprendre.html' : req.url));
+  let filePath = path.join(dir, decodeURIComponent(req.url === '/' ? '/index.html' : req.url));
   fs.readFile(filePath, (err, data) => {
     if (err) { res.writeHead(404); res.end('Not found'); return; }
     const ext = path.extname(filePath);
