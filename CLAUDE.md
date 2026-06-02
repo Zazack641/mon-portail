@@ -93,6 +93,50 @@ Copier un bloc `<article class="app-card" …>` existant et renseigner :
 
 ---
 
+## Branches et couleurs PER
+
+Les couleurs suivent la charte officielle CIIP du Plan d'études romand.
+Chaque branche appartient à un domaine PER parent.
+
+### Domaine LANGUES — jaune-ocre
+
+| Branche  | Header / bouton | Fond badge | Texte badge |
+|----------|-----------------|------------|-------------|
+| Français | `#B8960C`       | `#FBF5D6`  | `#7A6200`   |
+| Allemand | `#A08510`       | `#F5F0D0`  | `#6B5800`   |
+| Anglais  | `#8C7515`       | `#F0ECC8`  | `#5C4D00`   |
+
+### Domaine MSN — rouge
+
+| Branche               | Header / bouton | Fond badge | Texte badge |
+|-----------------------|-----------------|------------|-------------|
+| Mathématiques         | `#C0272D`       | `#FDECEA`  | `#8B0000`   |
+| Sciences de la nature | `#A02030`       | `#F8E4E4`  | `#700018`   |
+
+### Domaine SHS — vert foncé
+
+| Branche   | Header / bouton | Fond badge | Texte badge |
+|-----------|-----------------|------------|-------------|
+| Géographie | `#1A6B4A`      | `#E6F2ED`  | `#0D4A30`   |
+| Histoire   | `#1A5C5C`      | `#E0EEEE`  | `#0D3D3D`   |
+
+### Valeurs `data-*` des cartes
+
+| Branche               | `data-domain`  |
+|-----------------------|----------------|
+| Français              | `"francais"`   |
+| Allemand              | `"allemand"`   |
+| Anglais               | `"anglais"`    |
+| Mathématiques         | `"maths"`      |
+| Sciences de la nature | `"sciences"`   |
+| Géographie            | `"geo"`        |
+| Histoire              | `"histoire"`   |
+
+- **`data-harmos`** : niveau HarmoS de l'activité — valeurs possibles : `"1H-2H"`, `"3H-4H"`, `"5H-6H"`, `"7H-8H"`
+- **`data-per`** : code objectif PER (ex. `"MSN 14"`, `"L1 16"`, `"SHS 11"`)
+
+---
+
 ## Conventions de design
 
 ### Typographie

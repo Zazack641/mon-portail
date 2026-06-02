@@ -1,11 +1,11 @@
 # Suivi du projet — Portail pédagogique
-*Dernière mise à jour : 2026-05-31*
+*Dernière mise à jour : 2026-06-02*
 
 ---
 
 ## Contexte général
 
-Portail web monopage pour élèves du primaire (iPad tactile), servant de lanceur vers 10 applications pédagogiques HTML/CSS/JS vanilla. Référentiel : cycles HarmoS (Cycle 1 = 1H–4H, Cycle 2 = 5H–8H).
+Portail web monopage pour élèves du primaire (iPad tactile), servant de lanceur vers des applications pédagogiques HTML/CSS/JS vanilla. Référentiel : cycles HarmoS (Cycle 1 = 1H–4H, Cycle 2 = 5H–8H).
 
 Serveur local : `node server.js` → http://localhost:8766
 
@@ -20,74 +20,42 @@ mon-portail/
 ├── apps-review.md                    ← revue didactique de chaque app
 ├── SUIVI.md                          ← ce fichier
 └── apps/
-    ├── balance.html          ← EN COURS DE RÉVISION (voir ci-dessous)
-    ├── longueurs.html        ← RÉVISÉE (voir ci-dessous)
-    ├── capacites.html        ← créée, non encore testée manuellement
-    ├── surfaces.html         ← créée, non encore testée manuellement
-    ├── comparaison-nombres.html  ← créée, non encore testée manuellement
-    ├── droite-graduee.html   ← créée, non encore testée manuellement
-    ├── saut-de-nombre.html   ← révisée et testée ✅
-    ├── valeur-position.html  ← créée, non encore testée manuellement
-    ├── vocabulaire.html      ← créée, non encore testée manuellement
-    ├── comprehension.html    ← créée, non encore testée manuellement
-    └── vertical-calculation.html  ← existante avant ce projet, intouchée
+    ├── saut-de-nombre.html           ← auditée ✅ (skills PER + design-portail)
+    ├── capacites.html                ← auditée ✅
+    ├── surfaces.html                 ← auditée ✅
+    ├── comparaison-nombres.html      ← auditée ✅
+    ├── droite-graduee.html           ← auditée ✅
+    ├── valeur-position.html          ← auditée ✅
+    ├── vocabulaire.html              ← auditée ✅
+    ├── comprehension.html            ← auditée ✅
+    ├── vertical-calculation.html     ← auditée ✅ (ex-calcul-colonne, additions)
+    ├── soustraction-colonne.html     ← auditée ✅
+    ├── balance.html                  ← EN COURS, non finalisée
+    └── longueurs.html                ← EN COURS, non finalisée
 ```
 
 ---
 
-## longueurs.html — état détaillé
+## Corrections appliquées lors de l'audit (2026-06-02)
 
-### Ce qui a été fait dans cette session
-- ✅ N2 — réduit à 3 barres (au lieu de 3–4)
-- ✅ N2 — chaque barre part d'une position aléatoire dans la boîte, avec une direction aléatoire (–65° à +65°), garantie de rester entièrement dans les limites
-- ✅ N2 — label positionné au-dessus du point de départ de chaque barre
-- ✅ N1 & N2 — clic direct sur la barre (plus de boutons en bas) ; hit-test précis sur barres inclinées pour N2
-- ✅ N3 — nouveau niveau : 4 barres à classer du plus court au plus long (ou inversement), présentées comme en N1, clic dans l'ordre → badge numéroté → bouton Vérifier
+Corrections systématiques appliquées sur toutes les apps auditées :
 
-### Ce qui reste à tester sur iPad
-- Tolérance des taps sur les barres en N2 (actuellement 18 px — suffisant ?)
-- Comportement au toucher vs souris sur les trois niveaux
+| Correction | Apps concernées |
+|------------|----------------|
+| `role="group"` + `aria-label` sur la barre de niveaux/sons/textes | toutes sauf saut-de-nombre (déjà conforme) |
+| `aria-pressed` dans le HTML + mis à jour dynamiquement en JS | toutes sauf saut-de-nombre |
+| Suppression des emojis ✅/❌ dans les messages de feedback | toutes |
+| Feedback mauvaise réponse formatif (nomme la bonne réponse + explication) | capacites, surfaces, comparaison-nombres, valeur-position |
+| `verify-btn` masqué après validation, restauré sur newExercise | capacites, surfaces, droite-graduee |
+| `new-btn` couleur corrigée : branche → vert neutre `#0F7860` | vocabulaire |
+| Mismatch CSS `.back-btn` → `.back-link` | vertical-calculation |
 
----
+## Apps non finalisées
 
-## balance.html — état détaillé
-
-### Ce qui a été revu et corrigé dans cette session
-- ✅ Balance SVG recentrée (pivot au milieu exact, bras égaux)
-- ✅ Cubes dessinés directement SUR les plateaux (plus d'emojis/images en dessous)
-- ✅ N1 — bug didactique corrigé : le plateau le plus bas est toujours le plus lourd
-- ✅ N1 — consigne alterne « plus lourd » / « plus léger »
-- ✅ N1 — l'élève clique directement sur un plateau (plus de boutons en bas)
-- ✅ N2 — cubes de tailles/nombres variés, poids indépendant du visuel (concept de densité)
-- ✅ N2 — consigne alterne « plus lourd » / « plus léger », flèche indicatrice supprimée
-- ✅ N2 — l'élève clique sur un plateau (Gauche/Droite) + bouton Égal conservé
-- ✅ N3 — cubes de base sur LES DEUX plateaux (proportions différentes)
-- ✅ N3 — l'élève peut ajouter/enlever sur les deux côtés
-- ✅ N3 — impossible d'enlever les cubes de base (minimum = cubes de départ)
-- ✅ N3 — distinction visuelle cubes fixes (sombres) vs cubes ajoutés (bleus)
-- ✅ Tous les messages utilisent « plateau » (plus de « fléau »)
-- ✅ Ancien niveau 3 (comparaison sans balance) supprimé
-
-### Ce qui reste à tester manuellement sur iPad
-- Taille des zones de clic sur les plateaux (SVG transparent) — suffisamment grandes ?
-- Comportement au toucher vs souris
-- Lisibilité des cubes sombres (base) vs bleus (ajoutés) en N3
-
----
-
-## Apps non encore testées manuellement
-
-Toutes les apps ci-dessous ont été créées et sont fonctionnelles en théorie, mais n'ont pas encore été ouvertes et testées avec toi :
-
-| App | URL locale | Priorité de test |
-|-----|-----------|-----------------|
-| capacites.html | http://localhost:8766/apps/capacites.html | Prochaine |
-| surfaces.html | http://localhost:8766/apps/surfaces.html | |
-| comparaison-nombres.html | http://localhost:8766/apps/comparaison-nombres.html | |
-| droite-graduee.html | http://localhost:8766/apps/droite-graduee.html | |
-| valeur-position.html | http://localhost:8766/apps/valeur-position.html | |
-| vocabulaire.html | http://localhost:8766/apps/vocabulaire.html | |
-| comprehension.html | http://localhost:8766/apps/comprehension.html | |
+| App | État |
+|-----|------|
+| balance.html | EN COURS — logique en place, finition visuelle à compléter |
+| longueurs.html | EN COURS — canvas fonctionnel, audit PER non fait |
 
 ---
 
@@ -96,8 +64,9 @@ Toutes les apps ci-dessous ont été créées et sont fonctionnelles en théorie
 1. Ouvrir l'app sur http://localhost:8766/apps/[nom].html
 2. Tester manuellement et signaler les problèmes
 3. Corrections immédiates dans le code
-4. Re-tester, puis passer à l'app suivante
-5. Mettre à jour apps-review.md au fur et à mesure
+4. Passer les skills `pedagogie-per` et `design-portail`
+5. Re-tester, puis passer à l'app suivante
+6. Mettre à jour apps-review.md au fur et à mesure
 
 ---
 
