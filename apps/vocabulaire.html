@@ -205,7 +205,7 @@
   .action-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; width: 100%; }
   .new-btn {
     padding: 16px 36px;
-    background: #B8960C;
+    background: #0F7860;
     color: #fff;
     border: none;
     border-radius: 12px;
@@ -220,7 +220,7 @@
     display: none;
   }
   .new-btn.visible { display: block; }
-  .new-btn:hover { background: #9A7C0A; }
+  .new-btn:hover { background: #0A5C48; }
 </style>
 </head>
 <body>
@@ -231,13 +231,13 @@
   <div class="header-spacer"></div>
 </header>
 
-<div class="sound-bar" id="sound-bar">
-  <button class="sound-btn active" data-sound="ill">ill</button>
-  <button class="sound-btn" data-sound="ail">ail</button>
-  <button class="sound-btn" data-sound="un">un</button>
-  <button class="sound-btn" data-sound="ain">ain / aim / ein</button>
-  <button class="sound-btn" data-sound="oin">oin</button>
-  <button class="sound-btn" data-sound="revision">Révision</button>
+<div class="sound-bar" id="sound-bar" role="group" aria-label="Choisir le son">
+  <button class="sound-btn active" data-sound="ill" aria-pressed="true">ill</button>
+  <button class="sound-btn" data-sound="ail" aria-pressed="false">ail</button>
+  <button class="sound-btn" data-sound="un" aria-pressed="false">un</button>
+  <button class="sound-btn" data-sound="ain" aria-pressed="false">ain / aim / ein</button>
+  <button class="sound-btn" data-sound="oin" aria-pressed="false">oin</button>
+  <button class="sound-btn" data-sound="revision" aria-pressed="false">Révision</button>
 </div>
 
 <main>
@@ -330,8 +330,12 @@
   document.querySelectorAll('.sound-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       currentSound = btn.dataset.sound;
-      document.querySelectorAll('.sound-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.sound-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
       btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
       usedWords = [];
       setup();
     });
@@ -436,8 +440,8 @@
 
     feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
     feedbackEl.textContent = correct
-      ? `✅ Bravo ! On entend bien « ${state.entry.grapheme} » dans « ${state.entry.word} » !`
-      : `❌ Non. Dans « ${state.entry.word} », on entend « ${state.entry.grapheme} ».`;
+      ? `Bravo ! On entend bien « ${state.entry.grapheme} » dans « ${state.entry.word} ».`
+      : `Pas tout à fait. Dans « ${state.entry.word} », on entend « ${state.entry.grapheme} ».`;
     if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
     newBtn.classList.add('visible');
   }
