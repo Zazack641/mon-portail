@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- saved from url=(0062)file:///Users/isaacferretti/Downloads/portail-pedagogique.html -->
 <html lang="fr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -134,18 +133,39 @@
   }
   .filter-btn:hover { background: #EEF2F7; border-color: #CBD5E0; }
   .filter-btn:active { transform: scale(0.97); }
-  .filter-btn.active-domain {
-    background: #1A3A5C;
-    color: #fff;
-    border-color: #1A3A5C;
-    font-weight: 700;
-  }
-  .filter-btn.active-cycle {
+
+  /* Active domain — couleur générique puis override par branche */
+  .filter-btn.active-domain { color: #fff; font-weight: 700; }
+  .filter-btn[data-domain="all"].active-domain      { background: #1A3A5C; border-color: #1A3A5C; }
+  .filter-btn[data-domain="francais"].active-domain { background: #B8960C; border-color: #B8960C; }
+  .filter-btn[data-domain="allemand"].active-domain { background: #A08510; border-color: #A08510; }
+  .filter-btn[data-domain="anglais"].active-domain  { background: #8C7515; border-color: #8C7515; }
+  .filter-btn[data-domain="maths"].active-domain    { background: #C0272D; border-color: #C0272D; }
+  .filter-btn[data-domain="sciences"].active-domain { background: #A02030; border-color: #A02030; }
+  .filter-btn[data-domain="geo"].active-domain      { background: #1A6B4A; border-color: #1A6B4A; }
+  .filter-btn[data-domain="histoire"].active-domain { background: #1A5C5C; border-color: #1A5C5C; }
+
+  /* Active HarmoS */
+  .filter-btn.active-harmos {
     background: #0F7860;
     color: #fff;
     border-color: #0F7860;
     font-weight: 700;
   }
+
+  /* Sous-groupes domaine */
+  .domain-subgroups { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+  .domain-subgroup  { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .domain-sublabel  {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: #94A3B8;
+    min-width: 48px;
+    flex-shrink: 0;
+  }
+
   .filter-dot {
     width: 8px; height: 8px;
     border-radius: 50%;
@@ -193,9 +213,7 @@
   .app-card.hidden { display: none; }
 
   /* ===== BANDEAU "EN CHANTIER" ===== */
-  .app-card[data-wip] {
-    overflow: hidden;
-  }
+  .app-card[data-wip] { overflow: hidden; }
   .app-card[data-wip]::before {
     content: "🚧 En chantier";
     position: absolute;
@@ -237,9 +255,12 @@
     font-size: 32px;
     flex-shrink: 0;
   }
-  .icon-math { background: #EBF3FC; }
-  .icon-fr   { background: #E6F5F0; }
-  .icon-geo  { background: #FFF3E0; }
+  /* Icônes par branche (fond = fond du badge de la branche) */
+  .icon-maths    { background: #FDECEA; }
+  .icon-francais { background: #FBF5D6; }
+  .icon-sciences { background: #F8E4E4; }
+  .icon-geo      { background: #E6F2ED; }
+  .icon-histoire { background: #E0EEEE; }
 
   .card-title-wrap { flex: 1; min-width: 0; padding-top: 4px; }
   .card-title {
@@ -270,12 +291,34 @@
     font-weight: 700;
     letter-spacing: 0.1px;
   }
-  .badge-math  { background: #EBF3FC; color: #1A5FA8; }
-  .badge-fr    { background: #E6F5F0; color: #0A6048; }
-  .badge-geo   { background: #FFF3E0; color: #7C4700; }
-  .badge-c1    { background: #FEF3E2; color: #8A4E00; }
-  .badge-c2    { background: #F0EAFF; color: #5B2D9E; }
+
+  /* Badges domaine (palette PER officielle) */
+  .badge-maths    { background: #FDECEA; color: #8B0000; }
+  .badge-francais { background: #FBF5D6; color: #7A6200; }
+  .badge-allemand { background: #F5F0D0; color: #6B5800; }
+  .badge-anglais  { background: #F0ECC8; color: #5C4D00; }
+  .badge-sciences { background: #F8E4E4; color: #700018; }
+  .badge-geo      { background: #E6F2ED; color: #0D4A30; }
+  .badge-histoire { background: #E0EEEE; color: #0D3D3D; }
+
+  /* Badges HarmoS */
+  .badge-1h2h { background: #FEF3E2; color: #8A4E00; }
+  .badge-3h4h { background: #FEF3E2; color: #8A4E00; }
+  .badge-5h6h { background: #F0EAFF; color: #5B2D9E; }
+  .badge-7h8h { background: #F0EAFF; color: #5B2D9E; }
+
+  /* Badge thème */
   .badge-theme { background: #F1F5F9; color: #475569; }
+
+  /* Badge code objectif PER — discret, destiné à l'enseignant */
+  .badge-per {
+    background: #F1F5F9;
+    color: #64748B;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    font-family: 'Source Sans 3', sans-serif;
+  }
 
   /* Launch button */
   .launch-btn {
@@ -298,12 +341,23 @@
     -webkit-appearance: none;
     letter-spacing: 0.2px;
   }
-  .launch-btn:hover  { background: #253F63; box-shadow: 0 4px 14px rgba(26,58,92,0.30); }
   .launch-btn:active { transform: scale(0.98); }
-  .launch-btn.fr     { background: #0F7860; }
-  .launch-btn.fr:hover { background: #0A5C48; box-shadow: 0 4px 14px rgba(15,120,96,0.30); }
-  .launch-btn.geo    { background: #C45E00; }
-  .launch-btn.geo:hover { background: #A34E00; box-shadow: 0 4px 14px rgba(196,94,0,0.30); }
+
+  /* Bouton par branche — palette PER */
+  .launch-btn.maths    { background: #C0272D; }
+  .launch-btn.maths:hover { background: #A01F23; box-shadow: 0 4px 14px rgba(192,39,45,0.30); }
+  .launch-btn.francais { background: #B8960C; }
+  .launch-btn.francais:hover { background: #9A7C0A; box-shadow: 0 4px 14px rgba(184,150,12,0.30); }
+  .launch-btn.allemand { background: #A08510; }
+  .launch-btn.allemand:hover { background: #866E0D; box-shadow: 0 4px 14px rgba(160,133,16,0.30); }
+  .launch-btn.anglais  { background: #8C7515; }
+  .launch-btn.anglais:hover  { background: #745F11; box-shadow: 0 4px 14px rgba(140,117,21,0.30); }
+  .launch-btn.sciences { background: #A02030; }
+  .launch-btn.sciences:hover { background: #801828; box-shadow: 0 4px 14px rgba(160,32,48,0.30); }
+  .launch-btn.geo      { background: #1A6B4A; }
+  .launch-btn.geo:hover      { background: #145438; box-shadow: 0 4px 14px rgba(26,107,74,0.30); }
+  .launch-btn.histoire { background: #1A5C5C; }
+  .launch-btn.histoire:hover { background: #144646; box-shadow: 0 4px 14px rgba(26,92,92,0.30); }
 
   /* ===== NO RESULTS ===== */
   .no-results {
@@ -334,6 +388,7 @@
     .launch-btn { padding: 18px; font-size: 18px; }
     .card-title { font-size: 20px; }
     .card-desc { font-size: 16px; }
+    .domain-subgroups { flex-direction: row; gap: 10px 24px; flex-wrap: wrap; }
   }
   @media (min-width: 1024px) {
     .app-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 22px; }
@@ -357,32 +412,59 @@
     <input type="search" id="search-input" class="search-input" placeholder="Rechercher une activité..." autocomplete="off" aria-label="Rechercher une activité">
   </div>
 
-  <div class="filter-group">
+  <!-- Filtre par branche — groupé par domaine PER -->
+  <div class="filter-group" id="domain-filters" role="group" aria-label="Filtrer par branche">
     <div class="filter-group-label">Branche</div>
-    <div class="filter-row" id="domain-filters" role="group" aria-label="Filtrer par branche">
+    <div class="filter-row">
       <button class="filter-btn active-domain" data-domain="all" aria-pressed="true">Toutes les branches</button>
-      <button class="filter-btn" data-domain="math" aria-pressed="false">
-        <span class="filter-dot" style="background:#3482D2"></span>Mathématiques
-      </button>
-      <button class="filter-btn" data-domain="fr" aria-pressed="false">
-        <span class="filter-dot" style="background:#1D9E75"></span>Français
-      </button>
-      <button class="filter-btn" data-domain="geo" aria-pressed="false">
-        <span class="filter-dot" style="background:#C45E00"></span>Géographie
-      </button>
+    </div>
+    <div class="domain-subgroups">
+      <div class="domain-subgroup">
+        <span class="domain-sublabel">Langues</span>
+        <button class="filter-btn" data-domain="francais" aria-pressed="false">
+          <span class="filter-dot" style="background:#B8960C"></span>Français
+        </button>
+        <button class="filter-btn" data-domain="allemand" aria-pressed="false">
+          <span class="filter-dot" style="background:#A08510"></span>Allemand
+        </button>
+        <button class="filter-btn" data-domain="anglais" aria-pressed="false">
+          <span class="filter-dot" style="background:#8C7515"></span>Anglais
+        </button>
+      </div>
+      <div class="domain-subgroup">
+        <span class="domain-sublabel">MSN</span>
+        <button class="filter-btn" data-domain="maths" aria-pressed="false">
+          <span class="filter-dot" style="background:#C0272D"></span>Mathématiques
+        </button>
+        <button class="filter-btn" data-domain="sciences" aria-pressed="false">
+          <span class="filter-dot" style="background:#A02030"></span>Sciences
+        </button>
+      </div>
+      <div class="domain-subgroup">
+        <span class="domain-sublabel">SHS</span>
+        <button class="filter-btn" data-domain="geo" aria-pressed="false">
+          <span class="filter-dot" style="background:#1A6B4A"></span>Géographie
+        </button>
+        <button class="filter-btn" data-domain="histoire" aria-pressed="false">
+          <span class="filter-dot" style="background:#1A5C5C"></span>Histoire
+        </button>
+      </div>
     </div>
   </div>
 
+  <!-- Filtre par années HarmoS -->
   <div class="filter-group">
-    <div class="filter-group-label">Cycle HarmoS</div>
-    <div class="filter-row" id="cycle-filters" role="group" aria-label="Filtrer par cycle">
-      <button class="filter-btn active-cycle" data-cycle="all" aria-pressed="true">Tous les cycles</button>
-      <button class="filter-btn" data-cycle="c1" aria-pressed="false">Cycle 1 · 1H–4H</button>
-      <button class="filter-btn" data-cycle="c2" aria-pressed="false">Cycle 2 · 5H–8H</button>
+    <div class="filter-group-label">Années HarmoS</div>
+    <div class="filter-row" id="harmos-filters" role="group" aria-label="Filtrer par années HarmoS">
+      <button class="filter-btn active-harmos" data-harmos="all" aria-pressed="true">Toutes les années</button>
+      <button class="filter-btn" data-harmos="1H-2H" aria-pressed="false">1H–2H</button>
+      <button class="filter-btn" data-harmos="3H-4H" aria-pressed="false">3H–4H</button>
+      <button class="filter-btn" data-harmos="5H-6H" aria-pressed="false">5H–6H</button>
+      <button class="filter-btn" data-harmos="7H-8H" aria-pressed="false">7H–8H</button>
     </div>
   </div>
 
-  <div class="result-count" id="result-count" aria-live="polite" aria-atomic="true">16 activités affichées</div>
+  <div class="result-count" id="result-count" aria-live="polite" aria-atomic="true">13 activités affichées</div>
 </nav>
 
 <main>
@@ -390,204 +472,210 @@
 
     <!-- ======= MATHÉMATIQUES — GRANDEURS ET MESURES ======= -->
 
-    <article class="app-card" data-domain="math" data-cycle="c1" data-keywords="aire surface grande petite formes grille grandeurs mesures" data-wip style="animation-delay: 0ms;">
+    <article class="app-card" data-domain="maths" data-harmos="3H-4H" data-per="MSN 14" data-keywords="aire surface grande petite formes grille grandeurs mesures" data-wip style="animation-delay: 0ms;">
       <div class="card-header">
-        <div class="card-icon icon-math">📐</div>
+        <div class="card-icon icon-maths">📐</div>
         <div class="card-title-wrap">
           <h2 class="card-title">Les surfaces</h2>
         </div>
       </div>
       <p class="card-desc">Compare des surfaces sur grille, puis des formes variées (rectangles, cercles, triangles) pour trouver la plus grande ou la plus petite.</p>
       <div class="card-badges">
-        <span class="badge badge-math">Mathématiques</span>
-        <span class="badge badge-c1">Cycle 1</span>
+        <span class="badge badge-maths">Mathématiques</span>
+        <span class="badge badge-3h4h">3H–4H</span>
         <span class="badge badge-theme">Grandeurs et mesures</span>
+        <span class="badge badge-per">MSN 14</span>
       </div>
-      <a href="apps/surfaces.html" class="launch-btn">Lancer l'activité</a>
+      <a href="apps/surfaces.html" class="launch-btn maths">Lancer l'activité</a>
     </article>
 
-    <article class="app-card" data-domain="math" data-cycle="c1" data-keywords="capacité récipients contient plus moins formes grandeurs mesures" data-wip style="animation-delay: 60ms;">
+    <article class="app-card" data-domain="maths" data-harmos="3H-4H" data-per="MSN 14" data-keywords="capacité récipients contient plus moins formes grandeurs mesures" data-wip style="animation-delay: 30ms;">
       <div class="card-header">
-        <div class="card-icon icon-math">🥛</div>
+        <div class="card-icon icon-maths">🥛</div>
         <div class="card-title-wrap">
           <h2 class="card-title">Les capacités</h2>
         </div>
       </div>
       <p class="card-desc">Compare des récipients de formes différentes pour trouver lequel contient le plus ou le moins d'eau.</p>
       <div class="card-badges">
-        <span class="badge badge-math">Mathématiques</span>
-        <span class="badge badge-c1">Cycle 1</span>
+        <span class="badge badge-maths">Mathématiques</span>
+        <span class="badge badge-3h4h">3H–4H</span>
         <span class="badge badge-theme">Grandeurs et mesures</span>
+        <span class="badge badge-per">MSN 14</span>
       </div>
-      <a href="apps/capacites.html" class="launch-btn">Lancer l'activité</a>
+      <a href="apps/capacites.html" class="launch-btn maths">Lancer l'activité</a>
     </article>
 
-    <article class="app-card" data-domain="math" data-cycle="c1" data-keywords="longueur barres long court orientations grandeurs mesures" style="animation-delay: 120ms;">
+    <article class="app-card" data-domain="maths" data-harmos="3H-4H" data-per="MSN 14" data-keywords="longueur barres long court orientations grandeurs mesures" style="animation-delay: 60ms;">
       <div class="card-header">
-        <div class="card-icon icon-math">📏</div>
+        <div class="card-icon icon-maths">📏</div>
         <div class="card-title-wrap">
           <h2 class="card-title">Les longueurs</h2>
         </div>
       </div>
       <p class="card-desc">Compare des barres pour trouver la plus longue ou la plus courte, même avec des orientations variées.</p>
       <div class="card-badges">
-        <span class="badge badge-math">Mathématiques</span>
-        <span class="badge badge-c1">Cycle 1</span>
+        <span class="badge badge-maths">Mathématiques</span>
+        <span class="badge badge-3h4h">3H–4H</span>
         <span class="badge badge-theme">Grandeurs et mesures</span>
+        <span class="badge badge-per">MSN 14</span>
       </div>
-      <a href="apps/longueurs.html" class="launch-btn">Lancer l'activité</a>
+      <a href="apps/longueurs.html" class="launch-btn maths">Lancer l'activité</a>
     </article>
 
-    <article class="app-card" data-domain="math" data-cycle="c1" data-keywords="balance masse lourd léger blocs équilibrer grandeurs mesures" style="animation-delay: 180ms;">
+    <article class="app-card" data-domain="maths" data-harmos="3H-4H" data-per="MSN 14" data-keywords="balance masse lourd léger blocs équilibrer grandeurs mesures" style="animation-delay: 90ms;">
       <div class="card-header">
-        <div class="card-icon icon-math">⚖️</div>
+        <div class="card-icon icon-maths">⚖️</div>
         <div class="card-title-wrap">
           <h2 class="card-title">La balance</h2>
         </div>
       </div>
       <p class="card-desc">Compare des masses, équilibre la balance et découvre que la taille peut être trompeuse !</p>
       <div class="card-badges">
-        <span class="badge badge-math">Mathématiques</span>
-        <span class="badge badge-c1">Cycle 1</span>
+        <span class="badge badge-maths">Mathématiques</span>
+        <span class="badge badge-3h4h">3H–4H</span>
         <span class="badge badge-theme">Grandeurs et mesures</span>
+        <span class="badge badge-per">MSN 14</span>
       </div>
-      <a href="apps/balance.html" class="launch-btn">Lancer l'activité</a>
+      <a href="apps/balance.html" class="launch-btn maths">Lancer l'activité</a>
     </article>
 
     <!-- ======= MATHÉMATIQUES — NOMBRES ======= -->
 
-    <article class="app-card" data-domain="math" data-cycle="c2" data-keywords="nombres flèches droite graduée mille situer nombres" data-wip style="animation-delay: 270ms;">
+    <article class="app-card" data-domain="maths" data-harmos="5H-6H" data-per="MSN 22" data-keywords="nombres flèches droite graduée mille situer nombres" data-wip style="animation-delay: 120ms;">
       <div class="card-header">
-        <div class="card-icon icon-math">↗️</div>
+        <div class="card-icon icon-maths">↗️</div>
         <div class="card-title-wrap">
           <h2 class="card-title">Nombres flèches</h2>
         </div>
       </div>
       <p class="card-desc">Exerce-toi à lire et à situer des nombres jusqu'à 1000 sur une droite graduée.</p>
       <div class="card-badges">
-        <span class="badge badge-math">Mathématiques</span>
-        <span class="badge badge-c2">Cycle 2</span>
+        <span class="badge badge-maths">Mathématiques</span>
+        <span class="badge badge-5h6h">5H–6H</span>
         <span class="badge badge-theme">Nombres</span>
+        <span class="badge badge-per">MSN 22</span>
       </div>
-      <a href="apps/droite-graduee.html" class="launch-btn">Lancer l'activité</a>
+      <a href="apps/droite-graduee.html" class="launch-btn maths">Lancer l'activité</a>
     </article>
 
-    <article class="app-card" data-domain="math" data-cycle="c2" data-keywords="comparer nombres comparateur grand petit nombres" data-wip style="animation-delay: 300ms;">
+    <article class="app-card" data-domain="maths" data-harmos="5H-6H" data-keywords="comparer nombres comparateur grand petit nombres" data-wip style="animation-delay: 150ms;">
       <div class="card-header">
-        <div class="card-icon icon-math">🔢</div>
+        <div class="card-icon icon-maths">🔢</div>
         <div class="card-title-wrap">
           <h2 class="card-title">Le comparateur de nombres</h2>
         </div>
       </div>
       <p class="card-desc">Exerce-toi à comparer des nombres entre eux.</p>
       <div class="card-badges">
-        <span class="badge badge-math">Mathématiques</span>
-        <span class="badge badge-c2">Cycle 2</span>
+        <span class="badge badge-maths">Mathématiques</span>
+        <span class="badge badge-5h6h">5H–6H</span>
         <span class="badge badge-theme">Nombres</span>
       </div>
-      <a href="apps/comparaison-nombres.html" class="launch-btn">Lancer l'activité</a>
+      <a href="apps/comparaison-nombres.html" class="launch-btn maths">Lancer l'activité</a>
     </article>
 
-    <article class="app-card" data-domain="math" data-cycle="c2" data-keywords="saut dizaines centaines ajouter enlever nombres" data-wip style="animation-delay: 330ms;">
+    <article class="app-card" data-domain="maths" data-harmos="5H-6H" data-keywords="saut dizaines centaines ajouter enlever nombres" data-wip style="animation-delay: 180ms;">
       <div class="card-header">
-        <div class="card-icon icon-math">🦘</div>
+        <div class="card-icon icon-maths">🦘</div>
         <div class="card-title-wrap">
           <h2 class="card-title">Le grand saut</h2>
         </div>
       </div>
       <p class="card-desc">Ajoute ou enlève des dizaines et des centaines sur la droite des nombres.</p>
       <div class="card-badges">
-        <span class="badge badge-math">Mathématiques</span>
-        <span class="badge badge-c2">Cycle 2</span>
+        <span class="badge badge-maths">Mathématiques</span>
+        <span class="badge badge-5h6h">5H–6H</span>
         <span class="badge badge-theme">Nombres</span>
       </div>
-      <a href="apps/saut-de-nombre.html" class="launch-btn">Lancer l'activité</a>
+      <a href="apps/saut-de-nombre.html" class="launch-btn maths">Lancer l'activité</a>
     </article>
 
-    <article class="app-card" data-domain="math" data-cycle="c2" data-keywords="extracteur décomposer dizaines unités centaines nombres" data-wip style="animation-delay: 360ms;">
+    <article class="app-card" data-domain="maths" data-harmos="5H-6H" data-keywords="extracteur décomposer dizaines unités centaines nombres" data-wip style="animation-delay: 210ms;">
       <div class="card-header">
-        <div class="card-icon icon-math">🧩</div>
+        <div class="card-icon icon-maths">🧩</div>
         <div class="card-title-wrap">
           <h2 class="card-title">L'extracteur</h2>
         </div>
       </div>
       <p class="card-desc">Décompose des nombres en centaines, dizaines et unités.</p>
       <div class="card-badges">
-        <span class="badge badge-math">Mathématiques</span>
-        <span class="badge badge-c2">Cycle 2</span>
+        <span class="badge badge-maths">Mathématiques</span>
+        <span class="badge badge-5h6h">5H–6H</span>
         <span class="badge badge-theme">Nombres</span>
       </div>
-      <a href="apps/valeur-position.html" class="launch-btn">Lancer l'activité</a>
+      <a href="apps/valeur-position.html" class="launch-btn maths">Lancer l'activité</a>
     </article>
 
-    <article class="app-card" data-domain="math" data-cycle="c2" data-keywords="calcul colonne posé addition soustraction opérations" style="animation-delay: 390ms;">
+    <article class="app-card" data-domain="maths" data-harmos="5H-6H" data-keywords="calcul colonne posé addition soustraction opérations" style="animation-delay: 240ms;">
       <div class="card-header">
-        <div class="card-icon icon-math">🧮</div>
+        <div class="card-icon icon-maths">🧮</div>
         <div class="card-title-wrap">
           <h2 class="card-title">Additions en colonne</h2>
         </div>
       </div>
       <p class="card-desc">Entraîne-toi au calcul posé en colonnes.</p>
       <div class="card-badges">
-        <span class="badge badge-math">Mathématiques</span>
-        <span class="badge badge-c2">Cycle 2</span>
+        <span class="badge badge-maths">Mathématiques</span>
+        <span class="badge badge-5h6h">5H–6H</span>
         <span class="badge badge-theme">Opérations</span>
       </div>
-      <!-- ADD APP URL HERE -->
-      <a href="apps/vertical-calculation.html" class="launch-btn">Lancer l'activité</a>
+      <a href="apps/vertical-calculation.html" class="launch-btn maths">Lancer l'activité</a>
     </article>
 
-    <article class="app-card" data-domain="math" data-cycle="c2" data-keywords="soustraction colonne posé emprunt opérations" style="animation-delay: 420ms;">
+    <article class="app-card" data-domain="maths" data-harmos="5H-6H" data-keywords="soustraction colonne posé emprunt opérations" style="animation-delay: 270ms;">
       <div class="card-header">
-        <div class="card-icon icon-math">➖</div>
+        <div class="card-icon icon-maths">➖</div>
         <div class="card-title-wrap">
           <h2 class="card-title">Soustraction en colonne</h2>
         </div>
       </div>
       <p class="card-desc">Entraîne-toi à la soustraction posée avec la méthode de l'emprunt.</p>
       <div class="card-badges">
-        <span class="badge badge-math">Mathématiques</span>
-        <span class="badge badge-c2">Cycle 2</span>
+        <span class="badge badge-maths">Mathématiques</span>
+        <span class="badge badge-5h6h">5H–6H</span>
         <span class="badge badge-theme">Opérations</span>
       </div>
-      <a href="apps/soustraction-colonne.html" class="launch-btn">Lancer l'activité</a>
+      <a href="apps/soustraction-colonne.html" class="launch-btn maths">Lancer l'activité</a>
     </article>
 
     <!-- ======= FRANÇAIS ======= -->
 
-    <article class="app-card" data-domain="fr" data-cycle="c2" data-keywords="lecture compréhension textes questions lire français" data-wip style="animation-delay: 480ms;">
+    <article class="app-card" data-domain="francais" data-harmos="5H-6H" data-keywords="lecture compréhension textes questions lire français" data-wip style="animation-delay: 300ms;">
       <div class="card-header">
-        <div class="card-icon icon-fr">📖</div>
+        <div class="card-icon icon-francais">📖</div>
         <div class="card-title-wrap">
           <h2 class="card-title">Compréhension de lecture</h2>
         </div>
       </div>
       <p class="card-desc">Lis des textes et réponds aux questions de compréhension.</p>
       <div class="card-badges">
-        <span class="badge badge-fr">Français</span>
-        <span class="badge badge-c2">Cycle 2</span>
+        <span class="badge badge-francais">Français</span>
+        <span class="badge badge-5h6h">5H–6H</span>
         <span class="badge badge-theme">Compréhension</span>
       </div>
-      <a href="apps/comprehension.html" class="launch-btn fr">Lancer l'activité</a>
+      <a href="apps/comprehension.html" class="launch-btn francais">Lancer l'activité</a>
     </article>
 
-    <article class="app-card" data-domain="fr" data-cycle="c1" data-keywords="vocabulaire mots apprendre langue français" data-wip style="animation-delay: 510ms;">
+    <article class="app-card" data-domain="francais" data-harmos="3H-4H" data-keywords="vocabulaire mots apprendre langue français" data-wip style="animation-delay: 330ms;">
       <div class="card-header">
-        <div class="card-icon icon-fr">🔤</div>
+        <div class="card-icon icon-francais">🔤</div>
         <div class="card-title-wrap">
           <h2 class="card-title">Vocabulaire</h2>
         </div>
       </div>
       <p class="card-desc">Apprends du nouveau vocabulaire de manière interactive.</p>
       <div class="card-badges">
-        <span class="badge badge-fr">Français</span>
-        <span class="badge badge-c1">Cycle 1</span>
+        <span class="badge badge-francais">Français</span>
+        <span class="badge badge-3h4h">3H–4H</span>
         <span class="badge badge-theme">Langue</span>
       </div>
-      <a href="apps/vocabulaire.html" class="launch-btn fr">Lancer l'activité</a>
+      <a href="apps/vocabulaire.html" class="launch-btn francais">Lancer l'activité</a>
     </article>
 
-    <article class="app-card" data-domain="geo" data-cycle="c2" data-keywords="ville village campagne fonctions aspect habitants dense géographie entraînement" style="animation-delay: 540ms;">
+    <!-- ======= GÉOGRAPHIE ======= -->
+
+    <article class="app-card" data-domain="geo" data-harmos="5H-6H" data-keywords="ville village campagne fonctions aspect habitants dense géographie entraînement" style="animation-delay: 360ms;">
       <div class="card-header">
         <div class="card-icon icon-geo">🏙️</div>
         <div class="card-title-wrap">
@@ -597,7 +685,7 @@
       <p class="card-desc">Classe des lieux, réponds à des questions sur les fonctions d'une ville, et complète des définitions.</p>
       <div class="card-badges">
         <span class="badge badge-geo">Géographie</span>
-        <span class="badge badge-c2">Cycle 2</span>
+        <span class="badge badge-5h6h">5H–6H</span>
         <span class="badge badge-theme">La ville</span>
       </div>
       <a href="apps/entrainement-ville.html" class="launch-btn geo">Lancer l'activité</a>
@@ -619,24 +707,24 @@
 <script>
   document.getElementById('year').textContent = new Date().getFullYear();
 
-  const cards = Array.from(document.querySelectorAll('.app-card'));
-  const noResults = document.getElementById('no-results');
-  const countEl = document.getElementById('result-count');
+  const cards      = Array.from(document.querySelectorAll('.app-card'));
+  const noResults  = document.getElementById('no-results');
+  const countEl    = document.getElementById('result-count');
   const domainBtns = document.querySelectorAll('#domain-filters .filter-btn');
-  const cycleBtns  = document.querySelectorAll('#cycle-filters .filter-btn');
+  const harmosBtns = document.querySelectorAll('#harmos-filters .filter-btn');
 
   let activeDomain = 'all';
-  let activeCycle  = 'all';
+  let activeHarmos = 'all';
   let query = '';
 
   function applyFilters() {
     let visible = 0;
-    cards.forEach((card, i) => {
+    cards.forEach(card => {
       const domainOk = activeDomain === 'all' || card.dataset.domain === activeDomain;
-      const cycleOk  = activeCycle  === 'all' || card.dataset.cycle  === activeCycle;
+      const harmosOk = activeHarmos === 'all' || card.dataset.harmos === activeHarmos;
       const kw = (card.dataset.keywords + ' ' + card.querySelector('.card-title').textContent + ' ' + card.querySelector('.card-desc').textContent).toLowerCase();
       const searchOk = !query || kw.includes(query);
-      const show = domainOk && cycleOk && searchOk;
+      const show = domainOk && harmosOk && searchOk;
       card.classList.toggle('hidden', !show);
       if (show) {
         card.style.animationDelay = (visible * 30) + 'ms';
@@ -658,12 +746,12 @@
     applyFilters();
   });
 
-  document.getElementById('cycle-filters').addEventListener('click', e => {
+  document.getElementById('harmos-filters').addEventListener('click', e => {
     const btn = e.target.closest('.filter-btn');
     if (!btn) return;
-    activeCycle = btn.dataset.cycle;
-    cycleBtns.forEach(b => {
-      b.classList.toggle('active-cycle', b === btn);
+    activeHarmos = btn.dataset.harmos;
+    harmosBtns.forEach(b => {
+      b.classList.toggle('active-harmos', b === btn);
       b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
     });
     applyFilters();
