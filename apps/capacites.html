@@ -194,9 +194,9 @@
   <div class="header-spacer"></div>
 </header>
 
-<div class="level-bar">
-  <button class="level-btn active" data-level="1">Niveau 1</button>
-  <button class="level-btn" data-level="2">Niveau 2</button>
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1</button>
+  <button class="level-btn" data-level="2" aria-pressed="false">Niveau 2</button>
 </div>
 
 <main>
@@ -476,6 +476,7 @@
 
     buildContainers(items);
     feedbackEl.className = 'feedback';
+    verifyBtn.style.display = '';
     verifyBtn.disabled = true;
     newBtn.classList.remove('visible');
     state.answered = false;
@@ -502,6 +503,7 @@
 
     buildContainers(items);
     feedbackEl.className = 'feedback';
+    verifyBtn.style.display = '';
     verifyBtn.disabled = true;
     newBtn.classList.remove('visible');
     state.answered = false;
@@ -516,20 +518,26 @@
       if (i === state.correctIdx) div.classList.add('correct');
       else if (i === state.selected) div.classList.add('wrong');
     });
+    const correctShape = state.items[state.correctIdx].shape.label;
+    const question = state.isMost ? 'le plus' : 'le moins';
     feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
     feedbackEl.textContent = correct
-      ? '✅ Bravo ! Tu as bien comparé les quantités !'
-      : `❌ Pas tout à fait. Regarde bien le niveau de remplissage !`;
+      ? `Bravo ! ${correctShape} contient ${question} d'eau.`
+      : `Pas tout à fait. C'est ${correctShape} qui contient ${question} d'eau.`;
     if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
-    verifyBtn.disabled = true;
+    verifyBtn.style.display = 'none';
     newBtn.classList.add('visible');
   });
 
   document.querySelectorAll('.level-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       currentLevel = parseInt(btn.dataset.level);
-      document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.level-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
       btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
       newExercise();
     });
   });
