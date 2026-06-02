@@ -35,50 +35,69 @@ Ne jamais copier une app existante comme base.
 
 ```html
 <article class="app-card"
-  data-domain="[math|fr]"
-  data-cycle="[c1|c2]"
+  data-domain="[francais|allemand|anglais|maths|sciences|geo|histoire]"
+  data-harmos="[1H-2H|3H-4H|5H-6H|7H-8H]"
+  data-per="[code objectif PER, ex. MSN 14]"
   data-keywords="[mots-clés minuscules séparés par des espaces]"
   style="animation-delay: NNNms;">
 ```
 
-**data-domain — valeurs actuelles et couleurs**
+**data-domain — 7 branches, palette PER officielle CIIP**
 
-| Valeur | Discipline | Couleur bouton | Badge |
-|--------|-----------|----------------|-------|
-| `math` | Mathématiques | `#1A3A5C` (bleu marine) | `.badge-math` (bg `#EBF3FC`, text `#1A5FA8`) |
-| `fr` | Français | `#0F7860` (vert) | `.badge-fr` (bg `#E6F5F0`, text `#0A6048`) |
+| `data-domain` | Branche               | Domaine PER | Header / bouton | Fond badge | Texte badge | Classe bouton         | Classe badge     | Classe icône     |
+|---------------|-----------------------|-------------|-----------------|------------|-------------|----------------------|------------------|------------------|
+| `francais`    | Français              | Langues     | `#B8960C`       | `#FBF5D6`  | `#7A6200`   | `.launch-btn.francais` | `.badge-francais` | `.icon-francais` |
+| `allemand`    | Allemand              | Langues     | `#A08510`       | `#F5F0D0`  | `#6B5800`   | `.launch-btn.allemand` | `.badge-allemand` | `.icon-francais` |
+| `anglais`     | Anglais               | Langues     | `#8C7515`       | `#F0ECC8`  | `#5C4D00`   | `.launch-btn.anglais`  | `.badge-anglais`  | `.icon-francais` |
+| `maths`       | Mathématiques         | MSN         | `#C0272D`       | `#FDECEA`  | `#8B0000`   | `.launch-btn.maths`    | `.badge-maths`    | `.icon-maths`    |
+| `sciences`    | Sciences de la nature | MSN         | `#A02030`       | `#F8E4E4`  | `#700018`   | `.launch-btn.sciences` | `.badge-sciences` | `.icon-sciences` |
+| `geo`         | Géographie            | SHS         | `#1A6B4A`       | `#E6F2ED`  | `#0D4A30`   | `.launch-btn.geo`      | `.badge-geo`      | `.icon-geo`      |
+| `histoire`    | Histoire              | SHS         | `#1A5C5C`       | `#E0EEEE`  | `#0D3D3D`   | `.launch-btn.histoire` | `.badge-histoire` | `.icon-histoire` |
 
-**data-cycle — valeurs actuelles**
+**data-harmos — années HarmoS**
 
-| Valeur | Badge |
-|--------|-------|
-| `c1` | `.badge-c1` (bg `#FEF3E2`, text `#8A4E00`) |
-| `c2` | `.badge-c2` (bg `#F0EAFF`, text `#5B2D9E`) |
+| Valeur      | Badge CSS      | Couleurs badge           | Correspond à |
+|-------------|----------------|--------------------------|--------------|
+| `"1H-2H"`   | `.badge-1h2h`  | bg `#FEF3E2`, txt `#8A4E00` | Cycle 1 (début) |
+| `"3H-4H"`   | `.badge-3h4h`  | bg `#FEF3E2`, txt `#8A4E00` | Cycle 1 (fin)   |
+| `"5H-6H"`   | `.badge-5h6h`  | bg `#F0EAFF`, txt `#5B2D9E` | Cycle 2 (début) |
+| `"7H-8H"`   | `.badge-7h8h`  | bg `#F0EAFF`, txt `#5B2D9E` | Cycle 2 (fin)   |
 
-**Classe du bouton Lancer :**
-- Math : `class="launch-btn"`
-- Français : `class="launch-btn fr"`
+**data-per — code objectif PER**
 
-**animation-delay :** incrémenter de 30 ms par rapport à la carte précédente dans le même groupe.
+Attribut facultatif. Exemples : `"MSN 14"`, `"MSN 22"`, `"L1 16"`, `"SHS 11"`.
+Quand présent, afficher un badge discret `.badge-per` dans `.card-badges`.
+
+```html
+<span class="badge badge-per">MSN 14</span>
+```
+
+Style `.badge-per` : `background: #F1F5F9; color: #64748B; font-size: 11px; font-weight: 600`.
+Ce badge est destiné à l'enseignant — pas à l'élève.
 
 ### Structure d'une carte
 
 ```html
-<article class="app-card" data-domain="math" data-cycle="c1"
-         data-keywords="..." style="animation-delay: NNNms;">
+<article class="app-card"
+  data-domain="maths"
+  data-harmos="3H-4H"
+  data-per="MSN 14"
+  data-keywords="aire surface formes grandeurs mesures"
+  style="animation-delay: NNNms;">
   <div class="card-header">
-    <div class="card-icon icon-math">🔢</div>
+    <div class="card-icon icon-maths">📐</div>
     <div class="card-title-wrap">
-      <h2 class="card-title">Titre de l'activité</h2>
+      <h2 class="card-title">Les surfaces</h2>
     </div>
   </div>
   <p class="card-desc">Description courte, 1-2 phrases max.</p>
   <div class="card-badges">
-    <span class="badge badge-math">Mathématiques</span>
-    <span class="badge badge-c1">Cycle 1</span>
-    <span class="badge badge-theme">Thème PER</span>
+    <span class="badge badge-maths">Mathématiques</span>
+    <span class="badge badge-3h4h">3H–4H</span>
+    <span class="badge badge-theme">Grandeurs et mesures</span>
+    <span class="badge badge-per">MSN 14</span>  <!-- uniquement si data-per connu -->
   </div>
-  <a href="apps/nom-app.html" class="launch-btn">Lancer l'activité</a>
+  <a href="apps/surfaces.html" class="launch-btn maths">Lancer l'activité</a>
 </article>
 ```
 
@@ -88,9 +107,20 @@ Ne jamais copier une app existante comme base.
 - Badge thème : utiliser la terminologie PER (ex. "Grandeurs et mesures", "Nombres", "Compréhension de l'écrit")
 - Emoji icône : choisir un emoji parlant, cohérent avec le domaine
 
+**animation-delay :** incrémenter de 30 ms par rapport à la carte précédente dans le même groupe.
+
 ---
 
 ## Niveau 2 — L'app pédagogique
+
+### Couleurs de l'app selon la branche
+
+Le header (`.app-header`) et les boutons primaires (`.level-btn.active`, `.verify-btn`, boutons sélectionnés) doivent utiliser la couleur de la branche définie dans le tableau ci-dessus.
+
+**Apps existantes** (styles inline) : remplacer directement les hex dans le fichier.
+**Nouvelles apps** (depuis `_template.html`) : déclarer `--app-header-bg` dans `:root` avec la couleur de branche.
+
+Le bouton secondaire `.new-btn` (vert `#0F7860`) est une couleur neutre de navigation — ne pas le changer au couleur de branche.
 
 ### Structure HTML canonique (depuis _template.html)
 
@@ -194,12 +224,12 @@ Ne jamais mettre les hex en dur : toujours `var(--color-units)` etc.
 ### Variables CSS de app-base.css (à ne pas redéclarer)
 
 ```css
---app-bg: #F7F8FA
---app-text: #1A1A2E
---app-border: #E2E8F0
---app-header-bg: #1A3A5C
+--app-bg:         #F7F8FA
+--app-text:       #1A1A2E
+--app-border:     #E2E8F0
+--app-header-bg:  #1A3A5C  ← override avec la couleur de branche dans :root
 --app-correct-bg: #D1FAE5 / --app-correct-fg: #065F46
---app-wrong-bg: #FEE2E2   / --app-wrong-fg: #991B1B
+--app-wrong-bg:   #FEE2E2   / --app-wrong-fg: #991B1B
 ```
 
 ### Accessibilité WCAG AA
@@ -272,8 +302,8 @@ newBtn.addEventListener('click', newExercise);
 ### Formulation des textes
 
 - Phrases courtes, structure simple (sujet + verbe + complément)
-- C1 : max. 8-10 mots par consigne, vocabulaire du quotidien
-- C2 : max. 15 mots, peut inclure des termes disciplinaires si déjà rencontrés en classe
+- C1 (1H–4H) : max. 8-10 mots par consigne, vocabulaire du quotidien
+- C2 (5H–8H) : max. 15 mots, peut inclure des termes disciplinaires si déjà rencontrés en classe
 - Pas de double négation
 - Les nombres inférieurs à 13 s'écrivent en lettres dans une phrase (règle typographique)
 - Les consignes commencent par un verbe d'action ("Trouve...", "Compare...", "Clique sur...")
@@ -301,11 +331,15 @@ Pas de libellés PER techniques sur les boutons (ils sont pour l'élève, pas po
 ## Checklist de conformité — à parcourir avant de conclure
 
 ### Carte dans index.html
-- [ ] `data-domain` valide (`math` ou `fr`)
-- [ ] `data-cycle` valide (`c1` ou `c2`)
+- [ ] `data-domain` valide (l'une des 7 valeurs : `francais`, `allemand`, `anglais`, `maths`, `sciences`, `geo`, `histoire`)
+- [ ] `data-harmos` valide (`1H-2H`, `3H-4H`, `5H-6H` ou `7H-8H`)
+- [ ] `data-per` présent si le code objectif PER est connu (ex. `"MSN 14"`)
 - [ ] `data-keywords` renseignés (mots-clés utiles à la recherche)
-- [ ] Classe du bouton correcte (`.launch-btn` ou `.launch-btn.fr`)
-- [ ] Badges corrects (domaine + cycle + thème PER)
+- [ ] Classe du bouton correcte (`.launch-btn.[branche]` selon le tableau)
+- [ ] Classe de badge domaine correcte (`.badge-[branche]` selon le tableau)
+- [ ] Classe de badge HarmoS correcte (`.badge-1h2h`, `.badge-3h4h`, `.badge-5h6h` ou `.badge-7h8h`)
+- [ ] Badge `.badge-per` présent si `data-per` est renseigné
+- [ ] Classe d'icône correcte (`.icon-[branche]` selon le tableau)
 - [ ] animation-delay incrémenté de 30ms
 - [ ] Titre en typographie française (majuscule initiale seule)
 
@@ -317,6 +351,7 @@ Pas de libellés PER techniques sur les boutons (ils sont pour l'élève, pas po
 - [ ] Aucune redéfinition inline de ce qui existe dans `app-base.css`
 - [ ] Classes HTML canoniques respectées (`.app-header`, `.level-bar`, `.question-box`, `.feedback`, `.action-row`, `.verify-btn`, `.new-btn`)
 - [ ] `← Retour` pointe vers `../index.html`
+- [ ] Couleur de header et boutons primaires = couleur de la branche (tableau ci-dessus)
 
 ### Tactilité et accessibilité
 - [ ] Tous les éléments interactifs custom ont `min-height: 48px`
@@ -332,7 +367,7 @@ Pas de libellés PER techniques sur les boutons (ils sont pour l'élève, pas po
 - [ ] Les fonctions feedbackUtils ne sont jamais appelées au chargement
 
 ### Contenu
-- [ ] Consignes courtes et adaptées au cycle (C1 : max 10 mots)
+- [ ] Consignes courtes et adaptées au cycle (1H–4H : max 10 mots)
 - [ ] Feedback explicatif (pas seulement vrai/faux)
 - [ ] Messages de mauvaise réponse neutres et bienveillants
 - [ ] Valeurs numériques dans les plages PER du demi-cycle ciblé
