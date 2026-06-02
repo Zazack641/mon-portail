@@ -1,5 +1,5 @@
 # Suivi du projet — Portail pédagogique
-*Dernière mise à jour : 2026-06-02*
+*Dernière mise à jour : 2026-06-02 (correction état audit)*
 
 ---
 
@@ -21,41 +21,38 @@ mon-portail/
 ├── SUIVI.md                          ← ce fichier
 └── apps/
     ├── saut-de-nombre.html           ← auditée ✅ (skills PER + design-portail)
-    ├── capacites.html                ← auditée ✅
-    ├── surfaces.html                 ← auditée ✅
-    ├── comparaison-nombres.html      ← auditée ✅
-    ├── droite-graduee.html           ← auditée ✅
-    ├── valeur-position.html          ← auditée ✅
-    ├── vocabulaire.html              ← auditée ✅
-    ├── comprehension.html            ← auditée ✅
-    ├── vertical-calculation.html     ← auditée ✅ (ex-calcul-colonne, additions)
-    ├── soustraction-colonne.html     ← auditée ✅
-    ├── balance.html                  ← EN COURS, non finalisée
-    └── longueurs.html                ← EN COURS, non finalisée
+    ├── capacites.html                ← auditée ✅ (skills PER + design-portail)
+    ├── surfaces.html                 ← à auditer ⏳
+    ├── comparaison-nombres.html      ← à auditer ⏳
+    ├── droite-graduee.html           ← à auditer ⏳
+    ├── valeur-position.html          ← à auditer ⏳
+    ├── vocabulaire.html              ← à auditer ⏳
+    ├── comprehension.html            ← à auditer ⏳
+    ├── vertical-calculation.html     ← à auditer ⏳ (ex-calcul-colonne, additions)
+    ├── soustraction-colonne.html     ← à auditer ⏳
+    ├── balance.html                  ← à auditer ⏳ (non finalisée)
+    └── longueurs.html                ← à auditer ⏳ (non finalisée)
 ```
 
 ---
 
 ## Corrections appliquées lors de l'audit (2026-06-02)
 
-Corrections systématiques appliquées sur toutes les apps auditées :
+> **Note :** seule `saut-de-nombre.html` a été auditée avec les skills `pedagogie-per` et `design-portail`. Les corrections ci-dessous ont été appliquées ad hoc lors d'une session de révision précédente, sans passer formellement les skills PER sur chaque app.
+
+Corrections ponctuelles appliquées lors de la session 2026-06-02 :
 
 | Correction | Apps concernées |
 |------------|----------------|
-| `role="group"` + `aria-label` sur la barre de niveaux/sons/textes | toutes sauf saut-de-nombre (déjà conforme) |
-| `aria-pressed` dans le HTML + mis à jour dynamiquement en JS | toutes sauf saut-de-nombre |
-| Suppression des emojis ✅/❌ dans les messages de feedback | toutes |
-| Feedback mauvaise réponse formatif (nomme la bonne réponse + explication) | capacites, surfaces, comparaison-nombres, valeur-position |
-| `verify-btn` masqué après validation, restauré sur newExercise | capacites, surfaces, droite-graduee |
-| `new-btn` couleur corrigée : branche → vert neutre `#0F7860` | vocabulaire |
-| Mismatch CSS `.back-btn` → `.back-link` | vertical-calculation |
-
-## Apps non finalisées
-
-| App | État |
-|-----|------|
-| balance.html | EN COURS — logique en place, finition visuelle à compléter |
-| longueurs.html | EN COURS — canvas fonctionnel, audit PER non fait |
+| `role="group"` + `aria-label` sur la barre de niveaux/sons/textes | saut-de-nombre (référence), autres non vérifiées |
+| `aria-pressed` dans le HTML + mis à jour dynamiquement en JS | saut-de-nombre |
+| Suppression des emojis ✅/❌ dans les messages de feedback | saut-de-nombre |
+| Feedback mauvaise réponse formatif (nomme la bonne réponse + explication) | saut-de-nombre |
+| Corrections issues de l'audit calcul en colonne / soustraction | vertical-calculation, soustraction-colonne |
+| Corrections issues de l'audit compréhension | comprehension |
+| Corrections issues de l'audit vocabulaire | vocabulaire |
+| Corrections issues de l'audit valeur-position | valeur-position |
+| Corrections issues de l'audit capacites | capacites |
 
 ---
 

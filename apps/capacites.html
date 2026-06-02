@@ -116,6 +116,7 @@
     gap: 10px;
     cursor: pointer;
     touch-action: manipulation;
+    min-height: 48px;
   }
   .container-item .label {
     font-family: 'Nunito', sans-serif;
@@ -426,6 +427,9 @@
       const div = document.createElement('div');
       div.className = 'container-item';
       div.dataset.index = i;
+      div.setAttribute('role', 'button');
+      div.setAttribute('tabindex', '0');
+      div.setAttribute('aria-label', item.shape.label);
 
       const svgWrap = document.createElement('div');
       svgWrap.className = 'container-svg-wrap';
@@ -439,6 +443,7 @@
       div.appendChild(svgWrap);
       div.appendChild(lbl);
       div.addEventListener('click', () => selectContainer(i, div));
+      div.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectContainer(i, div); } });
       containersRow.appendChild(div);
     });
   }
@@ -509,6 +514,14 @@
     state.answered = false;
   }
 
+  function showFeedback(correct, msg) {
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = msg;
+    if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+    verifyBtn.style.display = 'none';
+    newBtn.classList.add('visible');
+  }
+
   verifyBtn.addEventListener('click', () => {
     if (state.selected === null) return;
     state.answered = true;
@@ -520,13 +533,10 @@
     });
     const correctShape = state.items[state.correctIdx].shape.label;
     const question = state.isMost ? 'le plus' : 'le moins';
-    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
-    feedbackEl.textContent = correct
+    const msg = correct
       ? `Bravo ! ${correctShape} contient ${question} d'eau.`
-      : `Pas tout à fait. C'est ${correctShape} qui contient ${question} d'eau.`;
-    if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
-    verifyBtn.style.display = 'none';
-    newBtn.classList.add('visible');
+      : `Pas tout à fait. Regarde le niveau de l'eau : c'est ${correctShape} qui en contient ${question}.`;
+    showFeedback(correct, msg);
   });
 
   document.querySelectorAll('.level-btn').forEach(btn => {
