@@ -198,9 +198,9 @@
   <div class="header-spacer"></div>
 </header>
 
-<div class="level-bar">
-  <button class="level-btn active" data-level="1">Niveau 1</button>
-  <button class="level-btn" data-level="2">Niveau 2</button>
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1</button>
+  <button class="level-btn" data-level="2" aria-pressed="false">Niveau 2</button>
 </div>
 
 <main>
@@ -317,6 +317,7 @@
     });
 
     feedbackEl.className = 'feedback';
+    verifyBtn.style.display = '';
     verifyBtn.disabled = true;
     newBtn.classList.remove('visible');
     state.answered = false;
@@ -420,6 +421,7 @@
     });
 
     feedbackEl.className = 'feedback';
+    verifyBtn.style.display = '';
     verifyBtn.disabled = true;
     newBtn.classList.remove('visible');
     state.answered = false;
@@ -442,20 +444,28 @@
       if (state.shapes[i].name === state.correctName) div.classList.add('correct');
       else if (state.shapes[i].name === state.selected) div.classList.add('wrong');
     });
+    const isLargest = questionBox.textContent.includes('grande');
+    const expl = currentLevel === 1
+      ? (correct ? 'Recompte les carreaux pour vérifier !' : 'Recompte les carreaux de chaque surface.')
+      : '';
     feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
     feedbackEl.textContent = correct
-      ? '✅ Bravo ! Tu as bien comparé les surfaces !'
-      : `❌ Pas tout à fait. La surface ${state.correctName} est la bonne réponse.`;
+      ? `Bravo ! La surface ${state.correctName} est bien la ${isLargest ? 'plus grande' : 'plus petite'}.`
+      : `Pas tout à fait. C'est la surface ${state.correctName} qui est la ${isLargest ? 'plus grande' : 'plus petite'}. ${expl}`.trim();
     if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
-    verifyBtn.disabled = true;
+    verifyBtn.style.display = 'none';
     newBtn.classList.add('visible');
   });
 
   document.querySelectorAll('.level-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       currentLevel = parseInt(btn.dataset.level);
-      document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.level-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
       btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
       newExercise();
     });
   });
