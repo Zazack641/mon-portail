@@ -292,3 +292,14 @@ playIncorrect();  // descente sawtooth, ~0,4s — aucune animation
 - Exemples corrects : "Calcul en colonne", "Le grand saut", "Nombres flèches"
 - Exemples incorrects : "Calcul en Colonne", "Le Grand Saut", "Nombres Flèches"
 - Ne jamais appliquer de capitalisation à l'anglaise (title case).
+
+## Skills disponibles
+
+Deux skills sont disponibles dans `skills/`. Les lire systématiquement avant de créer ou modifier une app.
+
+| Skill | Fichier | Quand l'utiliser |
+|-------|---------|-----------------|
+| `pedagogie-per` | `skills/pedagogie-per/SKILL.md` | Créer ou réviser une app |
+| `design-portail` | `skills/design-portail/SKILL.md` | Créer ou modifier une app, ajouter une carte, vérifier la conformité |
+
+Les fichiers de référence PER sont dans `docs/per/`.
