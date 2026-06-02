@@ -621,12 +621,12 @@
 
     const fb = document.getElementById('feedback');
     if (allOk) {
-      fb.textContent = '🎉 Bravo ! C\'est correct !';
+      fb.textContent = 'Bravo ! C\'est correct !';
       fb.className = 'feedback ok';
       playCorrect();
       launchConfetti();
     } else {
-      fb.textContent = `🔴 Pas tout à fait… Vérifie les ${wrongCols.join(', ')}.`;
+      fb.textContent = `Pas tout à fait. Vérifie les ${wrongCols.join(', ')}.`;
       fb.className = 'feedback bad';
       playIncorrect();
     }

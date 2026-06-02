@@ -37,7 +37,7 @@
       align-items: center;
       gap: 16px;
     }
-    .back-btn {
+    .back-link {
       color: rgba(255,255,255,0.85);
       text-decoration: none;
       font-size: 15px;
@@ -50,7 +50,7 @@
       touch-action: manipulation;
       white-space: nowrap;
     }
-    .back-btn:hover { background: rgba(255,255,255,0.22); }
+    .back-link:hover { background: rgba(255,255,255,0.22); }
     .app-header h1 {
       font-family: 'Nunito', sans-serif;
       font-size: clamp(18px, 4vw, 26px);
@@ -540,8 +540,8 @@
 
     const fb = document.getElementById('feedback');
     fb.textContent = allOk
-      ? '🎉 Bravo ! C\'est correct !'
-      : '🔴 Pas tout à fait… Vérifie et réessaie !';
+      ? 'Bravo ! C\'est correct !'
+      : 'Pas tout à fait. Vérifie et réessaie !';
     fb.className = 'feedback ' + (allOk ? 'ok' : 'bad');
     if (allOk) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
   }
