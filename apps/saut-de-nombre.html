@@ -135,6 +135,7 @@
   }
   .jump-grid.l1 { grid-template-columns: 1fr 1fr; }
   .jump-grid.l2 { grid-template-columns: 1fr 1fr 1fr; }
+  .jump-grid.l3 { grid-template-columns: 1fr 1fr; }
 
   .jump-btn {
     padding: 18px 8px;
@@ -162,6 +163,9 @@
   .jump-btn.tens-neg   { color: var(--color-tens);     border-color: var(--color-tens);     background: #FEF2F2; }
   .jump-btn.hunds-pos  { color: var(--color-hundreds); border-color: var(--color-hundreds); }
   .jump-btn.hunds-neg  { color: var(--color-hundreds); border-color: var(--color-hundreds); background: #ECFDF5; }
+  /* ±1000 : même teinte bleue que les unités (cycle), fond plus soutenu pour les distinguer visuellement */
+  .jump-btn.thous-pos  { color: var(--color-units);    border-color: var(--color-units);    background: #DBEAFE; }
+  .jump-btn.thous-neg  { color: var(--color-units);    border-color: var(--color-units);    background: #BFDBFE; }
 
   .jump-btn:not(:disabled):hover { filter: brightness(0.93); }
 
@@ -250,9 +254,10 @@
   <div class="header-spacer"></div>
 </header>
 
-<div class="level-bar">
-  <button class="level-btn active" data-level="1">Niveau 1 · ±1 et ±10</button>
-  <button class="level-btn" data-level="2">Niveau 2 · ±1, ±10, ±100</button>
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1 · ±1 et ±10</button>
+  <button class="level-btn" data-level="2" aria-pressed="false">Niveau 2 · ±1, ±10, ±100</button>
+  <button class="level-btn" data-level="3" aria-pressed="false">Niveau 3 · ±1 à ±1000</button>
 </div>
 
 <main>
@@ -286,14 +291,23 @@
   let state = {};
 
   const currentNumberEl = document.getElementById('current-number');
-  const targetNumberEl = document.getElementById('target-number');
-  const jumpGrid = document.getElementById('jump-grid');
-  const feedbackEl = document.getElementById('feedback');
-  const verifyBtn = document.getElementById('verify-btn');
-  const newBtn = document.getElementById('new-btn');
-  const questionBox = document.getElementById('question-box');
+  const targetNumberEl  = document.getElementById('target-number');
+  const jumpGrid        = document.getElementById('jump-grid');
+  const feedbackEl      = document.getElementById('feedback');
+  const verifyBtn       = document.getElementById('verify-btn');
+  const newBtn          = document.getElementById('new-btn');
+  const questionBox     = document.getElementById('question-box');
 
   function randInt(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
+
+  // ── Contextes situés (PER : ancrer dans une situation concrète) ──
+  const CONTEXTS = [
+    (s, t) => `🦘 Le kangourou est sur la case ${s}. Fais-le sauter jusqu'à la case ${t} !`,
+    (s, t) => `🚂 Le train part de la gare n°${s}. Il doit rejoindre la gare n°${t}.`,
+    (s, t) => `🐸 La grenouille est au nénuphar ${s}. Elle veut atteindre le nénuphar ${t}.`,
+    (s, t) => `🚀 La fusée est au kilomètre ${s}. Elle doit atteindre le kilomètre ${t}.`,
+    (s, t) => `🎯 Le robot est à la position ${s}. Programme-le pour aller en ${t}.`,
+  ];
 
   function renderColoredNumber(el, n) {
     el.innerHTML = '';
@@ -308,78 +322,94 @@
     });
   }
 
-  function updateCurrentDisplay() {
-    renderColoredNumber(currentNumberEl, state.current);
-    // Disable buttons that would go out of bounds
-    document.querySelectorAll('.jump-btn').forEach(btn => {
-      const delta = parseInt(btn.dataset.delta);
-      const next = state.current + delta;
-      btn.disabled = next < 0 || next > 999;
-    });
-    // Check win condition live
-    if (state.current === state.target && !state.answered) {
-      autoCorrect();
+  // ── Feedback unifié (point unique d'appel pour playCorrect/Incorrect/launchConfetti) ──
+  function showFeedback(correct, msg) {
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = msg;
+    if (correct) {
+      playCorrect(); launchConfetti();
+      state.answered = true;
+      document.querySelectorAll('.jump-btn').forEach(b => b.disabled = true);
+      newBtn.classList.add('visible');
+      verifyBtn.style.display = 'none';
+    } else {
+      playIncorrect();
     }
   }
 
-  function autoCorrect() {
-    state.answered = true;
-    feedbackEl.className = 'feedback correct';
-    feedbackEl.textContent = `✅ Bravo ! Tu as atteint ${state.target} !`;
-    playCorrect(); launchConfetti();
-    document.querySelectorAll('.jump-btn').forEach(b => b.disabled = true);
-    newBtn.classList.add('visible');
-    verifyBtn.style.display = 'none';
+  function updateCurrentDisplay() {
+    renderColoredNumber(currentNumberEl, state.current);
+    document.querySelectorAll('.jump-btn').forEach(btn => {
+      const delta = parseInt(btn.dataset.delta);
+      const next  = state.current + delta;
+      btn.disabled = next < 0 || next > state.max;
+    });
+    if (state.current === state.target && !state.answered) {
+      showFeedback(true, `Bravo ! Tu as atteint ${state.target} !`);
+    }
   }
 
-  function setup() {
-    const max = currentLevel === 1 ? 99 : 999;
-    const min = currentLevel === 1 ? 10 : 100;
+  function newExercise() {
+    const configs = {
+      1: { min: 10,   max: 99,   jumps: [1, 10],         grid: 'l1' },
+      2: { min: 100,  max: 999,  jumps: [1, 10, 100],    grid: 'l2' },
+      3: { min: 1000, max: 9999, jumps: [1, 10, 100, 1000], grid: 'l3' },
+    };
+    const { min, max, jumps, grid } = configs[currentLevel];
 
     let start, target;
     do {
-      start = randInt(min, max);
-      // Choose a target reachable by jumps
-      const jumps = currentLevel === 1 ? [1, 10] : [1, 10, 100];
-      const steps = randInt(2, 5);
+      start  = randInt(min, max);
       target = start;
+      const steps = randInt(2, 5);
       for (let i = 0; i < steps; i++) {
-        const j = jumps[Math.floor(Math.random() * jumps.length)];
+        const j    = jumps[Math.floor(Math.random() * jumps.length)];
         const sign = Math.random() < 0.5 ? 1 : -1;
         const next = target + sign * j;
-        if (next >= 0 && next <= max + 10) target = next;
+        if (next >= 0 && next <= max) target = next;
       }
-    } while (start === target || target < 0 || target > 999);
+    } while (start === target);
 
-    state = { start, current: start, target, answered: false };
+    const ctx = CONTEXTS[randInt(0, CONTEXTS.length - 1)];
+    state = { start, current: start, target, max, answered: false };
 
-    questionBox.textContent = `Utilise les boutons pour atteindre le nombre cible.`;
+    questionBox.textContent = ctx(start, target);
     renderColoredNumber(targetNumberEl, target);
     feedbackEl.className = 'feedback';
     verifyBtn.style.display = 'block';
     newBtn.classList.remove('visible');
 
-    // Build jump buttons
-    jumpGrid.className = 'jump-grid ' + (currentLevel === 1 ? 'l1' : 'l2');
+    // Construction des boutons de saut
+    const btnDefs = {
+      1: [
+        { delta: +1,  label: '+1',    cls: 'units-pos' },
+        { delta: -1,  label: '−1',    cls: 'units-neg' },
+        { delta: +10, label: '+10',   cls: 'tens-pos'  },
+        { delta: -10, label: '−10',   cls: 'tens-neg'  },
+      ],
+      2: [
+        { delta: +1,   label: '+1',    cls: 'units-pos' },
+        { delta: -1,   label: '−1',    cls: 'units-neg' },
+        { delta: +10,  label: '+10',   cls: 'tens-pos'  },
+        { delta: -10,  label: '−10',   cls: 'tens-neg'  },
+        { delta: +100, label: '+100',  cls: 'hunds-pos' },
+        { delta: -100, label: '−100',  cls: 'hunds-neg' },
+      ],
+      3: [
+        { delta: +1,    label: '+1',     cls: 'units-pos' },
+        { delta: -1,    label: '−1',     cls: 'units-neg' },
+        { delta: +10,   label: '+10',    cls: 'tens-pos'  },
+        { delta: -10,   label: '−10',    cls: 'tens-neg'  },
+        { delta: +100,  label: '+100',   cls: 'hunds-pos' },
+        { delta: -100,  label: '−100',   cls: 'hunds-neg' },
+        { delta: +1000, label: '+1000',  cls: 'thous-pos' },
+        { delta: -1000, label: '−1000',  cls: 'thous-neg' },
+      ],
+    };
+
+    jumpGrid.className = 'jump-grid ' + grid;
     jumpGrid.innerHTML = '';
-
-    const btns = currentLevel === 1
-      ? [
-          { delta: +1,  label: '+1',   cls: 'units-pos' },
-          { delta: -1,  label: '−1',   cls: 'units-neg' },
-          { delta: +10, label: '+10',  cls: 'tens-pos' },
-          { delta: -10, label: '−10',  cls: 'tens-neg' },
-        ]
-      : [
-          { delta: +1,   label: '+1',    cls: 'units-pos' },
-          { delta: -1,   label: '−1',    cls: 'units-neg' },
-          { delta: +10,  label: '+10',   cls: 'tens-pos' },
-          { delta: -10,  label: '−10',   cls: 'tens-neg' },
-          { delta: +100, label: '+100',  cls: 'hunds-pos' },
-          { delta: -100, label: '−100',  cls: 'hunds-neg' },
-        ];
-
-    btns.forEach(({ delta, label, cls }) => {
+    btnDefs[currentLevel].forEach(({ delta, label, cls }) => {
       const btn = document.createElement('button');
       btn.className = 'jump-btn ' + cls;
       btn.textContent = label;
@@ -395,35 +425,41 @@
     updateCurrentDisplay();
   }
 
+  // ── Vérification manuelle ──
   verifyBtn.addEventListener('click', () => {
     if (state.answered) return;
-    state.answered = true;
     const correct = state.current === state.target;
-    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
-    feedbackEl.textContent = correct
-      ? `✅ Bravo ! Tu as atteint ${state.target} !`
-      : `❌ Tu es à ${state.current}, mais le but était ${state.target}. Essaie encore !`;
-    if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
-    if (!correct) {
-      state.answered = false;
-      return;
+    if (correct) {
+      showFeedback(true, `Bravo ! Tu as atteint ${state.target} !`);
+    } else {
+      const diff    = state.target - state.current;
+      const absDiff = Math.abs(diff);
+      const dir     = diff > 0 ? 'ajouter' : 'retirer';
+      let indice;
+      if      (absDiff >= 1000) indice = `Commence par des sauts de ${diff > 0 ? '+' : '−'}1000.`;
+      else if (absDiff >= 100)  indice = `Commence par des sauts de ${diff > 0 ? '+' : '−'}100.`;
+      else if (absDiff >= 10)   indice = `Commence par des sauts de ${diff > 0 ? '+' : '−'}10.`;
+      else                      indice = `Il te reste ${absDiff} à ${dir} avec des sauts de ${diff > 0 ? '+' : '−'}1.`;
+      showFeedback(false, `Pas tout à fait. Tu es à ${state.current}, le but est ${state.target}. ${indice}`);
     }
-    document.querySelectorAll('.jump-btn').forEach(b => b.disabled = true);
-    newBtn.classList.add('visible');
-    verifyBtn.style.display = 'none';
   });
 
+  // ── Sélecteur de niveau ──
   document.querySelectorAll('.level-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      currentLevel = parseInt(btn.dataset.level);
-      document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.level-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
       btn.classList.add('active');
-      setup();
+      btn.setAttribute('aria-pressed', 'true');
+      currentLevel = parseInt(btn.dataset.level);
+      newExercise();
     });
   });
 
-  newBtn.addEventListener('click', setup);
-  setup();
+  newBtn.addEventListener('click', newExercise);
+  newExercise();
 </script>
 <script src="feedbackUtils.js"></script>
 </body>

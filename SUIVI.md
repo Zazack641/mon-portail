@@ -26,7 +26,7 @@ mon-portail/
     ├── surfaces.html         ← créée, non encore testée manuellement
     ├── comparaison-nombres.html  ← créée, non encore testée manuellement
     ├── droite-graduee.html   ← créée, non encore testée manuellement
-    ├── saut-de-nombre.html   ← créée, non encore testée manuellement
+    ├── saut-de-nombre.html   ← révisée et testée ✅
     ├── valeur-position.html  ← créée, non encore testée manuellement
     ├── vocabulaire.html      ← créée, non encore testée manuellement
     ├── comprehension.html    ← créée, non encore testée manuellement
@@ -85,7 +85,6 @@ Toutes les apps ci-dessous ont été créées et sont fonctionnelles en théorie
 | surfaces.html | http://localhost:8766/apps/surfaces.html | |
 | comparaison-nombres.html | http://localhost:8766/apps/comparaison-nombres.html | |
 | droite-graduee.html | http://localhost:8766/apps/droite-graduee.html | |
-| saut-de-nombre.html | http://localhost:8766/apps/saut-de-nombre.html | |
 | valeur-position.html | http://localhost:8766/apps/valeur-position.html | |
 | vocabulaire.html | http://localhost:8766/apps/vocabulaire.html | |
 | comprehension.html | http://localhost:8766/apps/comprehension.html | |
