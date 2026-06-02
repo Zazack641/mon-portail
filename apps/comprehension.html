@@ -309,9 +309,9 @@
   <div class="header-spacer"></div>
 </header>
 
-<div class="text-bar" id="text-bar">
-  <button class="text-btn active" data-text="kiosque">Le kiosque</button>
-  <button class="text-btn" data-text="leonard">Léonard de Vinci</button>
+<div class="text-bar" id="text-bar" role="group" aria-label="Choisir le texte">
+  <button class="text-btn active" data-text="kiosque" aria-pressed="true">Le kiosque</button>
+  <button class="text-btn" data-text="leonard" aria-pressed="false">Léonard de Vinci</button>
 </div>
 
 <!-- Phase 1 : Lecture -->
@@ -480,8 +480,12 @@
 
   document.querySelectorAll('.text-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.text-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.text-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
       btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
       loadText(btn.dataset.text);
     });
   });
@@ -525,7 +529,7 @@
     answered.push(correct);
 
     questionFeedback.className = 'question-feedback ' + (correct ? 'correct' : 'wrong');
-    questionFeedback.textContent = (correct ? '✅ ' : '❌ ') + q.explanation;
+    questionFeedback.textContent = q.explanation;
     if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
 
     const data = TEXTS[currentText];
@@ -571,10 +575,11 @@
   });
 
   document.getElementById('change-text-btn').addEventListener('click', () => {
-    // Switch to the other text
     const other = currentText === 'kiosque' ? 'leonard' : 'kiosque';
     document.querySelectorAll('.text-btn').forEach(b => {
-      b.classList.toggle('active', b.dataset.text === other);
+      const isOther = b.dataset.text === other;
+      b.classList.toggle('active', isOther);
+      b.setAttribute('aria-pressed', isOther ? 'true' : 'false');
     });
     loadText(other);
   });
