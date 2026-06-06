@@ -501,7 +501,8 @@
       div.dataset.index = i;
       div.setAttribute('role', 'button');
       div.setAttribute('tabindex', '0');
-      div.setAttribute('aria-label', item.shape.label);
+      const letter = String.fromCharCode(65 + i); // A, B, C, D
+      div.setAttribute('aria-label', 'Récipient ' + letter);
 
       const svgWrap = document.createElement('div');
       svgWrap.className = 'container-svg-wrap';
@@ -509,7 +510,7 @@
 
       const lbl = document.createElement('div');
       lbl.className = 'label';
-      lbl.textContent = item.shape.label;
+      lbl.textContent = letter;
 
       div.appendChild(svgWrap);
       div.appendChild(lbl);
@@ -636,12 +637,11 @@
       if (i === state.correctIdx) div.classList.add('correct');
       else if (i === state.selected) div.classList.add('wrong');
     });
-    const { article, label } = state.items[state.correctIdx].shape;  // inchangé
-    const nom = `${article} ${label.toLowerCase()}`;
+    const correctLetter = String.fromCharCode(65 + state.correctIdx);
     const question = state.isMost ? 'le plus' : 'le moins';
     const msg = correct
-      ? `Bravo ! C'est ${nom} qui contient ${question} d'eau.`
-      : `Pas tout à fait. C'est ${nom} qui contient ${question} d'eau.`;
+      ? `Bravo ! Le récipient ${correctLetter} contient ${question} d'eau.`
+      : `Pas tout à fait. C'est le récipient ${correctLetter} qui contient ${question} d'eau.`;
     showFeedback(correct, msg);
   });
 
