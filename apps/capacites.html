@@ -227,7 +227,7 @@
   const SHAPES = [
     {
       id: 'verre',
-      label: 'Verre', article: 'le',
+      label: 'Verre', article: 'le', famille: 'fin',
       maxCapacity: 200,   // petit — haut et fin
       baseW: 52, baseH: 148,
       draw(ctx, w, h, fill) {
@@ -254,7 +254,7 @@
     },
     {
       id: 'bouteille',
-      label: 'Bouteille', article: 'la',
+      label: 'Bouteille', article: 'la', famille: 'fin',
       maxCapacity: 330,   // moyen — très haute et fine
       baseW: 58, baseH: 158,
       draw(ctx, w, h, fill) {
@@ -289,7 +289,7 @@
     },
     {
       id: 'tasse',
-      label: 'Tasse', article: 'la',
+      label: 'Tasse', article: 'la', famille: 'large',
       maxCapacity: 260,   // moyen — large et basse
       baseW: 126, baseH: 78,
       draw(ctx, w, h, fill) {
@@ -320,7 +320,7 @@
     },
     {
       id: 'bol',
-      label: 'Bol', article: 'le',
+      label: 'Bol', article: 'le', famille: 'large',
       maxCapacity: 620,   // grand — très large et très bas
       baseW: 148, baseH: 84,
       draw(ctx, w, h, fill) {
@@ -353,7 +353,7 @@
     },
     {
       id: 'seau',
-      label: 'Seau', article: 'le',
+      label: 'Seau', article: 'le', famille: 'large',
       maxCapacity: 520,   // grand — largeur et hauteur moyennes
       baseW: 108, baseH: 108,
       draw(ctx, w, h, fill) {
@@ -386,7 +386,7 @@
     },
     {
       id: 'pichet',
-      label: 'Pichet', article: 'le',
+      label: 'Pichet', article: 'le', famille: 'fin',
       maxCapacity: 400,   // moyen — plus large que le verre, moins que le bol
       baseW: 82, baseH: 140,
       draw(ctx, w, h, fill) {
@@ -522,7 +522,12 @@
   }
 
   function setupL1() {
-    const shapes = pick(SHAPES, 2);
+    // N1 — formes de la même famille (proportions similaires) : 1H-2H
+    // La comparaison repose sur le niveau visible, sans piège lié à la forme.
+    const familles = [...new Set(SHAPES.map(s => s.famille))];
+    const famille = familles[Math.floor(Math.random() * familles.length)];
+    const pool = SHAPES.filter(s => s.famille === famille);
+    const shapes = pick(pool, 2);
     const isMost = Math.random() < 0.5;
     const vols = generateVolumes(shapes, 30);
     const items = shapes.map((shape, i) => ({ shape, volume: vols[i] }));
