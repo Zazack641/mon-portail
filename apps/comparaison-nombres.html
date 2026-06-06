@@ -233,8 +233,8 @@
 </header>
 
 <div class="level-bar" role="group" aria-label="Choisir le niveau">
-  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1 · jusqu'à 100</button>
-  <button class="level-btn" data-level="2" aria-pressed="false">Niveau 2 · jusqu'à 1000</button>
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1 · jusqu'à 999</button>
+  <button class="level-btn" data-level="2" aria-pressed="false">Niveau 2 · jusqu'à 9999</button>
 </div>
 
 <main>
@@ -288,10 +288,13 @@
 
   function renderLegend(maxDigits) {
     legend.innerHTML = '';
-    const ranks = maxDigits >= 3
-      ? [{ label: 'Centaines', rank: 2 }, { label: 'Dizaines', rank: 1 }, { label: 'Unités', rank: 0 }]
-      : [{ label: 'Dizaines', rank: 1 }, { label: 'Unités', rank: 0 }];
-    ranks.forEach(({ label, rank }) => {
+    const allRanks = [
+      { label: 'Milliers', rank: 3 },
+      { label: 'Centaines', rank: 2 },
+      { label: 'Dizaines', rank: 1 },
+      { label: 'Unités', rank: 0 }
+    ];
+    allRanks.filter(r => r.rank < maxDigits).forEach(({ label, rank }) => {
       const item = document.createElement('div');
       item.className = 'legend-item';
       const dot = document.createElement('div');
@@ -303,16 +306,23 @@
     });
   }
 
+  function showFeedback(correct, msg) {
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = msg;
+    if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+    newBtn.classList.add('visible');
+  }
+
   function setup() {
     let a, b;
-    const max = currentLevel === 1 ? 99 : 999;
-    const min = currentLevel === 1 ? 10 : 100;
+    const max = currentLevel === 1 ? 999 : 9999;
+    const min = currentLevel === 1 ? 100 : 1000;
     do {
       a = randInt(min, max);
       b = randInt(min, max);
     } while (a === b);
 
-    const correct = a < b ? '<' : a > b ? '>' : '=';
+    const correct = a < b ? '<' : '>';
     state = { a, b, correct, answered: false };
 
     renderNumber(numLeft, a);
@@ -320,7 +330,7 @@
     renderLegend(String(max).length);
 
     symbolZone.innerHTML = '';
-    ['<', '=', '>'].forEach(sym => {
+    ['<', '>'].forEach(sym => {
       const btn = document.createElement('button');
       btn.className = 'symbol-btn';
       btn.textContent = sym;
@@ -343,13 +353,12 @@
       else if (b === btn) b.classList.add('wrong');
     });
 
-    const symLabel = state.correct === '<' ? 'est plus petit que' : state.correct === '>' ? 'est plus grand que' : 'est égal à';
-    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
-    feedbackEl.textContent = correct
-      ? `Bravo ! ${state.a} ${state.correct} ${state.b}, c'est juste.`
-      : `Pas tout à fait. Il fallait « ${state.correct} » car ${state.a} ${symLabel} ${state.b}.`;
-    if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
-    newBtn.classList.add('visible');
+    const symLabel = state.correct === '<' ? 'est plus petit que' : 'est plus grand que';
+    showFeedback(correct,
+      correct
+        ? `Bravo ! ${state.a} ${state.correct} ${state.b}, c'est juste.`
+        : `Pas tout à fait. Il fallait « ${state.correct} » car ${state.a} ${symLabel} ${state.b}.`
+    );
   }
 
   document.querySelectorAll('.level-btn').forEach(btn => {

@@ -1,5 +1,5 @@
 # Suivi du projet — Portail pédagogique
-*Dernière mise à jour : 2026-06-02 (correction état audit)*
+*Dernière mise à jour : 2026-06-06 (audit comparaison-nombres)*
 
 ---
 
@@ -23,7 +23,7 @@ mon-portail/
     ├── saut-de-nombre.html           ← auditée ✅ (skills PER + design-portail)
     ├── capacites.html                ← auditée ✅ (skills PER + design-portail)
     ├── surfaces.html                 ← à auditer ⏳
-    ├── comparaison-nombres.html      ← à auditer ⏳
+    ├── comparaison-nombres.html      ← auditée ✅ (skills PER + design-portail)
     ├── droite-graduee.html           ← à auditer ⏳
     ├── valeur-position.html          ← à auditer ⏳
     ├── vocabulaire.html              ← à auditer ⏳
@@ -53,6 +53,7 @@ Corrections ponctuelles appliquées lors de la session 2026-06-02 :
 | Corrections issues de l'audit vocabulaire | vocabulaire |
 | Corrections issues de l'audit valeur-position | valeur-position |
 | Corrections issues de l'audit capacites | capacites |
+| Corrections issues de l'audit comparaison-nombres | comparaison-nombres |
 
 ---
 
