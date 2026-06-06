@@ -53,6 +53,9 @@ deux objectifs secondaires (ex. MSN 12 en soutien). Ne pas disperser.
 
 ## Étape 3 — Calibrer la progression par demi-cycle
 
+**Règle fondamentale : une app = un groupe d'années scolaires** (1H-2H, 3H-4H, 5H-6H ou 7H-8H).
+Les niveaux internes différencient à l'intérieur de ce groupe uniquement. Si une app couvre plusieurs groupes, elle doit être **scindée** : créer une app distincte par groupe avec sa propre carte `index.html`.
+
 Chaque niveau d'une app doit correspondre à une étape de la progression PER.
 
 **Pattern pour les apps en drill :**

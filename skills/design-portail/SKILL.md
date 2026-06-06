@@ -63,6 +63,8 @@ Ne jamais copier une app existante comme base.
 | `"5H-6H"`   | `.badge-5h6h`  | bg `#F0EAFF`, txt `#5B2D9E` | Cycle 2 (début) |
 | `"7H-8H"`   | `.badge-7h8h`  | bg `#F0EAFF`, txt `#5B2D9E` | Cycle 2 (fin)   |
 
+**Règle : une app = un seul `data-harmos`.** Si les niveaux internes d'une app couvrent deux groupes d'années différents (ex. Niveau 1 en 3H-4H et Niveau 2 en 5H-6H), l'app doit être **scindée** en deux apps séparées, chacune avec sa propre carte dans `index.html`.
+
 **data-per — code objectif PER**
 
 Attribut facultatif. Exemples : `"MSN 14"`, `"MSN 22"`, `"L1 16"`, `"SHS 11"`.

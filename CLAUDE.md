@@ -356,4 +356,6 @@ Les fichiers de référence PER sont dans `docs/per/`.
 
 Les niveaux internes servent uniquement la différenciation à l'intérieur de ce groupe. Ils ne doivent pas couvrir un autre groupe d'années ou un autre cycle.
 
+**Si une app couvre plusieurs groupes d'années scolaires, elle doit être scindée** : créer une app distincte par groupe, chacune avec sa propre carte dans `index.html` et son propre `data-harmos`. Ne jamais élargir les niveaux internes d'une app existante pour absorber un groupe d'années supplémentaire.
+
 Si deux apps partagent le même thème mais ciblent des groupes d'années différents, leurs titres peuvent être identiques. Dans ce cas, ajouter le groupe d'années entre parenthèses dans le titre de la carte du portail : "Figures géométriques (5H-6H)".
