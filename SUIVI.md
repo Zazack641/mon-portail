@@ -1,5 +1,5 @@
 # Suivi du projet — Portail pédagogique
-*Dernière mise à jour : 2026-06-06 (nouvelle app comparaison-nombres-c1)*
+*Dernière mise à jour : 2026-06-06 (titres comparateurs + retrait data-wip)*
 
 ---
 
@@ -23,8 +23,8 @@ mon-portail/
     ├── saut-de-nombre.html           ← auditée ✅ (skills PER + design-portail)
     ├── capacites.html                ← auditée ✅ (skills PER + design-portail)
     ├── surfaces.html                 ← à auditer ⏳
-    ├── comparaison-nombres.html      ← auditée ✅ (skills PER + design-portail)
-    ├── comparaison-nombres-c1.html   ← créée ✅ (C1 / 3H-4H, MSN 12, niveaux 0–9 et 10–99)
+    ├── comparaison-nombres.html      ← auditée ✅ — "Le comparateur de nombres (5H-6H)"
+    ├── comparaison-nombres-c1.html   ← auditée ✅ — "Le comparateur de nombres (3H-4H)"
     ├── droite-graduee.html           ← à auditer ⏳
     ├── valeur-position.html          ← à auditer ⏳
     ├── vocabulaire.html              ← à auditer ⏳
