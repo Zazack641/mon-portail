@@ -324,26 +324,29 @@
       maxCapacity: 620,   // grand — très large et très bas
       baseW: 148, baseH: 84,
       draw(ctx, w, h, fill) {
-        const cx = w / 2, cy = h * 0.74;
-        const rx = w * 0.46, ry = h * 0.54;
+        const cx = w / 2;
+        const cy = h * 0.02;  // centre de l'ellipse près du bord supérieur
+        const rx = w * 0.46;  // très large
+        const ry = h * 0.94;  // profond (couvre presque toute la hauteur)
+        // Demi-ellipse INFÉRIEURE (0 → π) = bol ouvert vers le haut
         ctx.beginPath();
-        ctx.ellipse(cx, cy, rx, ry, 0, Math.PI, 0);
-        ctx.lineTo(cx + rx, cy);
-        ctx.closePath();
+        ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI);
+        ctx.closePath();  // trait horizontal = bord supérieur du bol
         ctx.strokeStyle = '#475569'; ctx.lineWidth = 2.5; ctx.stroke();
         if (fill > 0) {
-          const fillTop = cy - ry * fill * 0.88;
+          // L'eau monte du bas (cy + ry) vers le bord (cy)
+          const fillY = cy + ry * (1 - fill * 0.92);
           ctx.save();
           ctx.beginPath();
-          ctx.ellipse(cx, cy, rx, ry, 0, Math.PI, 0);
+          ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI);
           ctx.clip();
           ctx.fillStyle = WATER_ALPHA;
-          ctx.fillRect(cx - rx, fillTop, rx * 2, cy - fillTop + ry);
+          ctx.fillRect(cx - rx, fillY, rx * 2, cy + ry - fillY + 1);
           ctx.restore();
           ctx.strokeStyle = WATER_COLOR; ctx.lineWidth = 1.5;
           ctx.beginPath();
-          const wRx = rx * Math.sqrt(Math.max(0, 1 - Math.pow((fillTop - cy) / ry, 2)));
-          ctx.ellipse(cx, fillTop, wRx, wRx * 0.14, 0, 0, Math.PI * 2);
+          const wRx = rx * Math.sqrt(Math.max(0, 1 - Math.pow((fillY - cy) / ry, 2)));
+          ctx.ellipse(cx, fillY, wRx, wRx * 0.14, 0, 0, Math.PI * 2);
           ctx.stroke();
         }
       }
