@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "portail",
-      "runtimeExecutable": "node",
-      "runtimeArgs": ["server.js"],
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8766"],
       "port": 8766,
       "autoPort": true
     }

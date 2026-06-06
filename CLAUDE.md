@@ -347,3 +347,13 @@ Deux skills sont disponibles dans `skills/`. Les lire systématiquement avant de
 | `design-portail` | `skills/design-portail/SKILL.md` | Créer ou modifier une app, ajouter une carte, vérifier la conformité |
 
 Les fichiers de référence PER sont dans `docs/per/`.
+
+---
+
+## Convention : périmètre des apps et titres
+
+**Une app = un objectif pédagogique = un groupe d'années scolaires** (1H-2H, 3H-4H, 5H-6H ou 7H-8H).
+
+Les niveaux internes servent uniquement la différenciation à l'intérieur de ce groupe. Ils ne doivent pas couvrir un autre groupe d'années ou un autre cycle.
+
+Si deux apps partagent le même thème mais ciblent des groupes d'années différents, leurs titres peuvent être identiques. Dans ce cas, ajouter le groupe d'années entre parenthèses dans le titre de la carte du portail : "Figures géométriques (5H-6H)".
