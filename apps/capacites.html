@@ -584,7 +584,7 @@
     const question = state.isMost ? 'le plus' : 'le moins';
     const msg = correct
       ? `Bravo ! ${correctShape} contient ${question} d'eau.`
-      : `Pas tout à fait. Regarde le niveau de l'eau : c'est ${correctShape} qui en contient ${question}.`;
+      : `Pas tout à fait. C'est ${correctShape} qui contient ${question} d'eau.`;
     showFeedback(correct, msg);
   });
 
