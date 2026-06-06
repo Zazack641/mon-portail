@@ -1,5 +1,5 @@
 # Suivi du projet — Portail pédagogique
-*Dernière mise à jour : 2026-06-06 (titres comparateurs + retrait data-wip)*
+*Dernière mise à jour : 2026-06-06 (audit surfaces.html)*
 
 ---
 
@@ -22,7 +22,8 @@ mon-portail/
 └── apps/
     ├── saut-de-nombre.html           ← auditée ✅ (skills PER + design-portail)
     ├── capacites.html                ← auditée ✅ (skills PER + design-portail)
-    ├── surfaces.html                 ← à auditer ⏳
+    ├── surfaces.html                 ← auditée ✅ (skills PER + design-portail) — "Les surfaces (3H-4H)"
+    ├── surfaces-c2.html              ← auditée ✅ (skills PER + design-portail) — "Les surfaces (5H-6H)"
     ├── comparaison-nombres.html      ← auditée ✅ — "Le comparateur de nombres (5H-6H)"
     ├── comparaison-nombres-c1.html   ← auditée ✅ — "Le comparateur de nombres (3H-4H)"
     ├── droite-graduee.html           ← à auditer ⏳

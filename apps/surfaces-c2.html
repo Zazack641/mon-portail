@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Les surfaces — Calculer des aires</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-base.css">
+<style>
+  :root { --app-header-bg: #C0272D; }
+
+  .shapes-row {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: clamp(12px, 3vw, 28px);
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .shape-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    touch-action: manipulation;
+    padding: 10px;
+    border: 3px solid #E2E8F0;
+    border-radius: 14px;
+    background: #fff;
+    transition: border-color 0.15s, background 0.15s;
+    min-height: 48px;
+  }
+  .shape-item:hover  { border-color: #3B7DD8; background: #EFF6FF; }
+  .shape-item.selected { border-color: #3B7DD8; background: #DBEAFE; }
+  .shape-item.correct  { border-color: #10B981; background: #D1FAE5; }
+  .shape-item.wrong    { border-color: #EF4444; background: #FEE2E2; }
+
+  .shape-label {
+    font-family: 'Nunito', sans-serif;
+    font-size: 15px;
+    font-weight: 800;
+    color: #64748B;
+  }
+
+  .dim-label {
+    font-family: 'Nunito', sans-serif;
+    font-size: 17px;
+    font-weight: 900;
+    color: #1A1A2E;
+  }
+
+  .grid-note {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 14px;
+    color: #94A3B8;
+    font-style: italic;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <a href="../index.html" class="back-link">← Retour</a>
+  <h1>📐 Les surfaces</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1 · grille</button>
+  <button class="level-btn"        data-level="2" aria-pressed="false">Niveau 2 · calculer</button>
+</div>
+
+<main>
+  <div class="question-box" id="question-box">Chargement…</div>
+  <div class="grid-note" id="grid-note"></div>
+  <div class="shapes-row" id="shapes-row"></div>
+  <div class="feedback" id="feedback"></div>
+  <div class="action-row">
+    <button class="verify-btn" id="verify-btn" disabled>Vérifier</button>
+    <button class="new-btn"    id="new-btn">Nouvel exercice</button>
+  </div>
+</main>
+
+<script src="appUtils.js"></script>
+<script>
+  const COLORS = ['#3B7DD8', '#D64045', '#3A9E6F'];
+  const NAMES  = ['A', 'B', 'C'];
+
+  let currentLevel = 1;
+  let state = {};
+
+  const questionBox = document.getElementById('question-box');
+  const shapesRow   = document.getElementById('shapes-row');
+  const feedbackEl  = document.getElementById('feedback');
+  const verifyBtn   = document.getElementById('verify-btn');
+  const newBtn      = document.getElementById('new-btn');
+  const gridNote    = document.getElementById('grid-note');
+
+  // ── Feedback unifié ────────────────────────────────────────────────────────
+  function showFeedback(correct, msg) {
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = msg;
+    newBtn.classList.add('visible');
+    if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+    verifyBtn.style.display = 'none';
+  }
+
+  function newExercise() {
+    feedbackEl.className = 'feedback';
+    feedbackEl.textContent = '';
+    verifyBtn.style.display = '';
+    verifyBtn.disabled = true;
+    newBtn.classList.remove('visible');
+    state = {};
+    if (currentLevel === 1) setupLevel1();
+    else                    setupLevel2();
+  }
+
+  // ── Génération de rectangles avec aires distinctes ─────────────────────────
+  function makeRects(count, colMax, rowMax, minGap) {
+    const shapes = [];
+    let tries = 0;
+    while (shapes.length < count && tries < 500) {
+      tries++;
+      const cols = randInt(2, colMax);
+      const rows = randInt(2, rowMax);
+      const area = cols * rows;
+      const tooClose = shapes.some(s => Math.abs(s.area - area) < minGap);
+      if (!tooClose) shapes.push({ cols, rows, area });
+    }
+    return shapes;
+  }
+
+  // ── Niveau 1 : 3 rectangles sur grille ────────────────────────────────────
+  function drawGrid(shape, color, cellSize) {
+    const pad = 4;
+    const cv  = document.createElement('canvas');
+    cv.width  = shape.cols * cellSize + pad * 2;
+    cv.height = shape.rows * cellSize + pad * 2;
+    const ctx = cv.getContext('2d');
+
+    ctx.fillStyle = color + '33';
+    ctx.fillRect(pad, pad, shape.cols * cellSize, shape.rows * cellSize);
+
+    ctx.strokeStyle = color + '66';
+    ctx.lineWidth = 1;
+    for (let c = 0; c <= shape.cols; c++) {
+      ctx.beginPath();
+      ctx.moveTo(pad + c * cellSize, pad);
+      ctx.lineTo(pad + c * cellSize, pad + shape.rows * cellSize);
+      ctx.stroke();
+    }
+    for (let r = 0; r <= shape.rows; r++) {
+      ctx.beginPath();
+      ctx.moveTo(pad, pad + r * cellSize);
+      ctx.lineTo(pad + shape.cols * cellSize, pad + r * cellSize);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(pad, pad, shape.cols * cellSize, shape.rows * cellSize);
+    return cv;
+  }
+
+  function setupLevel1() {
+    const shapes = makeRects(3, 8, 6, 4);
+    shapes.forEach((s, i) => { s.name = NAMES[i]; s.color = COLORS[i]; });
+
+    const isLargest = Math.random() < 0.5;
+    const sorted = [...shapes].sort((a, b) => a.area - b.area);
+    const correctName = isLargest ? sorted[2].name : sorted[0].name;
+
+    state = { shapes, correctName, isLargest, selected: null, answered: false };
+    questionBox.textContent = isLargest
+      ? 'Quelle surface est la plus grande ?'
+      : 'Quelle surface est la plus petite ?';
+    gridNote.textContent = 'Les cases de la grille ont toutes la même taille.';
+
+    shapesRow.innerHTML = '';
+    shapes.forEach(shape => {
+      const item = document.createElement('div');
+      item.className = 'shape-item';
+      item.appendChild(drawGrid(shape, shape.color, 20));
+      const lbl = document.createElement('div');
+      lbl.className = 'shape-label';
+      lbl.textContent = 'Surface ' + shape.name;
+      item.appendChild(lbl);
+      item.addEventListener('click', () => selectShape(shape.name, item));
+      shapesRow.appendChild(item);
+    });
+  }
+
+  // ── Niveau 2 : 3 rectangles avec dimensions — calculer l × L ──────────────
+  function drawRect(shape, color) {
+    const size = 120;
+    const pad  = 10;
+    const avail = size - pad * 2;
+    const scale = Math.min(avail / shape.cols, avail / shape.rows);
+    const w = shape.cols * scale;
+    const h = shape.rows * scale;
+    const cv  = document.createElement('canvas');
+    cv.width  = size;
+    cv.height = size;
+    const ctx = cv.getContext('2d');
+    const x = pad + (avail - w) / 2;
+    const y = pad + (avail - h) / 2;
+    ctx.fillStyle = color + '33';
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.5;
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeRect(x, y, w, h);
+    return cv;
+  }
+
+  function setupLevel2() {
+    const shapes = makeRects(3, 9, 9, 5);
+    shapes.forEach((s, i) => { s.name = NAMES[i]; s.color = COLORS[i]; });
+
+    const isLargest = Math.random() < 0.5;
+    const sorted = [...shapes].sort((a, b) => a.area - b.area);
+    const correctName = isLargest ? sorted[2].name : sorted[0].name;
+
+    state = { shapes, correctName, isLargest, selected: null, answered: false };
+    questionBox.textContent = isLargest
+      ? 'Quelle surface est la plus grande ?'
+      : 'Quelle surface est la plus petite ?';
+    gridNote.textContent = 'Calcule longueur × largeur pour chaque surface.';
+
+    shapesRow.innerHTML = '';
+    shapes.forEach(shape => {
+      const item = document.createElement('div');
+      item.className = 'shape-item';
+      item.appendChild(drawRect(shape, shape.color));
+      const lbl = document.createElement('div');
+      lbl.className = 'shape-label';
+      lbl.textContent = 'Surface ' + shape.name;
+      item.appendChild(lbl);
+      const dim = document.createElement('div');
+      dim.className = 'dim-label';
+      dim.textContent = shape.cols + ' × ' + shape.rows;
+      item.appendChild(dim);
+      item.addEventListener('click', () => selectShape(shape.name, item));
+      shapesRow.appendChild(item);
+    });
+  }
+
+  // ── Sélection et vérification ──────────────────────────────────────────────
+  function selectShape(name, item) {
+    if (state.answered) return;
+    document.querySelectorAll('.shape-item').forEach(d => d.classList.remove('selected'));
+    item.classList.add('selected');
+    state.selected = name;
+    verifyBtn.disabled = false;
+  }
+
+  verifyBtn.addEventListener('click', () => {
+    if (!state.selected || state.answered) return;
+    state.answered = true;
+    const correct = state.selected === state.correctName;
+    const label = state.isLargest ? 'plus grande' : 'plus petite';
+    const cs = state.shapes.find(s => s.name === state.correctName);
+
+    document.querySelectorAll('.shape-item').forEach((div, i) => {
+      div.classList.remove('selected');
+      if (state.shapes[i].name === state.correctName) div.classList.add('correct');
+      else if (state.shapes[i].name === state.selected) div.classList.add('wrong');
+    });
+
+    let msg;
+    if (currentLevel === 1) {
+      msg = correct
+        ? `Bravo ! La surface ${cs.name} a le plus de carreaux : c'est la ${label}.`
+        : `Pas tout à fait. Recompte les carreaux : la surface ${cs.name} en a le plus, c'est la ${label}.`;
+    } else {
+      const area = cs.cols * cs.rows;
+      msg = correct
+        ? `Bravo ! Surface ${cs.name} : ${cs.cols} × ${cs.rows} = ${area}. C'est bien la ${label}.`
+        : `Pas tout à fait. Calcule : ${cs.cols} × ${cs.rows} = ${area}. La surface ${cs.name} est la ${label}.`;
+    }
+
+    showFeedback(correct, msg);
+  });
+
+  // ── Sélecteur de niveau ────────────────────────────────────────────────────
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLevel = parseInt(btn.dataset.level);
+      document.querySelectorAll('.level-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+      newExercise();
+    });
+  });
+
+  newBtn.addEventListener('click', newExercise);
+
+  newExercise();
+</script>
+<script src="feedbackUtils.js"></script>
+</body>
+</html>
