@@ -227,7 +227,7 @@
   const SHAPES = [
     {
       id: 'verre',
-      label: 'Verre',
+      label: 'Verre', article: 'le',
       maxCapacity: 200,   // petit — haut et fin
       baseW: 52, baseH: 148,
       draw(ctx, w, h, fill) {
@@ -254,7 +254,7 @@
     },
     {
       id: 'bouteille',
-      label: 'Bouteille',
+      label: 'Bouteille', article: 'la',
       maxCapacity: 330,   // moyen — très haute et fine
       baseW: 58, baseH: 158,
       draw(ctx, w, h, fill) {
@@ -289,7 +289,7 @@
     },
     {
       id: 'tasse',
-      label: 'Tasse',
+      label: 'Tasse', article: 'la',
       maxCapacity: 260,   // moyen — large et basse
       baseW: 126, baseH: 78,
       draw(ctx, w, h, fill) {
@@ -320,7 +320,7 @@
     },
     {
       id: 'bol',
-      label: 'Bol',
+      label: 'Bol', article: 'le',
       maxCapacity: 620,   // grand — très large et très bas
       baseW: 148, baseH: 84,
       draw(ctx, w, h, fill) {
@@ -353,7 +353,7 @@
     },
     {
       id: 'seau',
-      label: 'Seau',
+      label: 'Seau', article: 'le',
       maxCapacity: 520,   // grand — largeur et hauteur moyennes
       baseW: 108, baseH: 108,
       draw(ctx, w, h, fill) {
@@ -386,7 +386,7 @@
     },
     {
       id: 'pichet',
-      label: 'Pichet',
+      label: 'Pichet', article: 'le',
       maxCapacity: 400,   // moyen — plus large que le verre, moins que le bol
       baseW: 82, baseH: 140,
       draw(ctx, w, h, fill) {
@@ -530,8 +530,8 @@
 
     state = { items, correctIdx, selected: null, answered: false, isMost };
     questionBox.textContent = isMost
-      ? 'Quel récipient contient le plus d\'eau ?'
-      : 'Quel récipient contient le moins d\'eau ?';
+      ? 'Clique sur le récipient qui contient le plus d\'eau.'
+      : 'Clique sur le récipient qui contient le moins d\'eau.';
 
     buildContainers(items);
     feedbackEl.className = 'feedback';
@@ -552,8 +552,8 @@
 
     state = { items, correctIdx, selected: null, answered: false, isMost };
     questionBox.textContent = isMost
-      ? 'Quel récipient contient le plus d\'eau ?'
-      : 'Quel récipient contient le moins d\'eau ?';
+      ? 'Clique sur le récipient qui contient le plus d\'eau.'
+      : 'Clique sur le récipient qui contient le moins d\'eau.';
 
     buildContainers(items);
     feedbackEl.className = 'feedback';
@@ -580,11 +580,12 @@
       if (i === state.correctIdx) div.classList.add('correct');
       else if (i === state.selected) div.classList.add('wrong');
     });
-    const correctShape = state.items[state.correctIdx].shape.label;
+    const { article, label } = state.items[state.correctIdx].shape;
+    const nom = `${article} ${label.toLowerCase()}`;
     const question = state.isMost ? 'le plus' : 'le moins';
     const msg = correct
-      ? `Bravo ! ${correctShape} contient ${question} d'eau.`
-      : `Pas tout à fait. C'est ${correctShape} qui contient ${question} d'eau.`;
+      ? `Bravo ! C'est ${nom} qui contient ${question} d'eau.`
+      : `Pas tout à fait. C'est ${nom} qui contient ${question} d'eau.`;
     showFeedback(correct, msg);
   });
 
