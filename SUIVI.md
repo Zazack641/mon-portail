@@ -1,5 +1,5 @@
 # Suivi du projet — Portail pédagogique
-*Dernière mise à jour : 2026-06-06 (audit comparaison-nombres)*
+*Dernière mise à jour : 2026-06-06 (nouvelle app comparaison-nombres-c1)*
 
 ---
 
@@ -24,6 +24,7 @@ mon-portail/
     ├── capacites.html                ← auditée ✅ (skills PER + design-portail)
     ├── surfaces.html                 ← à auditer ⏳
     ├── comparaison-nombres.html      ← auditée ✅ (skills PER + design-portail)
+    ├── comparaison-nombres-c1.html   ← créée ✅ (C1 / 3H-4H, MSN 12, niveaux 0–9 et 10–99)
     ├── droite-graduee.html           ← à auditer ⏳
     ├── valeur-position.html          ← à auditer ⏳
     ├── vocabulaire.html              ← à auditer ⏳
