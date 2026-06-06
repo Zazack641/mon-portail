@@ -211,99 +211,128 @@
 </main>
 
 <script>
-  // Tracé d'un rectangle arrondi compatible iOS < 15.4 (pas de ctx.roundRect natif)
-  function roundRect(ctx, x, y, w, h, r) {
-    ctx.moveTo(x + r, y);
-    ctx.lineTo(x + w - r, y);
-    ctx.arcTo(x + w, y,     x + w, y + r,     r);
-    ctx.lineTo(x + w, y + h - r);
-    ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
-    ctx.lineTo(x + r, y + h);
-    ctx.arcTo(x,     y + h, x,     y + h - r, r);
-    ctx.lineTo(x, y + r);
-    ctx.arcTo(x,     y,     x + r, y,         r);
-    ctx.closePath();
-  }
-
-  // Container shapes: each has a draw function(ctx, w, h, fillRatio, color)
-  // fillRatio = volume / maxVolume for visual fill
-
   const WATER_COLOR = '#3B7DD8';
   const WATER_ALPHA = 'rgba(59,125,216,0.25)';
 
-  // Shape definitions: { name, draw(ctx,w,h,fill), label }
+  /*
+   * Chaque forme a :
+   *   baseW / baseH  — dimensions de dessin de référence (avant mise à l'échelle)
+   *   maxCapacity    — capacité réelle en mL (détermine le volume d'eau affiché)
+   *   draw(ctx, w, h, fill)  — fill = volume / maxCapacity, 0..1
+   *
+   * Proportions intentionnellement contrastées pour travailler la conservation du volume :
+   *   récipients hauts et fins  → petite capacité malgré la hauteur
+   *   récipients larges et bas  → grande capacité malgré la faible hauteur
+   */
   const SHAPES = [
     {
       id: 'verre',
       label: 'Verre',
+      maxCapacity: 200,   // petit — haut et fin
+      baseW: 52, baseH: 148,
       draw(ctx, w, h, fill) {
-        const bw = w * 0.55, tw = w * 0.45;
-        const x0 = (w - bw) / 2, x1 = (w - tw) / 2;
+        const btw = w * 0.72, ttw = w * 0.58;
+        const bx = (w - btw) / 2, tx = (w - ttw) / 2;
         ctx.beginPath();
-        ctx.moveTo(x0, h); ctx.lineTo(x1, 0);
-        ctx.lineTo(x1 + tw, 0); ctx.lineTo(x0 + bw, h);
+        ctx.moveTo(bx, h); ctx.lineTo(tx, 0);
+        ctx.lineTo(tx + ttw, 0); ctx.lineTo(bx + btw, h);
         ctx.closePath();
         ctx.strokeStyle = '#475569'; ctx.lineWidth = 2.5; ctx.stroke();
-        // fill
-        const fillH = h * fill;
-        const fy = h - fillH;
-        const fBotL = x0, fBotR = x0 + bw;
-        const t = fy / h;
-        const fTopL = x0 + (x1 - x0) * (1 - t);
-        const fTopR = x0 + bw - (x0 + bw - (x1 + tw)) * (1 - t);
-        ctx.beginPath();
-        ctx.moveTo(fBotL, h); ctx.lineTo(fTopL, fy);
-        ctx.lineTo(fTopR, fy); ctx.lineTo(fBotR, h);
-        ctx.closePath();
-        ctx.fillStyle = WATER_ALPHA; ctx.fill();
-        ctx.strokeStyle = WATER_COLOR; ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.moveTo(fTopL, fy); ctx.lineTo(fTopR, fy); ctx.stroke();
+        if (fill > 0) {
+          const fy = h * (1 - fill);
+          const fTL = tx + (bx - tx) * (1 - fill);
+          const fTR = (tx + ttw) + (btw - ttw) * (1 - fill);
+          ctx.beginPath();
+          ctx.moveTo(bx, h); ctx.lineTo(fTL, fy);
+          ctx.lineTo(fTR, fy); ctx.lineTo(bx + btw, h);
+          ctx.closePath();
+          ctx.fillStyle = WATER_ALPHA; ctx.fill();
+          ctx.strokeStyle = WATER_COLOR; ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.moveTo(fTL, fy); ctx.lineTo(fTR, fy); ctx.stroke();
+        }
       }
     },
     {
       id: 'bouteille',
       label: 'Bouteille',
+      maxCapacity: 330,   // moyen — très haute et fine
+      baseW: 58, baseH: 158,
       draw(ctx, w, h, fill) {
-        const bw = w * 0.5, nw = w * 0.2;
-        const neckH = h * 0.25;
+        const bw = w * 0.56, nw = w * 0.24;
+        const neckH = h * 0.22;
         const bx = (w - bw) / 2, nx = (w - nw) / 2;
         ctx.beginPath();
         ctx.moveTo(bx, h);
-        ctx.lineTo(bx, h * 0.75);
-        ctx.quadraticCurveTo(bx, h * 0.65, nx, neckH);
+        ctx.lineTo(bx, h * 0.78);
+        ctx.quadraticCurveTo(bx, h * 0.68, nx, neckH);
         ctx.lineTo(nx, 0);
         ctx.lineTo(nx + nw, 0);
         ctx.lineTo(nx + nw, neckH);
-        ctx.quadraticCurveTo(bx + bw, h * 0.65, bx + bw, h * 0.75);
+        ctx.quadraticCurveTo(bx + bw, h * 0.68, bx + bw, h * 0.78);
         ctx.lineTo(bx + bw, h);
         ctx.closePath();
         ctx.strokeStyle = '#475569'; ctx.lineWidth = 2.5; ctx.stroke();
-        // fill — approximate rectangular fill in body
-        const bodyH = h * 0.75;
-        const fillH = bodyH * fill;
-        const fy = h - fillH;
+        if (fill > 0) {
+          const bodyTop = h * 0.68;
+          const bodyH = h - bodyTop;
+          const fillH = bodyH * Math.min(fill, 1);
+          const fy = Math.max(h - fillH, bodyTop);
+          ctx.save();
+          ctx.beginPath(); ctx.rect(bx, bodyTop, bw, bodyH + 1); ctx.clip();
+          ctx.fillStyle = WATER_ALPHA;
+          ctx.fillRect(bx, fy, bw, h - fy + 1);
+          ctx.restore();
+          ctx.strokeStyle = WATER_COLOR; ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.moveTo(bx, fy); ctx.lineTo(bx + bw, fy); ctx.stroke();
+        }
+      }
+    },
+    {
+      id: 'tasse',
+      label: 'Tasse',
+      maxCapacity: 260,   // moyen — large et basse
+      baseW: 126, baseH: 78,
+      draw(ctx, w, h, fill) {
+        const btw = w * 0.76, ttw = w * 0.66;
+        const bx = (w - btw) / 2, tx = (w - ttw) / 2;
         ctx.beginPath();
-        ctx.rect(bx, Math.max(fy, h * 0.65), bw, Math.min(fillH, h - h * 0.65));
-        ctx.fillStyle = WATER_ALPHA; ctx.fill();
-        ctx.strokeStyle = WATER_COLOR; ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.moveTo(bx, Math.max(fy, h * 0.65)); ctx.lineTo(bx + bw, Math.max(fy, h * 0.65)); ctx.stroke();
+        ctx.moveTo(bx, h); ctx.lineTo(tx, 0);
+        ctx.lineTo(tx + ttw, 0); ctx.lineTo(bx + btw, h);
+        ctx.closePath();
+        ctx.strokeStyle = '#475569'; ctx.lineWidth = 2.5; ctx.stroke();
+        // Anse
+        ctx.beginPath();
+        ctx.arc(bx + btw + w * 0.04, h * 0.50, h * 0.24, -Math.PI * 0.42, Math.PI * 0.42);
+        ctx.strokeStyle = '#94A3B8'; ctx.lineWidth = 2.5; ctx.stroke();
+        if (fill > 0) {
+          const fy = h * (1 - fill);
+          const fTL = tx + (bx - tx) * (1 - fill);
+          const fTR = (tx + ttw) + (btw - ttw) * (1 - fill);
+          ctx.beginPath();
+          ctx.moveTo(bx, h); ctx.lineTo(fTL, fy);
+          ctx.lineTo(fTR, fy); ctx.lineTo(bx + btw, h);
+          ctx.closePath();
+          ctx.fillStyle = WATER_ALPHA; ctx.fill();
+          ctx.strokeStyle = WATER_COLOR; ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.moveTo(fTL, fy); ctx.lineTo(fTR, fy); ctx.stroke();
+        }
       }
     },
     {
       id: 'bol',
       label: 'Bol',
+      maxCapacity: 620,   // grand — très large et très bas
+      baseW: 148, baseH: 84,
       draw(ctx, w, h, fill) {
-        const cx = w / 2, cy = h * 0.7;
-        const rx = w * 0.44, ry = h * 0.5;
+        const cx = w / 2, cy = h * 0.74;
+        const rx = w * 0.46, ry = h * 0.54;
         ctx.beginPath();
         ctx.ellipse(cx, cy, rx, ry, 0, Math.PI, 0);
         ctx.lineTo(cx + rx, cy);
         ctx.closePath();
         ctx.strokeStyle = '#475569'; ctx.lineWidth = 2.5; ctx.stroke();
-        // fill
-        const maxFillY = h * 0.08;
-        const fillTop = cy - ry * fill * 0.85;
         if (fill > 0) {
+          const fillTop = cy - ry * fill * 0.88;
           ctx.save();
           ctx.beginPath();
           ctx.ellipse(cx, cy, rx, ry, 0, Math.PI, 0);
@@ -314,7 +343,7 @@
           ctx.strokeStyle = WATER_COLOR; ctx.lineWidth = 1.5;
           ctx.beginPath();
           const wRx = rx * Math.sqrt(Math.max(0, 1 - Math.pow((fillTop - cy) / ry, 2)));
-          ctx.ellipse(cx, fillTop, wRx, wRx * 0.18, 0, 0, Math.PI * 2);
+          ctx.ellipse(cx, fillTop, wRx, wRx * 0.14, 0, 0, Math.PI * 2);
           ctx.stroke();
         }
       }
@@ -322,72 +351,73 @@
     {
       id: 'seau',
       label: 'Seau',
+      maxCapacity: 520,   // grand — largeur et hauteur moyennes
+      baseW: 108, baseH: 108,
       draw(ctx, w, h, fill) {
-        const bw = w * 0.65, tw = w * 0.5;
-        const bx = (w - bw) / 2, tx = (w - tw) / 2;
-        ctx.beginPath();
-        ctx.moveTo(bx, h); ctx.lineTo(tx, 0);
-        ctx.lineTo(tx + tw, 0); ctx.lineTo(bx + bw, h);
-        ctx.closePath();
-        ctx.strokeStyle = '#475569'; ctx.lineWidth = 2.5; ctx.stroke();
-        // fill
-        const fillH = h * fill;
-        const fy = h - fillH;
-        const t = fy / h;
-        const fTopL = bx + (tx - bx) * (1 - t);
-        const fTopR = bx + bw - (bx + bw - (tx + tw)) * (1 - t);
-        ctx.beginPath();
-        ctx.moveTo(bx, h); ctx.lineTo(fTopL, fy);
-        ctx.lineTo(fTopR, fy); ctx.lineTo(bx + bw, h);
-        ctx.closePath();
-        ctx.fillStyle = WATER_ALPHA; ctx.fill();
-        ctx.strokeStyle = WATER_COLOR; ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.moveTo(fTopL, fy); ctx.lineTo(fTopR, fy); ctx.stroke();
-        // handle
+        const btw = w * 0.80, ttw = w * 0.60;
+        const bx = (w - btw) / 2, tx = (w - ttw) / 2;
+        // Anse (dessinée en premier pour passer derrière le corps)
         ctx.strokeStyle = '#94A3B8'; ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.arc(w / 2, -8, tw * 0.4, 0, Math.PI);
+        ctx.arc(w / 2, -6, ttw * 0.37, 0, Math.PI);
         ctx.stroke();
+        // Corps
+        ctx.beginPath();
+        ctx.moveTo(bx, h); ctx.lineTo(tx, 0);
+        ctx.lineTo(tx + ttw, 0); ctx.lineTo(bx + btw, h);
+        ctx.closePath();
+        ctx.strokeStyle = '#475569'; ctx.lineWidth = 2.5; ctx.stroke();
+        if (fill > 0) {
+          const fy = h * (1 - fill);
+          const fTL = tx + (bx - tx) * (1 - fill);
+          const fTR = (tx + ttw) + (btw - ttw) * (1 - fill);
+          ctx.beginPath();
+          ctx.moveTo(bx, h); ctx.lineTo(fTL, fy);
+          ctx.lineTo(fTR, fy); ctx.lineTo(bx + btw, h);
+          ctx.closePath();
+          ctx.fillStyle = WATER_ALPHA; ctx.fill();
+          ctx.strokeStyle = WATER_COLOR; ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.moveTo(fTL, fy); ctx.lineTo(fTR, fy); ctx.stroke();
+        }
       }
     },
     {
       id: 'pichet',
       label: 'Pichet',
+      maxCapacity: 400,   // moyen — plus large que le verre, moins que le bol
+      baseW: 82, baseH: 140,
       draw(ctx, w, h, fill) {
-        const bw = w * 0.55;
+        const bw = w * 0.58;
         const bx = (w - bw) / 2;
-        // Body — coins bas arrondis via arcTo (ctx.roundRect absent avant iOS 15.4)
+        const py = h * 0.12, ph = h * 0.88, pr = 7;
+        // Corps arrondi en bas (arcTo, compatible iOS < 15.4)
         ctx.beginPath();
-        const px = bx, py = h * 0.15, pw = bw, ph = h * 0.85, pr = 8;
-        ctx.moveTo(px, py);
-        ctx.lineTo(px + pw, py);
-        ctx.lineTo(px + pw, py + ph - pr);
-        ctx.arcTo(px + pw, py + ph, px + pw - pr, py + ph, pr);
-        ctx.lineTo(px + pr, py + ph);
-        ctx.arcTo(px, py + ph, px, py + ph - pr, pr);
-        ctx.lineTo(px, py);
+        ctx.moveTo(bx, py);
+        ctx.lineTo(bx + bw, py);
+        ctx.lineTo(bx + bw, py + ph - pr);
+        ctx.arcTo(bx + bw, py + ph, bx + bw - pr, py + ph, pr);
+        ctx.lineTo(bx + pr, py + ph);
+        ctx.arcTo(bx, py + ph, bx, py + ph - pr, pr);
+        ctx.lineTo(bx, py);
         ctx.closePath();
         ctx.strokeStyle = '#475569'; ctx.lineWidth = 2.5; ctx.stroke();
-        // Spout
+        // Bec verseur
         ctx.beginPath();
-        ctx.moveTo(bx, h * 0.25);
-        ctx.quadraticCurveTo(bx - w * 0.15, h * 0.1, bx - w * 0.05, h * 0.05);
+        ctx.moveTo(bx, h * 0.22);
+        ctx.quadraticCurveTo(bx - w * 0.14, h * 0.08, bx - w * 0.04, h * 0.04);
         ctx.strokeStyle = '#475569'; ctx.lineWidth = 2.5; ctx.stroke();
-        // Handle
+        // Anse
         ctx.beginPath();
-        ctx.arc(bx + bw + w * 0.1, h * 0.45, h * 0.2, -Math.PI * 0.4, Math.PI * 0.4);
+        ctx.arc(bx + bw + w * 0.1, py + ph * 0.42, ph * 0.2, -Math.PI * 0.4, Math.PI * 0.4);
         ctx.strokeStyle = '#94A3B8'; ctx.lineWidth = 2.5; ctx.stroke();
-        // Fill
-        const fillH = h * 0.85 * fill;
-        const fy = h - fillH;
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(bx, h * 0.15, bw, h * 0.85);
-        ctx.clip();
-        ctx.fillStyle = WATER_ALPHA;
-        ctx.fillRect(bx, fy, bw, fillH);
-        ctx.restore();
         if (fill > 0) {
+          const fillH = ph * fill;
+          const fy = py + ph - fillH;
+          ctx.save();
+          ctx.beginPath(); ctx.rect(bx, py, bw, ph); ctx.clip();
+          ctx.fillStyle = WATER_ALPHA;
+          ctx.fillRect(bx, fy, bw, fillH + 1);
+          ctx.restore();
           ctx.strokeStyle = WATER_COLOR; ctx.lineWidth = 1.5;
           ctx.beginPath(); ctx.moveTo(bx, fy); ctx.lineTo(bx + bw, fy); ctx.stroke();
         }
@@ -407,22 +437,38 @@
   function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
   function pick(arr, n) { return shuffle(arr).slice(0, n); }
 
-  function drawContainer(shape, volume, maxVolume, size) {
+  /*
+   * Dessine un récipient sur un canvas aux dimensions de la forme mise à l'échelle.
+   * fill = volume / maxCapacity (0..1)
+   */
+  function drawContainer(shape, volume, scale) {
+    const cw = Math.round(shape.baseW * scale) + 16;
+    const ch = Math.round(shape.baseH * scale) + 16;
     const canvas = document.createElement('canvas');
-    canvas.width = size;
-    canvas.height = size * 1.3;
+    canvas.width = cw;
+    canvas.height = ch;
     const ctx = canvas.getContext('2d');
-    const fill = volume / maxVolume;
+    const fill = Math.max(0, Math.min(1, volume / shape.maxCapacity));
     ctx.save();
-    ctx.translate(4, 8);
-    shape.draw(ctx, size - 8, canvas.height - 16, fill);
+    ctx.translate(8, 8);
+    shape.draw(ctx, cw - 16, ch - 16, fill);
     ctx.restore();
     return canvas;
   }
 
+  /*
+   * Construit l'affichage des récipients.
+   * Les formes ont des proportions très différentes (hauteur vs largeur) :
+   * align-items: flex-end dans containers-row aligne leur base au même niveau
+   * pour que l'élève compare visuellement comme s'ils étaient posés sur une table.
+   */
   function buildContainers(items) {
     containersRow.innerHTML = '';
-    const size = Math.min(110, Math.floor((window.innerWidth - 80) / items.length));
+    // Mise à l'échelle : la forme la plus haute atteint ~138 px sur l'écran
+    const maxBaseH = Math.max(...items.map(it => it.shape.baseH));
+    const targetH = Math.min(138, Math.max(82, (window.innerHeight - 340) * 0.45));
+    const scale = Math.max(0.52, Math.min(1.0, targetH / maxBaseH));
+
     items.forEach((item, i) => {
       const div = document.createElement('div');
       div.className = 'container-item';
@@ -433,8 +479,7 @@
 
       const svgWrap = document.createElement('div');
       svgWrap.className = 'container-svg-wrap';
-      const cv = drawContainer(item.shape, item.volume, item.maxVolume, size);
-      svgWrap.appendChild(cv);
+      svgWrap.appendChild(drawContainer(item.shape, item.volume, scale));
 
       const lbl = document.createElement('div');
       lbl.className = 'label';
@@ -443,7 +488,9 @@
       div.appendChild(svgWrap);
       div.appendChild(lbl);
       div.addEventListener('click', () => selectContainer(i, div));
-      div.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectContainer(i, div); } });
+      div.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectContainer(i, div); }
+      });
       containersRow.appendChild(div);
     });
   }
@@ -456,23 +503,27 @@
     verifyBtn.disabled = false;
   }
 
+  /*
+   * Génère des volumes en mL pour chaque forme.
+   * Chaque récipient est rempli à 20–85 % de sa capacité propre.
+   * minDiffMl garantit que la différence entre le max et le min est perceptible.
+   * Résultat : un verre à 95 % peut contenir MOINS qu'un bol à 40 % — c'est voulu.
+   */
+  function generateVolumes(shapes, minDiffMl) {
+    let vols, attempts = 0;
+    do {
+      vols = shapes.map(s => Math.round(s.maxCapacity * (0.20 + Math.random() * 0.65)));
+      attempts++;
+    } while (attempts < 60 && (Math.max(...vols) - Math.min(...vols)) < minDiffMl);
+    return vols;
+  }
+
   function setupL1() {
     const shapes = pick(SHAPES, 2);
     const isMost = Math.random() < 0.5;
-    let volA, volB;
-    do {
-      volA = 0.2 + Math.random() * 0.7;
-      volB = 0.2 + Math.random() * 0.7;
-    } while (Math.abs(volA - volB) < 0.15);
-
-    const maxVol = 1;
-    const items = [
-      { shape: shapes[0], volume: volA, maxVolume: maxVol },
-      { shape: shapes[1], volume: volB, maxVolume: maxVol },
-    ];
-    const correctIdx = isMost
-      ? (volA > volB ? 0 : 1)
-      : (volA < volB ? 0 : 1);
+    const vols = generateVolumes(shapes, 30);
+    const items = shapes.map((shape, i) => ({ shape, volume: vols[i] }));
+    const correctIdx = isMost ? (vols[0] > vols[1] ? 0 : 1) : (vols[0] < vols[1] ? 0 : 1);
 
     state = { items, correctIdx, selected: null, answered: false, isMost };
     questionBox.textContent = isMost
@@ -491,14 +542,9 @@
     const count = 3 + Math.floor(Math.random() * 2);
     const shapes = pick(SHAPES, count);
     const isMost = Math.random() < 0.5;
-    const maxVol = 1;
-    const volumes = [];
-    while (volumes.length < count) {
-      const v = 0.15 + Math.random() * 0.75;
-      if (volumes.every(x => Math.abs(x - v) > 0.1)) volumes.push(v);
-    }
-    const items = shapes.map((shape, i) => ({ shape, volume: volumes[i], maxVolume: maxVol }));
-    const sorted = [...items.map((it, i) => ({ ...it, i }))].sort((a, b) => a.volume - b.volume);
+    const vols = generateVolumes(shapes, 40);
+    const items = shapes.map((shape, i) => ({ shape, volume: vols[i] }));
+    const sorted = items.map((it, i) => ({ vol: vols[i], i })).sort((a, b) => a.vol - b.vol);
     const correctIdx = isMost ? sorted[sorted.length - 1].i : sorted[0].i;
 
     state = { items, correctIdx, selected: null, answered: false, isMost };
