@@ -7,99 +7,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-base.css">
 <style>
   :root {
-    --color-units:    #3B7DD8;
-    --color-tens:     #D64045;
-    --color-hundreds: #3A9E6F;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { -webkit-text-size-adjust: 100%; }
-  body {
-    font-family: 'Source Sans 3', sans-serif;
-    background: #F7F8FA;
-    color: #1A1A2E;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .app-header {
-    background: #C0272D;
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  .back-link {
-    color: rgba(255,255,255,0.85);
-    text-decoration: none;
-    font-size: 15px;
-    font-weight: 600;
-    white-space: nowrap;
-    touch-action: manipulation;
-  }
-  .back-link:hover { color: #fff; }
-  .app-header h1 {
-    font-family: 'Nunito', sans-serif;
-    font-size: clamp(18px, 4vw, 24px);
-    font-weight: 900;
-    color: #fff;
-    flex: 1;
-    text-align: center;
-  }
-  .header-spacer { width: 80px; }
-
-  .level-bar {
-    background: #fff;
-    border-bottom: 1px solid #E2E8F0;
-    padding: 12px 20px;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-  }
-  .level-btn {
-    padding: 10px 24px;
-    border-radius: 999px;
-    border: 2px solid #E2E8F0;
-    background: #F8FAFC;
-    color: #4A5568;
-    font-family: 'Source Sans 3', sans-serif;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    min-height: 48px;
-    touch-action: manipulation;
-    -webkit-appearance: none;
-    transition: all 0.15s;
-  }
-  .level-btn.active { background: #C0272D; color: #fff; border-color: #C0272D; }
-  .level-btn:not(.active):hover { background: #EEF2F7; border-color: #CBD5E0; }
-
-  main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 32px 16px 40px;
-    gap: 32px;
-    max-width: 640px;
-    margin: 0 auto;
-    width: 100%;
-  }
-
-  .question-box {
-    background: #fff;
-    border: 1px solid #E2E8F0;
-    border-radius: 16px;
-    padding: 20px 24px;
-    text-align: center;
-    width: 100%;
-    font-family: 'Nunito', sans-serif;
-    font-size: clamp(17px, 3.5vw, 21px);
-    font-weight: 800;
-    color: #1A1A2E;
+    --app-header-bg: #C0272D; /* Mathématiques */
   }
 
   .comparison-row {
@@ -113,7 +24,7 @@
 
   .number-display {
     background: #fff;
-    border: 2px solid #E2E8F0;
+    border: 2px solid var(--app-border);
     border-radius: 16px;
     padding: 20px 24px;
     display: flex;
@@ -144,12 +55,12 @@
     width: clamp(56px, 12vw, 72px);
     height: clamp(56px, 12vw, 72px);
     border-radius: 14px;
-    border: 2.5px solid #E2E8F0;
+    border: 2.5px solid var(--app-border);
     background: #fff;
     font-family: 'Nunito', sans-serif;
     font-size: clamp(22px, 5vw, 30px);
     font-weight: 900;
-    color: #1A1A2E;
+    color: var(--app-text);
     cursor: pointer;
     touch-action: manipulation;
     -webkit-appearance: none;
@@ -158,11 +69,10 @@
     align-items: center;
     justify-content: center;
   }
-  .symbol-btn:hover  { background: #EEF2F7; border-color: #3B7DD8; }
+  .symbol-btn:hover  { background: #EEF2F7; border-color: var(--color-units); }
   .symbol-btn:active { transform: scale(0.95); }
-  .symbol-btn.selected { background: #C0272D; color: #fff; border-color: #C0272D; }
-  .symbol-btn.correct  { background: #D1FAE5; color: #065F46; border-color: #10B981; }
-  .symbol-btn.wrong    { background: #FEE2E2; color: #991B1B; border-color: #EF4444; }
+  .symbol-btn.correct  { background: var(--app-correct-bg); color: var(--app-correct-fg); border-color: #10B981; }
+  .symbol-btn.wrong    { background: var(--app-wrong-bg);   color: var(--app-wrong-fg);   border-color: #EF4444; }
   .symbol-btn:disabled { cursor: default; }
 
   .legend {
@@ -184,39 +94,6 @@
     border-radius: 50%;
     flex-shrink: 0;
   }
-
-  .feedback {
-    width: 100%;
-    padding: 18px 24px;
-    border-radius: 14px;
-    text-align: center;
-    font-family: 'Nunito', sans-serif;
-    font-size: clamp(16px, 3vw, 19px);
-    font-weight: 800;
-    display: none;
-  }
-  .feedback.correct { background: #D1FAE5; color: #065F46; display: block; }
-  .feedback.wrong   { background: #FEE2E2; color: #991B1B; display: block; }
-
-  .action-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; width: 100%; }
-  .new-btn {
-    padding: 16px 36px;
-    background: #0F7860;
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    font-family: 'Nunito', sans-serif;
-    font-size: 18px;
-    font-weight: 800;
-    cursor: pointer;
-    min-height: 56px;
-    touch-action: manipulation;
-    -webkit-appearance: none;
-    transition: all 0.15s;
-    display: none;
-  }
-  .new-btn.visible { display: block; }
-  .new-btn:hover { background: #0A5C48; }
 </style>
 </head>
 <body>
@@ -229,13 +106,13 @@
 
 <div class="level-bar" role="group" aria-label="Choisir le niveau">
   <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1 · jusqu'à 9</button>
-  <button class="level-btn" data-level="2" aria-pressed="false">Niveau 2 · jusqu'à 99</button>
+  <button class="level-btn"        data-level="2" aria-pressed="false">Niveau 2 · jusqu'à 99</button>
 </div>
 
 <main>
   <div class="question-box" id="question-box">Place le bon symbole entre les deux nombres.</div>
 
-  <div class="comparison-row" id="comparison-row">
+  <div class="comparison-row">
     <div class="number-display" id="num-left"></div>
     <div class="symbol-zone" id="symbol-zone"></div>
     <div class="number-display" id="num-right"></div>
@@ -250,22 +127,19 @@
   </div>
 </main>
 
+<script src="appUtils.js"></script>
 <script>
-  const PLACE_COLORS = ['--color-units', '--color-tens', '--color-hundreds'];
-  function colorForRank(rank) { return `var(${PLACE_COLORS[rank % 3]})`; }
   function classForRank(rank) { return ['units', 'tens', 'hundreds'][rank] || 'units'; }
 
   let currentLevel = 1;
   let state = {};
 
-  const numLeft   = document.getElementById('num-left');
-  const numRight  = document.getElementById('num-right');
+  const numLeft    = document.getElementById('num-left');
+  const numRight   = document.getElementById('num-right');
   const symbolZone = document.getElementById('symbol-zone');
   const feedbackEl = document.getElementById('feedback');
-  const newBtn    = document.getElementById('new-btn');
-  const legend    = document.getElementById('legend');
-
-  function randInt(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
+  const newBtn     = document.getElementById('new-btn');
+  const legend     = document.getElementById('legend');
 
   function renderNumber(container, n) {
     container.innerHTML = '';
@@ -284,8 +158,7 @@
   function renderLegend(maxDigits) {
     legend.innerHTML = '';
     if (maxDigits < 2) return; // chiffre unique — légende inutile
-    const ranks = [{ label: 'Dizaines', rank: 1 }, { label: 'Unités', rank: 0 }];
-    ranks.forEach(({ label, rank }) => {
+    [{ label: 'Dizaines', rank: 1 }, { label: 'Unités', rank: 0 }].forEach(({ label, rank }) => {
       const item = document.createElement('div');
       item.className = 'legend-item';
       const dot = document.createElement('div');
@@ -304,7 +177,7 @@
     newBtn.classList.add('visible');
   }
 
-  function setup() {
+  function newExercise() {
     let a, b;
     const max = currentLevel === 1 ? 9 : 99;
     const min = currentLevel === 1 ? 0 : 10;
@@ -361,12 +234,12 @@
       });
       btn.classList.add('active');
       btn.setAttribute('aria-pressed', 'true');
-      setup();
+      newExercise();
     });
   });
 
-  newBtn.addEventListener('click', setup);
-  setup();
+  newBtn.addEventListener('click', newExercise);
+  newExercise();
 </script>
 <script src="feedbackUtils.js"></script>
 </body>
