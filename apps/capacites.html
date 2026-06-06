@@ -512,12 +512,22 @@
    * minDiffMl garantit que la différence entre le max et le min est perceptible.
    * Résultat : un verre à 95 % peut contenir MOINS qu'un bol à 40 % — c'est voulu.
    */
-  function generateVolumes(shapes, minDiffMl) {
+  /*
+   * minDiffMl   : écart minimal en mL entre le récipient le plus plein et le moins plein.
+   * minFillDiff : écart minimal de taux de remplissage (0..1) entre les deux extrêmes.
+   *   → N1 : minFillDiff élevé (≥ 0.28) pour que la différence de niveau soit visible.
+   *   → N2 : minFillDiff = 0, niveaux intentionnellement proches ou trompeurs.
+   */
+  function generateVolumes(shapes, minDiffMl, minFillDiff = 0) {
     let vols, attempts = 0;
     do {
-      vols = shapes.map(s => Math.round(s.maxCapacity * (0.20 + Math.random() * 0.65)));
+      vols = shapes.map(s => Math.round(s.maxCapacity * (0.15 + Math.random() * 0.70)));
+      const fills = shapes.map((s, i) => vols[i] / s.maxCapacity);
+      const fillSpread = Math.max(...fills) - Math.min(...fills);
+      const mlSpread   = Math.max(...vols)  - Math.min(...vols);
+      if (mlSpread >= minDiffMl && fillSpread >= minFillDiff) break;
       attempts++;
-    } while (attempts < 60 && (Math.max(...vols) - Math.min(...vols)) < minDiffMl);
+    } while (attempts < 120);
     return vols;
   }
 
@@ -529,7 +539,7 @@
     const pool = SHAPES.filter(s => s.famille === famille);
     const shapes = pick(pool, 2);
     const isMost = Math.random() < 0.5;
-    const vols = generateVolumes(shapes, 30);
+    const vols = generateVolumes(shapes, 30, 0.28);
     const items = shapes.map((shape, i) => ({ shape, volume: vols[i] }));
     const correctIdx = isMost ? (vols[0] > vols[1] ? 0 : 1) : (vols[0] < vols[1] ? 0 : 1);
 
