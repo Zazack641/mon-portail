@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "portail",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8766"],
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["-e", "require('http').createServer((req,res)=>{const fs=require('fs'),path=require('path'),url=require('url');let p=path.join('/Users/isaacferretti/Documents/mon-portail',decodeURIComponent(url.parse(req.url).pathname));if(fs.existsSync(p)&&fs.statSync(p).isDirectory())p=path.join(p,'index.html');fs.readFile(p,(e,d)=>{if(e){res.writeHead(404);res.end();}else{const ext=path.extname(p);const m={'html':'text/html','css':'text/css','js':'text/javascript'};res.writeHead(200,{'Content-Type':m[ext.slice(1)]||'text/plain'});res.end(d);}});}).listen(8766)"],
       "port": 8766,
       "autoPort": true
     }
