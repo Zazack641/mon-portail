@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Compréhension DéCoDi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-base.css">
+<style>
+  :root {
+    --app-header-bg: #B8960C;
+  }
+
+  /* ── Views & phases ─────────────────────────────────────────────────────── */
+  .vue   { display: none; width: 100%; }
+  .phase { display: none; width: 100%; }
+  .vue.active   { display: flex; flex-direction: column; gap: 20px; }
+  .phase.active { display: flex; flex-direction: column; gap: 20px; }
+
+  /* ── Vue 1 — Sélection du module ────────────────────────────────────────── */
+  .vue-intro {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(18px, 3.5vw, 22px);
+    font-weight: 800;
+    color: var(--app-text);
+  }
+  .modules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+    width: 100%;
+  }
+  .module-btn {
+    padding: 20px 12px;
+    background: #fff;
+    border: 2px solid var(--app-border);
+    border-radius: 14px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--app-text);
+    cursor: pointer;
+    min-height: 72px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    text-align: center;
+    transition: all 0.15s;
+  }
+  .module-btn:hover  { background: #FBF5D6; border-color: #B8960C; }
+  .module-btn:active { transform: scale(0.97); }
+
+  /* ── Vue 2 — Sélection du texte ─────────────────────────────────────────── */
+  .vue-nav {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+  }
+  .back-nav-btn {
+    padding: 10px 18px;
+    background: #F1F5F9;
+    border: 1.5px solid var(--app-border);
+    border-radius: 10px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: #475569;
+    cursor: pointer;
+    min-height: 44px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    white-space: nowrap;
+    transition: background 0.15s;
+  }
+  .back-nav-btn:hover { background: #E2E8F0; }
+  .vue-titre {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(16px, 3vw, 19px);
+    font-weight: 800;
+    color: var(--app-text);
+  }
+  .textes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+  .texte-btn {
+    width: 100%;
+    padding: 18px 22px;
+    background: #fff;
+    border: 2px solid var(--app-border);
+    border-radius: 14px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: clamp(15px, 2.5vw, 17px);
+    font-weight: 600;
+    color: var(--app-text);
+    cursor: pointer;
+    min-height: 56px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    text-align: left;
+    transition: all 0.15s;
+  }
+  .texte-btn:hover  { background: #FBF5D6; border-color: #B8960C; }
+  .texte-btn:active { transform: scale(0.99); }
+
+  /* ── Phase 1 — Lecture ──────────────────────────────────────────────────── */
+  .text-card {
+    background: #fff;
+    border: 1px solid var(--app-border);
+    border-radius: 16px;
+    padding: 28px 24px;
+    width: 100%;
+  }
+  .text-titre {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(20px, 4vw, 26px);
+    font-weight: 900;
+    color: #B8960C;
+    margin-bottom: 16px;
+  }
+  .text-body {
+    font-size: clamp(16px, 2.5vw, 18px);
+    line-height: 1.85;
+    color: var(--app-text);
+    white-space: pre-line;
+  }
+  .primary-btn {
+    padding: 18px 32px;
+    background: #B8960C;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 17px;
+    font-weight: 800;
+    cursor: pointer;
+    min-height: 56px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    align-self: center;
+    transition: all 0.15s;
+  }
+  .primary-btn:hover  { background: #9A7C0A; }
+  .primary-btn:active { transform: scale(0.98); }
+  .secondary-btn {
+    padding: 18px 32px;
+    background: #1A3A5C;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 17px;
+    font-weight: 800;
+    cursor: pointer;
+    min-height: 56px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    align-self: center;
+    transition: all 0.15s;
+  }
+  .secondary-btn:hover { background: #253F63; }
+
+  /* ── Phase 2 — Questions ────────────────────────────────────────────────── */
+  .q-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 12px;
+  }
+  .q-counter {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: #64748B;
+    white-space: nowrap;
+  }
+
+  /* Accordéon "Revoir le texte" */
+  .accordion {
+    width: 100%;
+    border: 1px solid var(--app-border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+  }
+  .accordion-btn {
+    width: 100%;
+    padding: 14px 20px;
+    background: #F8FAFC;
+    border: none;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #475569;
+    cursor: pointer;
+    min-height: 48px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .accordion-btn:hover { background: #F1F5F9; }
+  .accordion-btn .chevron { font-style: normal; transition: transform 0.2s; }
+  .accordion-btn[aria-expanded="true"] .chevron { transform: rotate(180deg); }
+  .accordion-body {
+    display: none;
+    padding: 16px 20px;
+    border-top: 1px solid var(--app-border);
+  }
+  .accordion-body.open { display: block; }
+  .accordion-body-text {
+    font-size: clamp(14px, 2.2vw, 16px);
+    line-height: 1.8;
+    color: var(--app-text);
+    white-space: pre-line;
+  }
+
+  /* Carte question */
+  .question-card {
+    background: #fff;
+    border: 1px solid var(--app-border);
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+  }
+  .q-type-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    align-self: flex-start;
+  }
+  .q-type-badge.explicite { background: #DBEAFE; color: #1E40AF; }
+  .q-type-badge.implicite { background: #EDE9FE; color: #5B21B6; }
+  .q-type-badge.opinion   { background: #FEF3C7; color: #92400E; }
+  .q-text {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(17px, 3.5vw, 20px);
+    font-weight: 800;
+    color: var(--app-text);
+    line-height: 1.4;
+  }
+
+  /* Boutons QCM */
+  .answer-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .answer-btn {
+    width: 100%;
+    padding: 16px 20px;
+    background: #F8FAFC;
+    border: 2px solid var(--app-border);
+    border-radius: 12px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: clamp(15px, 2.5vw, 17px);
+    font-weight: 600;
+    color: var(--app-text);
+    cursor: pointer;
+    min-height: 56px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    text-align: left;
+    transition: all 0.15s;
+    line-height: 1.4;
+  }
+  .answer-btn:not(:disabled):hover { background: #FBF5D6; border-color: #B8960C; }
+  .answer-btn:not(:disabled):active { transform: scale(0.99); }
+  .answer-btn.correct  { background: var(--app-correct-bg); border-color: #10B981; color: var(--app-correct-fg); font-weight: 700; }
+  .answer-btn.wrong    { background: var(--app-wrong-bg);   border-color: #EF4444; color: var(--app-wrong-fg); }
+  .answer-btn:disabled { cursor: default; }
+
+  /* Feedback QCM */
+  .q-feedback {
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.5;
+    display: none;
+  }
+  .q-feedback.correct { background: var(--app-correct-bg); color: var(--app-correct-fg); display: block; }
+  .q-feedback.wrong   { background: var(--app-wrong-bg);   color: var(--app-wrong-fg);   display: block; }
+
+  /* Zone opinion */
+  .opinion-zone {
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .opinion-zone.visible { display: flex; }
+  .opinion-zone textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 14px 16px;
+    border: 2px solid var(--app-border);
+    border-radius: 12px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: clamp(15px, 2.5vw, 17px);
+    color: var(--app-text);
+    resize: vertical;
+    -webkit-appearance: none;
+    outline: none;
+    line-height: 1.5;
+    background: #F8FAFC;
+  }
+  .opinion-zone textarea:focus { border-color: #B8960C; background: #fff; }
+  .see-ex-btn {
+    padding: 14px 24px;
+    background: #B8960C;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    min-height: 52px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    align-self: flex-start;
+    transition: all 0.15s;
+  }
+  .see-ex-btn:hover:not(:disabled) { background: #9A7C0A; }
+  .see-ex-btn:disabled { background: #94A3B8; cursor: default; }
+  .opinion-ex {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    background: #EFF6FF;
+    border: 1.5px solid #BFDBFE;
+    border-radius: 12px;
+    padding: 16px 20px;
+  }
+  .opinion-ex.visible { display: flex; }
+  .opinion-ex-label {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #1E40AF;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .opinion-ex-text {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: clamp(15px, 2.5vw, 17px);
+    color: #1E40AF;
+    line-height: 1.6;
+  }
+
+  /* Bouton suivant */
+  .next-q-btn {
+    padding: 14px 28px;
+    background: #0F7860;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    min-height: 52px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    align-self: flex-end;
+    display: none;
+    transition: all 0.15s;
+  }
+  .next-q-btn.visible { display: block; }
+  .next-q-btn:hover { background: #0A5C48; }
+
+  /* ── Phase 3 — Résultat ─────────────────────────────────────────────────── */
+  .result-card {
+    background: #fff;
+    border: 1px solid var(--app-border);
+    border-radius: 16px;
+    padding: 40px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    text-align: center;
+    width: 100%;
+  }
+  .result-emoji { font-size: 64px; line-height: 1; }
+  .result-msg {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(17px, 3.5vw, 21px);
+    font-weight: 800;
+    color: var(--app-text);
+    line-height: 1.5;
+  }
+  .result-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <a href="../index.html" class="back-link">← Retour</a>
+  <h1>📖 Compréhension DéCoDi</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<main>
+
+  <!-- ── Vue 1 : Sélection du module ──────────────────────────────────────── -->
+  <div id="vue-modules" class="vue active">
+    <p class="vue-intro">Choisis un module :</p>
+    <div class="modules-grid">
+      <button class="module-btn" data-module="Module 6">Module 6</button>
+      <button class="module-btn" data-module="Module 7">Module 7</button>
+      <button class="module-btn" data-module="Module 8">Module 8</button>
+      <button class="module-btn" data-module="Module 9">Module 9</button>
+      <button class="module-btn" data-module="Module 10">Module 10</button>
+      <button class="module-btn" data-module="Module 11">Module 11</button>
+      <button class="module-btn" data-module="Module 12">Module 12</button>
+      <button class="module-btn" data-module="Module 13">Module 13</button>
+      <button class="module-btn" data-module="Module 14">Module 14</button>
+      <button class="module-btn" data-module="Module 15">Module 15</button>
+    </div>
+  </div>
+
+  <!-- ── Vue 2 : Sélection du texte ──────────────────────────────────────── -->
+  <div id="vue-textes" class="vue">
+    <div class="vue-nav">
+      <button class="back-nav-btn" id="back-to-modules">← Modules</button>
+      <span class="vue-titre" id="textes-titre"></span>
+    </div>
+    <div class="textes-list" id="textes-list"></div>
+  </div>
+
+  <!-- ── Vue 3 : Lecture et questionnaire ────────────────────────────────── -->
+  <div id="vue-lecture" class="vue">
+
+    <!-- Phase 1 : Lecture -->
+    <div id="phase-read" class="phase">
+      <div class="text-card">
+        <div class="text-titre" id="read-titre"></div>
+        <div class="text-body" id="read-body"></div>
+      </div>
+      <button class="primary-btn" id="start-questions-btn">J'ai lu, commencer les questions →</button>
+    </div>
+
+    <!-- Phase 2 : Questions -->
+    <div id="phase-questions" class="phase">
+      <div class="q-header">
+        <button class="back-nav-btn" id="back-to-textes">← Textes</button>
+        <span class="q-counter" id="q-counter">Question 1 / 3</span>
+      </div>
+
+      <div class="accordion">
+        <button class="accordion-btn" id="accordion-btn" aria-expanded="false">
+          <span>Revoir le texte</span>
+          <span class="chevron" aria-hidden="true">▼</span>
+        </button>
+        <div class="accordion-body" id="accordion-body">
+          <div class="accordion-body-text" id="accordion-text"></div>
+        </div>
+      </div>
+
+      <div class="question-card">
+        <span class="q-type-badge" id="q-type-badge"></span>
+        <p class="q-text" id="q-text"></p>
+
+        <!-- Choix QCM -->
+        <div class="answer-list" id="answer-list"></div>
+
+        <!-- Zone opinion -->
+        <div class="opinion-zone" id="opinion-zone">
+          <textarea id="opinion-ta" rows="4" autocorrect="off" spellcheck="false"
+            placeholder="Écris ta réponse ici…" aria-label="Ta réponse"></textarea>
+          <button class="see-ex-btn" id="see-ex-btn" disabled>Voir un exemple</button>
+          <div class="opinion-ex" id="opinion-ex">
+            <p class="opinion-ex-label">Il n'y a pas de réponse unique. Voici un exemple :</p>
+            <p class="opinion-ex-text" id="opinion-ex-text"></p>
+          </div>
+        </div>
+
+        <!-- Feedback QCM -->
+        <div class="q-feedback" id="q-feedback" aria-live="polite"></div>
+
+        <!-- Bouton suivant -->
+        <button class="next-q-btn" id="next-q-btn">Question suivante →</button>
+      </div>
+    </div>
+
+    <!-- Phase 3 : Résultat -->
+    <div id="phase-result" class="phase">
+      <div class="result-card">
+        <span class="result-emoji" id="result-emoji">🎉</span>
+        <p class="result-msg" id="result-msg"></p>
+        <div class="result-actions">
+          <button class="primary-btn" id="btn-autre-texte">Choisir un autre texte</button>
+          <button class="secondary-btn" id="btn-autre-module">Choisir un autre module</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /vue-lecture -->
+
+</main>
+
+<script src="appUtils.js"></script>
+<script>
+// ── Données ─────────────────────────────────────────────────────────────────
+const DECODI_TEXTS = {
+  "Module 6": [
+    {
+      id: "m6t1",
+      titre: "La chasse",
+      texte: `C'est la chasse. Abritée dans un fossé, une biche a la frousse. Ouf ! L'homme qui la chasse est passé et ne l'a pas vue.\nLe chat de Mélissa est assis. Il a une jolie fourrure rousse. Mélissa brosse et lisse sa fourrure.\nMélissa se lave. Il y a de la mousse partout !\nMélissa chute, elle a une bosse. Son papa la rassure : « Les bosses passent vite ! »`,
+      questions: [
+        { type: "explicite", question: "Pourquoi la biche a-t-elle la frousse ?", choix: ["Elle est tombée dans un fossé", "Un homme la chasse", "Elle a une bosse", "Le chat l'a effrayée"], reponse: 1 },
+        { type: "implicite", question: "Que fait le papa de Mélissa quand elle tombe ?", choix: ["Il la gronde", "Il appelle le médecin", "Il lui dit que ça va aller", "Il la brosse"], reponse: 2 }
+      ]
+    },
+    {
+      id: "m6t2",
+      titre: "Nabil",
+      texte: `Nabil prépare une tarte avec des fruits. Dans une bassine il y a de la farine. Nabil ajoute des pommes et des prunes. Il tourne le tout. A-t-il fini ?\nNabil a passé une bonne journée : il a vu ses amis, il a joué et il a eu une bonne note !\nNabil a une mine maline. Son papa s'est tourné et il a pris son journal et sa tartine !`,
+      questions: [
+        { type: "explicite", question: "Quels fruits Nabil met-il dans sa tarte ?", choix: ["Des fraises et des bananes", "Des pommes et des prunes", "Des prunes et des fraises", "Des pommes et des abricots"], reponse: 1 },
+        { type: "explicite", question: "Pourquoi Nabil a-t-il passé une bonne journée ?", choix: ["Il a préparé une tarte", "Il a vu ses amis, joué et eu une bonne note", "Il a mangé une tartine avec son papa", "Il a trouvé un journal"], reponse: 1 },
+        { type: "implicite", question: "Que veut dire « avoir une mine maline » ?", choix: ["Avoir l'air fatigué", "Avoir l'air triste", "Avoir l'air espiègle", "Avoir l'air malade"], reponse: 2 }
+      ]
+    },
+    {
+      id: "m6t3",
+      titre: "La chèvre",
+      texte: `La chèvre vit dans une étable. Elle est matinale : elle se lève avec la lumière du jour. Elle se promène dans les prés et elle broute des trèfles. Après sa journée, elle va dans son étable.\nNoël arrive ! Avec son frère, Maëlle a mis les lumières et les boules sur l'arbre de Noël. Elle est fière : il est très joli ! Tout est prêt pour la fête !`,
+      questions: [
+        { type: "explicite", question: "Que mange la chèvre dans les prés ?", choix: ["De l'herbe et des fleurs", "Des trèfles", "Des pommes", "De la farine"], reponse: 1 },
+        { type: "explicite", question: "Qu'est-ce que Maëlle a fait avec son frère ?", choix: ["Ils ont préparé un repas de Noël", "Ils ont décoré l'arbre de Noël", "Ils ont acheté des cadeaux", "Ils ont allumé des bougies"], reponse: 1 },
+        { type: "implicite", question: "Pourquoi dit-on que la chèvre est « matinale » ?", choix: ["Elle se lève tard le matin", "Elle se lève tôt, dès que le jour se lève", "Elle mange le matin uniquement", "Elle rentre dans son étable le matin"], reponse: 1 }
+      ]
+    }
+  ],
+  "Module 7": [
+    {
+      id: "m7t1",
+      titre: "Les sportifs",
+      texte: `Les sportifs se préparent toujours pour leurs matchs. Ils utilisent des pistes et des salles de sport pour être prêts. Après les matchs, les journalistes parlent avec les sportifs les plus réputés. Mais pas de méprise, même s'ils sourient, ils sont épuisés !`,
+      questions: [
+        { type: "explicite", question: "Où s'entraînent les sportifs ?", choix: ["Dans des parcs et des forêts", "Dans des pistes et des salles de sport", "Dans des stades uniquement", "Chez eux"], reponse: 1 },
+        { type: "explicite", question: "Avec qui les journalistes parlent-ils après les matchs ?", choix: ["Avec tous les sportifs", "Avec les entraîneurs", "Avec les sportifs les plus réputés", "Avec le public"], reponse: 2 },
+        { type: "implicite", question: "Pourquoi précise-t-on « pas de méprise » quand les sportifs sourient ?", choix: ["Parce qu'ils sont contents d'avoir perdu", "Parce qu'ils sourient mais sont en réalité épuisés", "Parce qu'ils font semblant d'être fatigués", "Parce qu'ils n'aiment pas les journalistes"], reponse: 1 }
+      ]
+    },
+    {
+      id: "m7t2",
+      titre: "Les pirates",
+      texte: `Un pirate, c'est rusé. Les pirates arrivent par surprise et poursuivent des navires. Ils volent leurs sous. Ils s'arment de fusils ou de sabres. Ils posent dans des valises les trésors volés et fuient avec leurs navires.`,
+      questions: [
+        { type: "explicite", question: "Comment les pirates transportent-ils les trésors volés ?", choix: ["Sur leur dos", "Dans des sacs", "Dans des valises", "Dans des coffres"], reponse: 2 },
+        { type: "implicite", question: "Pourquoi dit-on que les pirates sont rusés ?", choix: ["Parce qu'ils ont des fusils et des sabres", "Parce qu'ils arrivent par surprise et prennent les autres au dépourvu", "Parce qu'ils courent très vite", "Parce qu'ils connaissent bien la mer"], reponse: 1 }
+      ]
+    },
+    {
+      id: "m7t3",
+      titre: "Le violon",
+      texte: `Le violon est joué par un ou une violoniste. S'il sonne juste, on a des frissons. Le son est très joli et résonne ! Les violonistes ont de la volonté : c'est très long pour être bon !`,
+      questions: [
+        { type: "explicite", question: "Quel effet produit un violon qui sonne juste ?", choix: ["Il fait peur", "Il donne des frissons", "Il fait danser", "Il réveille les gens"], reponse: 1 },
+        { type: "implicite", question: "Que veut dire « les violonistes ont de la volonté » ?", choix: ["Ils sont très forts physiquement", "Ils apprennent vite", "Ils persistent malgré les années d'apprentissage", "Ils aiment jouer en groupe"], reponse: 2 }
+      ]
+    },
+    {
+      id: "m7t4",
+      titre: "Les arbres",
+      texte: `Les arbres sont très utiles. Les hommes font plein de choses avec les troncs : du charbon, des bouchons, des violons, des ponts et même ce que tu utilises pour lire.`,
+      questions: [
+        { type: "explicite", question: "Cite deux objets fabriqués avec des troncs d'arbres.", choix: ["Des tables et des chaises", "Des bouchons et des violons", "Des livres et des stylos", "Des sabres et des fusils"], reponse: 1 },
+        { type: "implicite", question: "Que désigne « ce que tu utilises pour lire » dans le texte ?", choix: ["Des lunettes", "Une lampe", "Du papier ou un livre", "Un écran"], reponse: 2 }
+      ]
+    },
+    {
+      id: "m7t5",
+      titre: "Les nomades",
+      texte: `Les nomades sont des hommes qui n'habitent pas entre des murs. Ils marchent la journée, vont dans des roulottes ou sont sur des dos de dromadaires. Il y en a partout dans le monde, dans les dunes du Sahara et même en France. Il y a des nomades qui possèdent des moutons. Ils les tondent ou produisent de la nourriture avec. Leur mode de vie est dur mais ils le trouvent idéal.`,
+      questions: [
+        { type: "explicite", question: "Comment se déplacent certains nomades ?", choix: ["En voiture et en train", "À pied, en roulotte ou à dos de dromadaire", "Uniquement à pied", "En bateau et à cheval"], reponse: 1 },
+        { type: "explicite", question: "Que font les nomades avec leurs moutons ?", choix: ["Ils les vendent au marché", "Ils les tondent ou produisent de la nourriture", "Ils les utilisent pour se déplacer", "Ils les offrent à d'autres nomades"], reponse: 1 },
+        { type: "implicite", question: "Pourquoi dit-on que leur mode de vie est « dur mais idéal » ?", choix: ["Parce qu'ils n'ont pas de maison et souffrent", "Parce que c'est difficile mais qu'ils l'ont choisi et l'aiment", "Parce qu'ils travaillent beaucoup pour gagner de l'argent", "Parce qu'ils vivent dans le désert"], reponse: 1 }
+      ]
+    },
+    {
+      id: "m7t6",
+      titre: "De bonnes idées",
+      texte: `Voici de bonnes idées pour les balades : en hiver, porte une doudoune dès le départ pour ne pas être malade. En altitude, ne marche pas trop près du vide. Si tu pars pour une balade plus dure, n'oublie pas de la nourriture. Admire la vue, elle est formidable !`,
+      questions: [
+        { type: "explicite", question: "Que faut-il porter en hiver lors d'une balade ?", choix: ["Un imperméable", "Une doudoune", "Un pull léger", "Des lunettes de soleil"], reponse: 1 },
+        { type: "explicite", question: "Que ne faut-il pas oublier pour une balade difficile ?", choix: ["Une carte", "De l'eau uniquement", "De la nourriture", "Un téléphone"], reponse: 2 },
+        { type: "implicite", question: "Pourquoi conseille-t-on de ne pas marcher près du vide en altitude ?", choix: ["Parce que c'est interdit", "Parce qu'on risque de tomber", "Parce que le vent y est trop fort", "Parce que les animaux sauvages y vivent"], reponse: 1 }
+      ]
+    }
+  ],
+  "Module 8": [
+    {
+      id: "m8t1",
+      titre: "Le panda",
+      texte: `Le panda est un animal qui vit en Chine. Il a une fourrure noire et blanche. Sa maman l'élève pendant 3 ans. Le panda se nourrit d'une plante, le bambou. De temps en temps il prend aussi de la viande. Il joue souvent à se suspendre à des branches. Les pandas les plus résistants vivent trente ans.`,
+      questions: [
+        { type: "explicite", question: "De quoi se nourrit principalement le panda ?", choix: ["De viande", "De bambou", "De fruits", "De poisson"], reponse: 1 },
+        { type: "explicite", question: "Combien d'années la maman panda élève-t-elle son petit ?", choix: ["1 an", "2 ans", "3 ans", "5 ans"], reponse: 2 },
+        { type: "implicite", question: "Que veut dire « les pandas les plus résistants vivent trente ans » ?", choix: ["Tous les pandas vivent trente ans", "Seuls les pandas en bonne santé atteignent trente ans", "Les pandas vivent en moyenne trente ans", "Les pandas vivent moins de trente ans"], reponse: 1 }
+      ]
+    },
+    {
+      id: "m8t2",
+      titre: "La panthère",
+      texte: `La panthère est un animal qui vit dans la savane. Son aliment favori est la viande. Elle chasse souvent des antilopes. Les antilopes sont des sortes de biches mais qui vivent dans la savane. Elles vivent ensemble en troupeaux. La panthère les surprend en les mordant avec ses dents. Les antilopes n'ont pas de défense vis-à-vis de ce puissant animal alors elles sont méfiantes.`,
+      questions: [
+        { type: "explicite", question: "Quel est l'aliment favori de la panthère ?", choix: ["Le bambou", "Les fruits", "La viande", "Le poisson"], reponse: 2 },
+        { type: "explicite", question: "Comment la panthère chasse-t-elle ses proies ?", choix: ["Elle les poursuit longtemps", "Elle les surprend en les mordant", "Elle leur tend un piège", "Elle les encercle avec d'autres panthères"], reponse: 1 },
+        { type: "implicite", question: "Pourquoi les antilopes sont-elles méfiantes ?", choix: ["Parce qu'elles n'aiment pas les autres animaux", "Parce qu'elles n'ont aucun moyen de se défendre contre la panthère", "Parce qu'elles vivent seules", "Parce qu'elles ont peur des humains"], reponse: 1 }
+      ]
+    },
+    {
+      id: "m8t3",
+      titre: "L'équipe de foot",
+      texte: `Dans une équipe de foot il y a des attaquants. Pendant le match ils marquent des buts. Il est fréquent qu'ils les manquent. Souvent, l'équipe qui marque le plus de buts se qualifie pour le match suivant. Les fans trouvent cela fantastique !`,
+      questions: [
+        { type: "explicite", question: "Quel est le rôle des attaquants dans une équipe de foot ?", choix: ["Défendre les buts", "Arbitrer le match", "Marquer des buts", "Encourager les joueurs"], reponse: 2 },
+        { type: "implicite", question: "Que veut dire « il est fréquent qu'ils les manquent » ?", choix: ["Les attaquants oublient souvent leurs équipements", "Les attaquants ratent souvent leurs tentatives de but", "Les attaquants manquent souvent à l'entraînement", "Les attaquants perdent souvent le ballon"], reponse: 1 }
+      ]
+    },
+    {
+      id: "m8t4",
+      titre: "L'orque",
+      texte: `L'orque est un animal qui vit en Arctique et en Antarctique, là où il y a la banquise. L'orque vit dans l'eau salée. Pour vivre, elle traque et attaque des bêtes. D'après les scientifiques, elle vit quasiment toujours en bande. Elle vit jusqu'à quarante ans.`,
+      questions: [
+        { type: "explicite", question: "Où vit l'orque ?", choix: ["Dans les rivières et les lacs", "En Arctique et en Antarctique, dans l'eau salée", "Dans les mers tropicales", "Dans les océans chauds"], reponse: 1 },
+        { type: "implicite", question: "Pourquoi précise-t-on « d'après les scientifiques » ?", choix: ["Pour montrer que c'est une opinion personnelle", "Pour indiquer que cette information vient d'une observation scientifique", "Pour dire que ce n'est pas sûr", "Pour rendre le texte plus intéressant"], reponse: 1 }
+      ]
+    },
+    {
+      id: "m8t5",
+      titre: "Les loups",
+      texte: `Les loups vivent dans les bois. Leurs poils varient entre le noir et le blanc. Ils les protègent du froid. Dès 6 mois, les bébés loups chassent des proies. Parfois, les loups s'assoient et hurlent. En France, on n'en voit pas souvent.`,
+      questions: [
+        { type: "explicite", question: "À quel âge les bébés loups commencent-ils à chasser ?", choix: ["Dès 3 mois", "Dès 6 mois", "Dès 1 an", "Dès 2 ans"], reponse: 1 },
+        { type: "implicite", question: "À quoi servent les poils des loups d'après le texte ?", choix: ["À les camoufler dans la forêt", "À les protéger du froid", "À impressionner leurs proies", "À les reconnaître entre eux"], reponse: 1 }
+      ]
+    },
+    {
+      id: "m8t6",
+      titre: "Les oies",
+      texte: `Les oies sont élevées pour leur viande, leurs œufs et leurs plumes. Elles se nourrissent de plein de choses, dont des épluchures et de l'avoine. L'enfant de l'oie se nomme l'oison. Les oies ont une très bonne mémoire : elles mémorisent tous les endroits par où elles sont passées. Quand elles volent ensemble, pour savoir où elles sont, elles utilisent leurs voix.`,
+      questions: [
+        { type: "explicite", question: "Comment s'appelle le petit de l'oie ?", choix: ["L'oison", "Le poussin", "Le caneton", "L'oieau"], reponse: 0 },
+        { type: "explicite", question: "Pourquoi élève-t-on des oies ?", choix: ["Pour leur beauté et leur chant", "Pour leur viande, leurs œufs et leurs plumes", "Pour leur lait et leur fourrure", "Pour les courses et les spectacles"], reponse: 1 },
+        { type: "implicite", question: "Comment les oies s'orientent-elles quand elles volent en groupe ?", choix: ["Elles suivent le soleil", "Elles utilisent leurs voix et leur mémoire des endroits", "Elles suivent leur chef", "Elles regardent les étoiles"], reponse: 1 }
+      ]
+    },
+    {
+      id: "m8t7",
+      titre: "Recette de salade de fruits",
+      texte: `Pour une salade de fruits :\nChoisis des fruits : framboises, poires, bananes... à toi de voir !\nTranche-les. Si tu es maladroit, attention à tes doigts.\nÀ choix, rajoute du sirop.\nC'est prêt !`,
+      questions: [
+        { type: "explicite", question: "Que peut-on ajouter en option à la salade de fruits ?", choix: ["Du sucre", "Du sirop", "Du lait", "De la crème"], reponse: 1 },
+        { type: "implicite", question: "Pourquoi dit-on « si tu es maladroit, attention à tes doigts » ?", choix: ["Parce que les fruits peuvent glisser", "Parce qu'on utilise un couteau pour trancher les fruits", "Parce que le sirop est collant", "Parce que les framboises piquent"], reponse: 1 }
+      ]
+    }
+  ],
+  "Module 9": [
+    {
+      id: "m9t1",
+      titre: "Eugène Poubelle",
+      texte: `Eugène Poubelle a donné son nom à la poubelle. Il est né en 1831. À cette époque, les rues de Paris sont terribles : il y a de la saleté partout. Les habitants jettent même leurs ordures par les fenêtres. Eugène a une super idée : mettre des poubelles dans les rues et dans les appartements de Paris. Naturellement, quelques personnes refusent de mettre leurs ordures dans les poubelles. Mais Eugène reste ferme et ne perd pas espoir. Rapidement, Paris retrouve sa propreté.`,
+      questions: [
+        { type: "explicite", question: "Quelle était la situation des rues de Paris avant l'invention de la poubelle ?", choix: ["Elles étaient bien entretenues", "Elles étaient sales, les gens jetaient leurs ordures partout", "Elles étaient trop étroites", "Elles étaient inondées"], reponse: 1 },
+        { type: "explicite", question: "Quelle était l'idée d'Eugène Poubelle ?", choix: ["Construire des égouts sous Paris", "Nettoyer les rues chaque matin", "Placer des poubelles dans les rues et les appartements", "Interdire de jeter des ordures sous peine d'amende"], reponse: 2 },
+        { type: "implicite", question: "Pourquoi certaines personnes refusaient-elles d'utiliser les poubelles ?", choix: ["Parce qu'elles trouvaient les poubelles trop petites", "Parce que changer ses habitudes est difficile", "Parce qu'elles n'avaient pas de place chez elles", "Parce qu'Eugène n'était pas populaire"], reponse: 1 },
+        { type: "opinion", question: "Penses-tu qu'Eugène Poubelle a eu une bonne idée ? Explique pourquoi.", exemple: "Oui, c'était une bonne idée car avant les rues étaient très sales et cela rendait la ville plus propre et plus agréable pour tout le monde." }
+      ]
+    },
+    {
+      id: "m9t2",
+      titre: "Les planètes",
+      texte: `Il y a plein de planètes dans l'univers. La nôtre s'appelle la Terre. Préservons-la, elle est tellement belle. Il ne va pas y en avoir de nouvelle. Par exemple, ne jetons pas nos ordures dans l'environnement. Quelle tristesse qu'il devienne une poubelle !`,
+      questions: [
+        { type: "explicite", question: "Comment s'appelle notre planète ?", choix: ["Mars", "La Lune", "La Terre", "Vénus"], reponse: 2 },
+        { type: "implicite", question: "Que veut dire « quelle tristesse qu'il devienne une poubelle » ?", choix: ["Que l'environnement est déjà très pollué", "Que la Terre risque d'être détruite par les ordures si on ne la protège pas", "Qu'il faudrait mettre des poubelles partout dans la nature", "Que les poubelles sont tristes à regarder"], reponse: 1 }
+      ]
+    },
+    {
+      id: "m9t3",
+      titre: "La recette du poulet fermier",
+      texte: `Pour préparer un poulet fermier pour le dîner :\nEn premier, mettre un tablier.\nSe laver les doigts sous un robinet.\nDéposer le poulet dans un saladier, le saler, le poivrer et l'huiler.\nEnfourner le poulet dans un four à 180°C pendant trente minutes.\nTourner le poulet et le renfourner pendant trente minutes.\nC'est prêt !`,
+      questions: [
+        { type: "explicite", question: "À quelle température faut-il cuire le poulet ?", choix: ["160°C", "180°C", "200°C", "220°C"], reponse: 1 },
+        { type: "explicite", question: "Quelle est la première étape de la recette ?", choix: ["Saler le poulet", "Préchauffer le four", "Mettre un tablier", "Laver le poulet"], reponse: 2 },
+        { type: "implicite", question: "Pourquoi faut-il tourner le poulet à mi-cuisson ?", choix: ["Pour vérifier qu'il est bien cuit", "Pour qu'il cuise uniformément des deux côtés", "Pour le refroidir un peu", "Pour ajouter des épices"], reponse: 1 }
+      ]
+    },
+    {
+      id: "m9t4",
+      titre: "Les métiers",
+      texte: `Quel métier as-tu envie de pratiquer plus tard ? Poissonnier ou boucher ? Ils vendent des poissons ou de la viande. Tu ne dois pas être trop sensible du nez ! Bijoutier ? Chez lui, on achète de jolis bijoux. Ouvrier ? Il est sur les chantiers. Menuisier ? Il fabrique des objets avec du bois dans un atelier. Ou as-tu une idée différente ?`,
+      questions: [
+        { type: "explicite", question: "Que fabrique le menuisier ?", choix: ["Des bijoux en bois", "Des objets avec du bois", "Des vêtements", "Des maisons en pierre"], reponse: 1 },
+        { type: "explicite", question: "Où travaille l'ouvrier ?", choix: ["Dans un atelier", "Dans un magasin", "Sur les chantiers", "Dans une usine"], reponse: 2 },
+        { type: "opinion", question: "Quel métier cité dans le texte t'intéresse le plus ? Explique pourquoi.", exemple: "Le métier de menuisier m'intéresse car j'aime travailler avec mes mains et fabriquer des objets en bois." }
+      ]
+    },
+    {
+      id: "m9t5",
+      titre: "Pierre Lapin",
+      texte: `C'est l'histoire d'un lapin qui s'appelle Pierre. Il vit avec sa maman sous un sapin. Un matin, sa maman doit partir. Elle interdit à Pierre de sortir. Mais Pierre est imprudent. Dès que sa maman est loin, il prend le chemin pour aller chez son voisin le jardinier. Il s'introduit dans le jardin. Il avale de la salade, des bouts d'épinards et des brins de romarin. Mais le lapin se met vite dans le pétrin : le jardinier le voit ! S'il attrape Pierre, il fera de lui un festin. Pierre file vite chez lui. Il ne fera plus le malin chez son voisin !`,
+      questions: [
+        { type: "explicite", question: "Qu'a mangé Pierre dans le jardin ?", choix: ["Des carottes et des tomates", "De la salade, des épinards et du romarin", "Des fraises et des framboises", "Du bambou et des herbes"], reponse: 1 },
+        { type: "explicite", question: "Qu'interdit la maman de Pierre avant de partir ?", choix: ["De manger trop", "De jouer dans le jardin", "De sortir", "De parler au jardinier"], reponse: 2 },
+        { type: "implicite", question: "Que veut dire « il fera de lui un festin » ?", choix: ["Il lui donnera un grand repas", "Il le cuisinera et le mangera", "Il le chassera du jardin", "Il l'invitera à dîner"], reponse: 1 },
+        { type: "opinion", question: "Penses-tu que Pierre a eu raison de désobéir à sa maman ? Explique.", exemple: "Non, Pierre a eu tort car sa maman lui avait interdit de sortir pour le protéger du danger, et il a failli se faire attraper." }
+      ]
+    },
+    {
+      id: "m9t6",
+      titre: "Le lutin",
+      texte: `C'est l'histoire d'un homme dont le métier est de fabriquer des bottines. Un soir, il est très inquiet : il ne lui reste que 2 bottines à terminer et il n'a pas de sous pour racheter du matériel. Impuissant, il va dormir. Le matin, l'homme arrive dans son atelier. Il voit qu'à son insu un individu a déjà fini les bottines ! Elles sont tellement belles que l'homme les vend cher et rachète du matériel pour fabriquer 4 nouvelles bottines. Impressionné, l'homme attend le soir pour voir si l'invité de la nuit passée va revenir. À minuit, quelle surprise, il voit un petit lutin s'introduire dans l'atelier. Il s'installe et fabrique les 4 nouvelles bottines en un instant. Par la suite, le petit lutin revint toutes les nuits. L'homme put sortir de son pétrin et ne plus s'inquiéter pour ses sous !`,
+      questions: [
+        { type: "explicite", question: "Quel était le problème de l'homme au début de l'histoire ?", choix: ["Il ne savait pas fabriquer des bottines", "Il n'avait plus de sous pour acheter du matériel", "Son atelier était trop petit", "Il avait trop de commandes"], reponse: 1 },
+        { type: "explicite", question: "Qui fabriquait les bottines la nuit ?", choix: ["Un apprenti", "Son voisin", "Un petit lutin", "Sa femme"], reponse: 2 },
+        { type: "implicite", question: "Que veut dire « sortir du pétrin » ?", choix: ["Sortir d'un four à pain", "Se sortir d'une situation difficile", "Trouver un nouveau métier", "Quitter son atelier"], reponse: 1 },
+        { type: "opinion", question: "Comment imagines-tu la suite de l'histoire après la dernière nuit du lutin ?", exemple: "Je pense que l'homme est devenu très riche grâce aux belles bottines et qu'il a voulu remercier le lutin en lui offrant un cadeau." }
+      ]
+    }
+  ],
+  "Module 10": [
+    {
+      id: "m10t1",
+      titre: "Du lait frais",
+      texte: `À l'époque, on n'achetait pas le lait dans des magasins. Un laitier passait le matin dans chaque maison. Il livrait le lait et on le payait. Le lait était frais : il venait tout droit de la ferme.`,
+      questions: [
+        { type: "explicite", question: "Comment obtenait-on le lait autrefois ?", choix: ["On l'achetait au supermarché", "Un laitier le livrait à domicile chaque matin", "On allait le chercher directement à la ferme", "On le commandait par courrier"], reponse: 1 },
+        { type: "implicite", question: "Pourquoi précise-t-on que le lait « venait tout droit de la ferme » ?", choix: ["Pour dire qu'il était cher", "Pour expliquer qu'il était frais et non transformé", "Pour montrer que les fermes étaient proches", "Pour dire que le laitier était fatigué"], reponse: 1 }
+      ]
+    },
+    {
+      id: "m10t2",
+      titre: "L'anniversaire de Loraine",
+      texte: `C'est l'anniversaire de Loraine. Désormais, elle a une année de plus. À midi, ses parents lui ont préparé son repas préféré. Pour le dessert, selon son souhait, ils ont fait des madeleines et une salade de fraises. Quel plaisir !`,
+      questions: [
+        { type: "explicite", question: "Quel dessert a-t-on préparé pour Loraine ?", choix: ["Un gâteau au chocolat et des fraises", "Des madeleines et une salade de fraises", "Une tarte aux framboises", "Des biscuits et de la glace"], reponse: 1 },
+        { type: "implicite", question: "Que veut dire « selon son souhait » ?", choix: ["Parce que c'était facile à préparer", "Parce que c'est ce que Loraine avait demandé", "Parce que c'était la saison des fraises", "Parce que ses parents aimaient les madeleines"], reponse: 1 }
+      ]
+    },
+    {
+      id: "m10t3",
+      titre: "La Belle au bois dormant",
+      texte: `Il était une fois un roi et une reine qui venaient d'avoir une fille. Elle s'appelait Rose. Pour son premier anniversaire, ses parents firent une fête. Les 3 marraines du bébé étaient invitées, c'était des fées. Elles firent des souhaits pour Rose : qu'elle soit belle, aimable... Soudain, une méchante fée arriva. Elle n'aimait pas le roi et la reine. Elle fit le souhait que Rose meure une fois adulte. Heureusement, une des bonnes marraines n'avait pas encore fait de souhait. Elle intervint pour que Rose ne meure pas mais s'endorme très longtemps. Quelques années plus tard, Rose était devenue adulte. Un jour, elle vit une dame qui filait de la laine. En touchant la machine à filer, Rose fit un malaise. Le sort de la méchante fée venait de se réaliser. Elle s'endormit pendant des années, de même que le roi, la reine et tous les habitants du domaine. L'endroit devint une épaisse forêt. Des années plus tard, le fils d'un roi se promenait dans cette forêt. Il tomba sur le château du roi et de la reine et sur Rose qui dormait paisiblement. Il lui fit un baiser et Rose sortit enfin de son sommeil !`,
+      questions: [
+        { type: "explicite", question: "Quel souhait a fait la méchante fée ?", choix: ["Que Rose soit laide", "Que Rose meure une fois adulte", "Que Rose s'endorme pour toujours", "Que Rose quitte le château"], reponse: 1 },
+        { type: "explicite", question: "Comment Rose s'est-elle réveillée ?", choix: ["Grâce à une bonne fée", "Grâce au baiser d'un prince", "Après cent ans exactement", "Grâce à sa maman"], reponse: 1 },
+        { type: "implicite", question: "Pourquoi une bonne marraine a-t-elle pu modifier le sort de la méchante fée ?", choix: ["Parce qu'elle était plus puissante", "Parce qu'elle n'avait pas encore utilisé son souhait", "Parce qu'elle connaissait un contre-sort", "Parce que la méchante fée était partie"], reponse: 1 },
+        { type: "opinion", question: "Que penses-tu du comportement de la méchante fée ? Explique.", exemple: "Je pense que la méchante fée a été très cruelle car Rose n'avait rien fait de mal et elle a voulu lui faire du mal uniquement pour se venger du roi et de la reine." }
+      ]
+    },
+    {
+      id: "m10t4",
+      titre: "À l'école",
+      texte: `À l'école, les élèves rencontrent plein de camarades et découvrent plein de choses. En cours de français, ils apprennent à lire et à écrire. En classe de mathématiques, ils apprennent à compter. Il faut être concentré ! À la récré, les enfants aiment courir. Il y en a aussi qui préfèrent la balançoire, et d'autres qui sont plus calmes. Souvent, les élèves reçoivent des leçons à faire à la maison. À la fin de l'année scolaire, c'est les vacances d'été !`,
+      questions: [
+        { type: "explicite", question: "Que font les élèves en cours de français ?", choix: ["Ils apprennent à compter", "Ils apprennent à lire et à écrire", "Ils font du sport", "Ils dessinent"], reponse: 1 },
+        { type: "explicite", question: "Que se passe-t-il à la fin de l'année scolaire ?", choix: ["Les élèves changent d'école", "Il y a les vacances d'été", "Il y a un grand spectacle", "Les élèves passent des examens"], reponse: 1 },
+        { type: "opinion", question: "Quelle activité préfères-tu à l'école parmi celles citées dans le texte ? Explique pourquoi.", exemple: "Je préfère la récréation car c'est le moment où je peux jouer avec mes amis et me dépenser après avoir été assis longtemps." }
+      ]
+    },
+    {
+      id: "m10t5",
+      titre: "Au théâtre",
+      texte: `Dans un théâtre, on va voir des spectacles. Les personnes qui jouent sur scène sont des acteurs, ils jouent des rôles pour raconter une histoire. Ils ont souvent des costumes. Quand ça commence, c'est le silence. L'histoire est souvent racontée en différents actes. À la fin, le public remercie et félicite en applaudissant.`,
+      questions: [
+        { type: "explicite", question: "Comment s'appellent les personnes qui jouent sur scène ?", choix: ["Des danseurs", "Des acteurs", "Des musiciens", "Des chanteurs"], reponse: 1 },
+        { type: "explicite", question: "Comment le public remercie-t-il les acteurs à la fin ?", choix: ["En criant leur nom", "En leur offrant des fleurs", "En applaudissant", "En sifflant"], reponse: 2 },
+        { type: "implicite", question: "Pourquoi fait-il silence quand le spectacle commence ?", choix: ["Parce que c'est obligatoire", "Pour ne pas déranger les acteurs et bien suivre l'histoire", "Parce que les acteurs demandent le silence", "Parce que la salle est grande"], reponse: 1 }
+      ]
+    },
+    {
+      id: "m10t6",
+      titre: "Les chameaux",
+      texte: `Les chameaux sont des animaux qui vivent en Asie et en Afrique. Ils ont 2 bosses sur le dos. Ils ont un long cou en forme de U, ce qui fait qu'ils ont la tête au niveau des épaules. Ils vivent au chaud comme au froid. Les chameaux boivent de l'eau mais pas souvent. Ils vivent en troupeaux. Ils sont élevés pour être montés et aussi pour leur peau, leur lait, et leur viande.`,
+      questions: [
+        { type: "explicite", question: "Combien de bosses ont les chameaux ?", choix: ["Une", "Deux", "Trois", "Aucune"], reponse: 1 },
+        { type: "explicite", question: "Pour quelles raisons élève-t-on des chameaux ?", choix: ["Pour leur laine et leur fourrure", "Uniquement pour les transports", "Pour les monter, leur peau, leur lait et leur viande", "Pour leur beauté"], reponse: 2 },
+        { type: "implicite", question: "Que nous apprend la forme en U du cou du chameau ?", choix: ["Que le chameau a du mal à lever la tête", "Que sa tête se trouve au même niveau que ses épaules", "Que le chameau est très grand", "Que le chameau peut tourner la tête dans tous les sens"], reponse: 1 }
+      ]
+    },
+    {
+      id: "m10t7",
+      titre: "Le chant du crapaud",
+      texte: `C'est l'histoire d'un crapaud. Il est triste et fâché car les autres animaux ne l'écoutent pas chanter. Le pauvre crapaud décide de boire toute l'eau de sa mare. Il saute ensuite vers un ruisseau et boit aussi toute son eau. Il continue de boire, boire, boire. Au bout d'un moment, il n'y a plus d'eau sur la terre. Le crapaud est devenu énorme et les autres animaux ont très soif. Ils décident de le faire rire, pour qu'il ouvre sa bouche et que l'eau sorte. Mais le crapaud refuse de rire. Alors, un corbeau s'approche de lui. Il commence à danser, sauter et loucher. Au début, le crapaud hausse les épaules. Mais au bout d'un moment, il commence à sourire. Et tout à coup, il éclate de rire. Aussitôt, toute l'eau ressort. Voici comment un corbeau a sauvé toute la terre et rendu son beau sourire au crapaud.`,
+      questions: [
+        { type: "explicite", question: "Pourquoi le crapaud était-il triste au début ?", choix: ["Il n'avait plus d'eau à boire", "Les autres animaux ne l'écoutaient pas chanter", "Il était seul dans sa mare", "Il avait perdu sa voix"], reponse: 1 },
+        { type: "explicite", question: "Que fait le corbeau pour faire rire le crapaud ?", choix: ["Il lui raconte une blague", "Il chante une chanson drôle", "Il danse, saute et louche", "Il imite d'autres animaux"], reponse: 2 },
+        { type: "implicite", question: "Pourquoi les animaux voulaient-ils faire rire le crapaud ?", choix: ["Pour lui redonner le moral", "Pour qu'il ouvre la bouche et libère l'eau", "Pour qu'il arrête de boire", "Pour qu'il devienne leur ami"], reponse: 1 },
+        { type: "opinion", question: "Penses-tu que le crapaud avait raison de se venger ainsi ? Explique.", exemple: "Non, je pense que le crapaud a exagéré car même si les animaux n'écoutaient pas sa chanson, boire toute l'eau de la terre a mis tout le monde en danger." }
+      ]
+    }
+  ],
+  "Module 11": [
+    {
+      id: "m11t1",
+      titre: "Magellan",
+      texte: `Magellan est un homme célèbre. C'est grâce à lui que le premier tour du monde en bateau a été fait. Il était portugais et aimait naviguer. En 1519, il est parti avec tout un équipage sur des bateaux. Ils cherchaient un nouveau passage vers l'Asie. Magellan guidait le groupe. La traversée a été très longue et fatigante. Les marins étaient souvent en danger. Magellan lui-même s'est fait tuer par une flèche pendant une guerre. Quelques hommes ont fini le tour du monde en 1522. Malgré sa mort tragique, c'est grâce à Magellan que cela a pu être accompli !`,
+      questions: [
+        { type: "explicite", question: "Quelle était la nationalité de Magellan ?", choix: ["Espagnole", "Française", "Portugaise", "Italienne"], reponse: 2 },
+        { type: "explicite", question: "Comment Magellan est-il mort ?", choix: ["Il s'est noyé en mer", "Il a été tué par une flèche", "Il est mort de maladie", "Il est tombé de son bateau"], reponse: 1 },
+        { type: "implicite", question: "Pourquoi dit-on que l'exploit est « grâce à Magellan » même s'il n'a pas terminé le voyage ?", choix: ["Parce qu'il a financé l'expédition", "Parce que c'est lui qui a eu l'idée et guidé le groupe au départ", "Parce qu'il est revenu après", "Parce qu'il a dessiné la route"], reponse: 1 },
+        { type: "opinion", question: "Que penses-tu du courage de Magellan et de son équipage ? Explique.", exemple: "Je pense qu'ils étaient très courageux car ils sont partis dans l'inconnu, sans savoir ce qu'ils allaient trouver, et beaucoup ont risqué leur vie." }
+      ]
+    },
+    {
+      id: "m11t2",
+      titre: "Recette du gâteau au fromage",
+      texte: `Ingrédients : pâte, 300 grammes de fromage, 2 décilitres de lait, 2 décilitres de crème, 3 œufs, sel, poivre.\nÉtaler la pâte, la glisser sur un moule à tarte et la garder au frigo.\nDans un bol, mélanger le fromage, le lait, la crème, les œufs, du sel et du poivre et verser le tout sur la pâte.\nMettre le gâteau au four à 200 degrés pendant 30 minutes.`,
+      questions: [
+        { type: "explicite", question: "Combien de grammes de fromage faut-il ?", choix: ["200 grammes", "250 grammes", "300 grammes", "350 grammes"], reponse: 2 },
+        { type: "explicite", question: "Où garde-t-on la pâte avant de la garnir ?", choix: ["Sur le plan de travail", "Au frigo", "Au four", "Dans un bol"], reponse: 1 },
+        { type: "implicite", question: "Pourquoi faut-il garder la pâte au frigo ?", choix: ["Pour qu'elle durcisse et soit plus facile à couper", "Pour qu'elle reste froide et ne ramollisse pas avant d'être garnie", "Pour que les ingrédients collent mieux", "Parce que c'est une règle d'hygiène obligatoire"], reponse: 1 }
+      ]
+    },
+    {
+      id: "m11t3",
+      titre: "Le joueur de flûte",
+      texte: `Il était une fois une ville qui était envahie par des rats. Ils faisaient peur, ils étaient très nombreux et ils mangeaient tout. Un jour, les malheureux habitants virent arriver un jeune homme. Il leur proposa de chasser les rongeurs contre de l'argent. Le peuple accepta. Alors, une nuit, le mystérieux visiteur joua de la flûte et sortit de la ville. Tous les rats le suivirent et tombèrent dans un grand fleuve. Les habitants étaient heureux mais refusèrent de donner de l'argent à leur sauveur. Le joueur était furieux. Plusieurs nuits plus tard il rejoua de la flûte. Cette fois, tous les jeunes enfants de la ville le suivirent. On ne sut pas où ils allèrent, mais on ne les revit plus.`,
+      questions: [
+        { type: "explicite", question: "Que proposa le jeune homme aux habitants ?", choix: ["De construire des pièges à rats", "De chasser les rats contre de l'argent", "De garder les rats en cage", "De quitter la ville"], reponse: 1 },
+        { type: "explicite", question: "Pourquoi le joueur de flûte était-il furieux ?", choix: ["Parce que les rats étaient revenus", "Parce que les habitants refusaient de le payer", "Parce qu'il avait perdu sa flûte", "Parce que les enfants avaient peur de lui"], reponse: 1 },
+        { type: "implicite", question: "Que veut-on dire en écrivant qu'on « ne les revit plus » en parlant des enfants ?", choix: ["Que les enfants s'étaient cachés", "Que les enfants avaient disparu pour toujours, emmenés par le joueur", "Que les enfants étaient partis en voyage", "Que les enfants avaient suivi les rats"], reponse: 1 },
+        { type: "opinion", question: "Penses-tu que les habitants ont eu tort de ne pas payer le joueur de flûte ? Explique.", exemple: "Oui, ils ont eu tort car ils avaient fait une promesse et ne pas tenir sa parole est injuste, même si le joueur s'est vengé de façon cruelle." }
+      ]
+    },
+    {
+      id: "m11t4",
+      titre: "Le Danube",
+      texte: `Le Danube est le 2ème plus long fleuve d'Europe. Il va de l'Allemagne jusqu'à la Roumanie. Sa longueur est de 3020 km et sa profondeur va parfois jusqu'à 30 m ! Suivant les endroits, il a une jolie couleur bleue. Plusieurs peuples se sont installés à ses bords. Grâce à son eau, le Danube permet à beaucoup de pêcheurs et d'agriculteurs de vivre.`,
+      questions: [
+        { type: "explicite", question: "Quelle est la longueur du Danube ?", choix: ["2020 km", "3020 km", "4020 km", "1020 km"], reponse: 1 },
+        { type: "explicite", question: "De quel pays à quel pays va le Danube ?", choix: ["De la France à la Pologne", "De l'Allemagne à la Roumanie", "De la Suisse à la Hongrie", "De l'Autriche à la Mer Noire"], reponse: 1 },
+        { type: "implicite", question: "Pourquoi dit-on que le Danube « permet à beaucoup de pêcheurs et d'agriculteurs de vivre » ?", choix: ["Parce qu'ils habitent sur ses rives", "Parce qu'ils tirent leur nourriture et leurs ressources de son eau", "Parce qu'il leur fournit de l'électricité", "Parce qu'il transporte leurs marchandises"], reponse: 1 }
+      ]
+    },
+    {
+      id: "m11t5",
+      titre: "Le zèbre, la gazelle et le chimpanzé",
+      texte: `Le zèbre, la gazelle et le chimpanzé sont des animaux qui vivent en Afrique. Parfois on peut aussi en voir dans des zoos. Le zèbre a des zébrures noires et blanches sur la peau. La gazelle a une peau de la couleur du bronze. Ces deux espèces courent vite. Le chimpanzé a un pelage foncé. C'est un vrai trapéziste : il se balance d'une branche à l'autre.`,
+      questions: [
+        { type: "explicite", question: "De quelle couleur sont les zébrures du zèbre ?", choix: ["Brunes et blanches", "Noires et blanches", "Grises et noires", "Dorées et noires"], reponse: 1 },
+        { type: "explicite", question: "Que fait le chimpanzé pour se déplacer ?", choix: ["Il court très vite", "Il nage dans les rivières", "Il se balance de branche en branche", "Il marche sur deux pattes"], reponse: 2 },
+        { type: "implicite", question: "Pourquoi compare-t-on le chimpanzé à un trapéziste ?", choix: ["Parce qu'il fait des acrobaties comme un artiste de cirque", "Parce qu'il aime les spectacles", "Parce qu'il vit dans des tentes", "Parce qu'il est très fort"], reponse: 0 }
+      ]
+    },
+    {
+      id: "m11t6",
+      titre: "Les habits du roi",
+      texte: `Il était une fois un roi qui aimait beaucoup les beaux habits. Il en possédait des dizaines et des dizaines. Un jour un couturier lui proposa de lui coudre un habit très beau, mais que seules les personnes intelligentes pourraient voir. Le roi le commanda. Quand on lui apporta l'habit, bizarrement, le roi ne put le voir. « Zut » se dit-il, mais il n'osa pas le dire. Il demanda qu'on lui mette l'habit et partit se promener dans sa ville. Personne ne pouvait voir l'habit, mais personne n'osait le dire. Tout à coup, un enfant dit : « Regardez, le roi est tout nu ! » Et tout le monde comprit qu'il était réellement tout nu. Quel bazar !`,
+      questions: [
+        { type: "explicite", question: "Que proposa le couturier au roi ?", choix: ["De lui vendre ses plus beaux habits", "De lui coudre un habit visible uniquement par les personnes intelligentes", "De lui faire un défilé de mode", "De réparer ses vieux habits"], reponse: 1 },
+        { type: "explicite", question: "Qui révéla que le roi était nu ?", choix: ["Un serviteur", "La reine", "Un enfant", "Un autre couturier"], reponse: 2 },
+        { type: "implicite", question: "Pourquoi personne n'osait dire que l'habit était invisible ?", choix: ["Parce que tout le monde le voyait vraiment", "Parce que chacun avait peur de passer pour stupide", "Parce que le roi était en colère", "Parce que l'habit était très petit"], reponse: 1 },
+        { type: "opinion", question: "Que penses-tu du comportement du couturier dans cette histoire ? Explique.", exemple: "Je pense que le couturier était malhonnête car il a trompé le roi en lui faisant croire qu'il avait cousu un habit extraordinaire alors qu'il n'y avait rien." }
+      ]
+    }
+  ],
+  "Module 12": [
+    {
+      id: "m12t1",
+      titre: "Les matins d'Agnès",
+      texte: `Chaque matin, Agnès prend une douche et enfile son peignoir. Ensuite, elle peigne ses cheveux et les coiffe en chignon. Après, elle grignote un beignet et boit un jus d'orange. Elle nourrit aussi son mignon petit compagnon, son chat. Enfin, elle met ses habits.`,
+      questions: [
+        { type: "explicite", question: "Que mange Agnès le matin ?", choix: ["Des céréales et du lait", "Un beignet et un jus d'orange", "Une tartine et du café", "Un yaourt et des fruits"], reponse: 1 },
+        { type: "explicite", question: "Quel animal Agnès nourrit-elle le matin ?", choix: ["Son chien", "Son lapin", "Son chat", "Ses poissons"], reponse: 2 },
+        { type: "implicite", question: "Dans quel ordre Agnès fait-elle ses activités du matin ?", choix: ["Douche, habits, beignet, chignon, nourrir le chat", "Douche, chignon, beignet, nourrir le chat, habits", "Beignet, douche, chignon, habits, nourrir le chat", "Chignon, douche, beignet, habits, nourrir le chat"], reponse: 1 }
+      ]
+    },
+    {
+      id: "m12t2",
+      titre: "Un beau pays",
+      texte: `En France, il y a des régions magnifiques et variées. Il y a la campagne et la montagne qui font le bonheur des marcheurs. Il y a des forêts, où l'on peut trouver des champignons ou des châtaignes. Il y a aussi beaucoup de vignes pour faire du bon vin. On peut aussi voir de beaux oiseaux, comme la cigogne, le cygne ou le rossignol. Il y a encore des lacs, la mer et l'océan, dans lesquels on peut se baigner.`,
+      questions: [
+        { type: "explicite", question: "Quels oiseaux peut-on voir en France d'après le texte ?", choix: ["Le perroquet, le hibou et le canari", "La cigogne, le cygne et le rossignol", "L'aigle, la cigogne et le martin-pêcheur", "Le pingouin, le cygne et la mouette"], reponse: 1 },
+        { type: "explicite", question: "Que peut-on trouver dans les forêts françaises ?", choix: ["Des truffes et des baies", "Des champignons et des châtaignes", "Des fraises et des framboises", "Des noix et des noisettes"], reponse: 1 },
+        { type: "opinion", question: "Quelle région de France décrite dans le texte aimerais-tu visiter ? Explique pourquoi.", exemple: "J'aimerais visiter la montagne car j'adore marcher et j'aimerais voir de beaux paysages depuis les sommets." }
+      ]
+    },
+    {
+      id: "m12t3",
+      titre: "L'Égypte",
+      texte: `L'Égypte est un pays plein de mystère. C'est là qu'a été inventé le papyrus, une des premières formes de papier. On y trouve aussi les pyramides, qui sont des tombeaux géants pour les rois. À l'intérieur, c'est un vrai labyrinthe pour trouver le tombeau. Il est souvent entouré d'incroyables joyaux. De nos jours, les pyramides attirent beaucoup de voyageurs.`,
+      questions: [
+        { type: "explicite", question: "Qu'est-ce que le papyrus ?", choix: ["Un monument ancien", "Une des premières formes de papier", "Un type de pyramide", "Un joyau précieux"], reponse: 1 },
+        { type: "explicite", question: "À quoi servaient les pyramides ?", choix: ["À observer les étoiles", "À stocker des richesses", "À servir de tombeaux pour les rois", "À protéger les habitants"], reponse: 2 },
+        { type: "implicite", question: "Pourquoi compare-t-on l'intérieur des pyramides à un labyrinthe ?", choix: ["Parce qu'elles sont très hautes", "Parce que les couloirs sont nombreux et compliqués, difficiles à parcourir", "Parce qu'elles sont sombres", "Parce qu'elles sont remplies de pièges"], reponse: 1 }
+      ]
+    },
+    {
+      id: "m12t4",
+      titre: "Ulysse et le cyclope",
+      texte: `C'est l'histoire d'un roi qui s'appelle Ulysse. Il quitte souvent son foyer pour partir à la guerre ou en voyage avec ses compagnons. Un jour, ils arrivent sur une île. Le paysage est magnifique mais l'île est habitée par un cyclope. Les voyageurs sont très effrayés car le cyclope veut les manger. Ulysse et ses amis décident de lui crever l'œil puis se cachent au fond d'une grotte. Le lendemain ils s'échappent en se cachant sous des moutons. Le cyclope, ne voyant plus rien, les cherche avec ses mains mais il ne sent que les moutons. C'est comme ça qu'Ulysse et ses amis arrivent à s'enfuir et à retrouver leur royaume.`,
+      questions: [
+        { type: "explicite", question: "Pourquoi les voyageurs sont-ils effrayés sur l'île ?", choix: ["Parce qu'il y a une tempête", "Parce que le cyclope veut les manger", "Parce qu'ils sont perdus", "Parce que l'île est déserte"], reponse: 1 },
+        { type: "explicite", question: "Comment Ulysse et ses amis s'échappent-ils ?", choix: ["Ils nagent jusqu'à leur bateau", "Ils attendent que le cyclope s'endorme", "Ils se cachent sous des moutons", "Ils creusent un tunnel"], reponse: 2 },
+        { type: "implicite", question: "Pourquoi le cyclope ne les trouve-t-il pas en les cherchant avec ses mains ?", choix: ["Parce qu'il a les mains trop grandes", "Parce qu'il ne peut plus voir et confond les hommes avec les moutons", "Parce qu'il cherche au mauvais endroit", "Parce qu'Ulysse a jeté un sort"], reponse: 1 },
+        { type: "opinion", question: "Penses-tu qu'Ulysse a trouvé une bonne solution pour s'échapper ? Explique.", exemple: "Oui, c'était très ingénieux car sans armes, il a utilisé ce qui était disponible, les moutons, pour tromper le cyclope aveuglé." }
+      ]
+    },
+    {
+      id: "m12t5",
+      titre: "Le kiosque",
+      texte: `Kevin a un kiosque. Dans son kiosque il vend des snacks, comme des cookies, des chips au paprika, des bonbons ou encore des boissons. Il vend aussi des tickets de loto et des journaux.`,
+      questions: [
+        { type: "explicite", question: "Que vend Kevin dans son kiosque ?", choix: ["Des fruits et des légumes", "Des snacks, des tickets de loto et des journaux", "Des livres et des magazines uniquement", "Des jouets et des bonbons"], reponse: 1 },
+        { type: "implicite", question: "Quel type de commerce est un kiosque ?", choix: ["Un grand magasin", "Un petit stand ou boutique de rue vendant divers articles", "Un supermarché", "Un restaurant"], reponse: 1 }
+      ]
+    },
+    {
+      id: "m12t6",
+      titre: "Les Vikings",
+      texte: `Les Vikings sont un peuple qui a vécu il y a très longtemps au Danemark, en Suède et en Norvège. Les Vikings étaient de grands voyageurs : ils ont parcouru des kilomètres dans le monde. La plupart était des guerriers et ils étaient connus pour leur brutalité. Ils volaient pour faire des réserves de nourriture. Parfois ils kidnappaient des hommes et les libéraient contre de l'argent.`,
+      questions: [
+        { type: "explicite", question: "Dans quels pays vivaient les Vikings ?", choix: ["En France, en Espagne et en Italie", "Au Danemark, en Suède et en Norvège", "En Allemagne, en Autriche et en Suisse", "En Angleterre, en Écosse et en Irlande"], reponse: 1 },
+        { type: "explicite", question: "Pourquoi les Vikings kidnappaient-ils des hommes ?", choix: ["Pour les réduire en esclavage", "Pour les former comme guerriers", "Pour les libérer contre de l'argent", "Pour les emmener dans leurs voyages"], reponse: 2 },
+        { type: "implicite", question: "Pourquoi dit-on que les Vikings étaient de « grands voyageurs » ?", choix: ["Parce qu'ils étaient très grands physiquement", "Parce qu'ils ont parcouru de très grandes distances à travers le monde", "Parce qu'ils aimaient explorer les mers chaudes", "Parce qu'ils avaient de grands bateaux"], reponse: 1 }
+      ]
+    },
+    {
+      id: "m12t7",
+      titre: "Des photos d'animaux",
+      texte: `Joseph est photographe : il gagne sa vie en vendant ses photos. Il aime les animaux sauvages. Il a déjà photographié des éléphants, des dauphins et même des phoques !`,
+      questions: [
+        { type: "explicite", question: "Quels animaux Joseph a-t-il photographiés ?", choix: ["Des lions, des tigres et des ours", "Des éléphants, des dauphins et des phoques", "Des girafes, des zèbres et des dauphins", "Des baleines, des phoques et des requins"], reponse: 1 },
+        { type: "implicite", question: "Comment Joseph gagne-t-il sa vie ?", choix: ["Il travaille dans un zoo", "Il enseigne la photographie", "Il vend ses photos d'animaux", "Il guide des touristes en safari"], reponse: 2 }
+      ]
+    },
+    {
+      id: "m12t8",
+      titre: "Toutankhamon",
+      texte: `Les pharaons étaient les rois d'Égypte. Toutankhamon était l'un de ces pharaons. On ne connaît pas trop sa vie. On sait qu'il est devenu orphelin à 9 ans. Une catastrophe l'a fait mourir vers 20 ans. Malgré son règne très court, il est devenu célèbre car son sarcophage a été découvert il y a seulement 100 ans ! Il contenait de grandes richesses. Quelques aventuriers qui avaient participé à cette découverte sont morts un peu plus tard. Des personnes pensent qu'ils étaient maudits et d'autres que c'était un hasard.`,
+      questions: [
+        { type: "explicite", question: "À quel âge Toutankhamon est-il devenu orphelin ?", choix: ["À 5 ans", "À 7 ans", "À 9 ans", "À 12 ans"], reponse: 2 },
+        { type: "explicite", question: "Pourquoi Toutankhamon est-il célèbre malgré son court règne ?", choix: ["Parce qu'il a fait de grandes conquêtes", "Parce que son sarcophage rempli de richesses a été découvert", "Parce qu'il était très jeune roi", "Parce qu'il a construit une grande pyramide"], reponse: 1 },
+        { type: "implicite", question: "Que veut dire « maudits » dans le contexte de la mort des aventuriers ?", choix: ["Qu'ils ont été punis par les autorités", "Qu'une force surnaturelle les aurait frappés pour avoir touché au tombeau", "Qu'ils étaient malades avant la découverte", "Qu'ils avaient volé les richesses"], reponse: 1 }
+      ]
+    },
+    {
+      id: "m12t9",
+      titre: "Le premier voyage sur la Lune",
+      texte: `En 1969, trois astronautes ont fait le premier voyage sur la Lune. C'était risqué, car la fusée pouvait exploser. Ils ont atterri sur la Lune après trois jours de voyage. Quel exploit ! Deux astronautes sont sortis explorer les lieux. Ils volaient presque quand ils sautaient car sur la Lune, on est beaucoup plus légers. Ça a été une extraordinaire expérience dans la galaxie !`,
+      questions: [
+        { type: "explicite", question: "En quelle année a eu lieu le premier voyage sur la Lune ?", choix: ["1959", "1969", "1979", "1989"], reponse: 1 },
+        { type: "explicite", question: "Combien de temps a duré le voyage pour atteindre la Lune ?", choix: ["Un jour", "Deux jours", "Trois jours", "Une semaine"], reponse: 2 },
+        { type: "implicite", question: "Pourquoi les astronautes « volaient presque » quand ils sautaient sur la Lune ?", choix: ["Parce qu'ils portaient des combinaisons spéciales", "Parce que la gravité sur la Lune est beaucoup plus faible que sur Terre", "Parce qu'ils avaient des propulseurs dans leurs bottes", "Parce que la Lune est très lisse"], reponse: 1 }
+      ]
+    }
+  ],
+  "Module 13": [
+    {
+      id: "m13t1",
+      titre: "Léonard de Vinci",
+      texte: `Léonard de Vinci était un peintre italien très connu. Il était aussi inventeur, musicien et écrivain. À son époque, les enfants n'allaient pas à l'école. Il a appris plusieurs choses avec son grand-père et son oncle. On sait par exemple qu'il écrivait de la main gauche. Il a toujours aimé peindre et le faisait très bien, avec beaucoup de talent et de soin. C'est ainsi qu'une fois adulte, il put apprendre la peinture dans l'atelier d'un grand peintre. Il y peignait beaucoup de corps humains. Au bout de quelques années, Léonard devint plus habile que son maître. On sait aussi que Léonard aimait beaucoup les animaux et qu'il était végétarien. Il a passé la fin de sa vie loin de chez lui, en France. Le roi de l'époque, François 1er, lui a proposé de le loger. Pour y aller, Léonard a traversé les montagnes à dos de mulet avec quelques-uns de ses tableaux. Il est mort là-bas quatre ans plus tard. Maintenant, ses peintures valent des millions. La plus connue s'appelle La Joconde. Elle se trouve au musée du Louvre à Paris, et des gens viennent du monde entier pour l'admirer.`,
+      questions: [
+        { type: "explicite", question: "Quel est le tableau le plus connu de Léonard de Vinci ?", choix: ["La Cène", "La Joconde", "La Création d'Adam", "Le Printemps"], reponse: 1 },
+        { type: "explicite", question: "Comment Léonard de Vinci a-t-il voyagé en France ?", choix: ["En bateau", "À cheval", "À dos de mulet", "À pied"], reponse: 2 },
+        { type: "implicite", question: "Que veut dire « Léonard devint plus habile que son maître » ?", choix: ["Que Léonard est devenu professeur à son tour", "Que Léonard a dépassé en talent celui qui lui enseignait", "Que Léonard n'avait plus besoin d'apprendre", "Que le maître est parti à la retraite"], reponse: 1 },
+        { type: "opinion", question: "Qu'est-ce qui t'impressionne le plus chez Léonard de Vinci ? Explique.", exemple: "Ce qui m'impressionne le plus, c'est qu'il était à la fois peintre, inventeur, musicien et écrivain. C'est rare d'être aussi doué dans autant de domaines différents." }
+      ]
+    }
+  ],
+  "Module 14": [
+    {
+      id: "m14t1",
+      titre: "Les abeilles",
+      texte: `Les abeilles sont des insectes incroyables. Elles ont quatre ailes et une aiguille qui s'appelle le dard. Quand elles piquent quelqu'un, elles perdent leur dard et elles meurent un peu plus tard. Elles vivent en groupes pouvant aller jusqu'à plusieurs milliers d'abeilles. Elles travaillent beaucoup et sont très organisées. Dans chaque groupe il y a une reine, qui pond environ 2000 œufs par jour ! Beaucoup d'autres abeilles s'occupent de fabriquer du miel. Pour en faire, elles vont récolter le nectar dans les fleurs. Elles vont en chercher jusqu'à trois kilomètres autour de chez elles. Quand une abeille a trouvé des fleurs, elle informe ses collègues en faisant une danse en forme de huit. Elle leur explique où aller par rapport au soleil. Une fois sur une fleur, les abeilles lèchent le nectar avec leur langue ! Certaines abeilles vont même butiner quand il y a du brouillard. Pendant ce temps, d'autres abeilles surveillent et nettoient l'habitat. D'autres encore veillent sur les bébés, les larves sorties des œufs. Les abeilles meurent de vieillesse à environ sept semaines, sauf la reine qui peut vivre jusqu'à 5 ans. En hiver, quand il n'y a pas de fleurs à butiner, toute la famille hiberne. Comme ennemis, elles ont les ours, les oiseaux, les grenouilles et aussi la pollution. Actuellement, il faut préserver les abeilles, car elles ont tendance à disparaître.`,
+      questions: [
+        { type: "explicite", question: "Comment une abeille indique-t-elle à ses collègues où se trouvent les fleurs ?", choix: ["Elle les guide directement", "Elle fait une danse en forme de huit", "Elle produit un son particulier", "Elle dépose du nectar sur le chemin"], reponse: 1 },
+        { type: "explicite", question: "Combien de temps vit une abeille ordinaire ?", choix: ["Environ 3 semaines", "Environ 7 semaines", "Environ 6 mois", "Environ 1 an"], reponse: 1 },
+        { type: "implicite", question: "Pourquoi est-il important de préserver les abeilles ?", choix: ["Parce qu'elles produisent du miel que les humains aiment", "Parce qu'elles jouent un rôle essentiel dans la nature et leur disparition aurait de graves conséquences", "Parce qu'elles sont en voie d'extinction depuis longtemps", "Parce qu'elles sont les seuls insectes utiles"], reponse: 1 },
+        { type: "opinion", question: "Que pourrais-tu faire personnellement pour aider à préserver les abeilles ? Explique.", exemple: "Je pourrais planter des fleurs dans mon jardin ou sur mon balcon pour que les abeilles aient du nectar à récolter, et éviter d'utiliser des produits qui les empoisonnent." }
+      ]
+    }
+  ],
+  "Module 15": [
+    {
+      id: "m15t1",
+      titre: "Les inventions des humains",
+      texte: `Ces dernières centaines d'années, l'être humain a réalisé beaucoup de magnifiques inventions. Il lui a fallu de l'imagination et de la concentration ! Il y a plus de 200 ans (en 1796), un médecin anglais (Edward Jenner) a inventé le premier vaccin. C'était contre la maladie de la variole. La variole était une maladie contagieuse et mortelle. Ainsi, le vaccin a attiré beaucoup d'attention et a été une très bonne solution. Plusieurs dizaines d'années plus tard, en 1876, un ingénieur écossais (Alexander Graham Bell) a inventé le téléphone, cet incroyable moyen de communication. C'était la première fois que des gens pouvaient avoir des conversations à distance, quelle émotion ! Le téléphone a connu de nombreuses modifications jusqu'à celui que nous connaissons aujourd'hui. Encore un peu plus tard, vers 1900, un Français (Clément Ader) et deux Américains (les frères Wright) sont les premiers à avoir fait voler un avion ! Ces premiers vols étaient difficiles : les engins volaient à 20 cm du sol sur une distance d'environ 30 mètres. Ces premiers vols étaient aussi très risqués ! L'avion a connu depuis de grandes améliorations. Encore un peu après, en 1926, un autre ingénieur écossais (John Baird) a inventé la télévision. C'était un excellent moyen d'information et d'occupation. Les premières images étaient en noir et blanc mais faisaient déjà sensation. La télévision en couleur est arrivée 12 ans plus tard.`,
+      questions: [
+        { type: "explicite", question: "Qui a inventé le premier vaccin et contre quelle maladie ?", choix: ["Alexander Graham Bell, contre la grippe", "Edward Jenner, contre la variole", "John Baird, contre la variole", "Clément Ader, contre la peste"], reponse: 1 },
+        { type: "explicite", question: "En quelle année le téléphone a-t-il été inventé ?", choix: ["1796", "1856", "1876", "1926"], reponse: 2 },
+        { type: "implicite", question: "Pourquoi les premiers vols en avion étaient-ils impressionnants malgré leur courte distance ?", choix: ["Parce que personne n'avait jamais essayé avant et que c'était très dangereux", "Parce que les avions volaient très haut", "Parce que les pilotes étaient très jeunes", "Parce que les avions allaient très vite"], reponse: 0 },
+        { type: "opinion", question: "Quelle invention citée dans le texte te semble la plus importante pour l'humanité ? Explique pourquoi.", exemple: "Je pense que le vaccin est l'invention la plus importante car il a permis de sauver des millions de vies en protégeant les gens contre des maladies mortelles." }
+      ]
+    }
+  ]
+};
+
+// ── État ─────────────────────────────────────────────────────────────────────
+let currentModule = null;
+let currentText   = null;
+let currentQIdx   = 0;
+let score         = 0;
+let qcmTotal      = 0;
+
+// ── Références DOM ────────────────────────────────────────────────────────────
+const vueModules  = document.getElementById('vue-modules');
+const vueTextes   = document.getElementById('vue-textes');
+const vueLecture  = document.getElementById('vue-lecture');
+const phaseRead   = document.getElementById('phase-read');
+const phaseQuest  = document.getElementById('phase-questions');
+const phaseResult = document.getElementById('phase-result');
+
+// ── Navigation entre vues ─────────────────────────────────────────────────────
+function showVue(id) {
+  [vueModules, vueTextes, vueLecture].forEach(v => v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function showPhase(id) {
+  [phaseRead, phaseQuest, phaseResult].forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ── Vue 1 : sélection du module ───────────────────────────────────────────────
+document.querySelectorAll('.module-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentModule = btn.dataset.module;
+    loadModuleTextes(currentModule);
+  });
+});
+
+// ── Vue 2 : sélection du texte ────────────────────────────────────────────────
+function loadModuleTextes(moduleKey) {
+  document.getElementById('textes-titre').textContent = moduleKey;
+  const list = document.getElementById('textes-list');
+  list.innerHTML = '';
+  DECODI_TEXTS[moduleKey].forEach(texte => {
+    const btn = document.createElement('button');
+    btn.className = 'texte-btn';
+    btn.textContent = texte.titre;
+    btn.addEventListener('click', () => startText(texte));
+    list.appendChild(btn);
+  });
+  showVue('vue-textes');
+}
+
+document.getElementById('back-to-modules').addEventListener('click', () => showVue('vue-modules'));
+
+// ── Vue 3, Phase 1 : lecture ──────────────────────────────────────────────────
+function startText(texte) {
+  currentText = texte;
+  currentQIdx = 0;
+  score       = 0;
+  qcmTotal    = texte.questions.filter(q => q.type !== 'opinion').length;
+
+  document.getElementById('read-titre').textContent = texte.titre;
+  document.getElementById('read-body').textContent  = texte.texte;
+  document.getElementById('accordion-text').textContent = texte.texte;
+
+  showVue('vue-lecture');
+  showPhase('phase-read');
+}
+
+document.getElementById('start-questions-btn').addEventListener('click', () => {
+  showPhase('phase-questions');
+  renderQuestion();
+});
+
+// ── Vue 3, Phase 2 : questions ────────────────────────────────────────────────
+document.getElementById('back-to-textes').addEventListener('click', () => {
+  loadModuleTextes(currentModule);
+});
+
+// Accordéon
+document.getElementById('accordion-btn').addEventListener('click', function () {
+  const body   = document.getElementById('accordion-body');
+  const isOpen = body.classList.toggle('open');
+  this.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+});
+
+function renderQuestion() {
+  const q     = currentText.questions[currentQIdx];
+  const total = currentText.questions.length;
+
+  // Compteur
+  document.getElementById('q-counter').textContent = `Question ${currentQIdx + 1} / ${total}`;
+
+  // Fermer l'accordéon
+  document.getElementById('accordion-body').classList.remove('open');
+  document.getElementById('accordion-btn').setAttribute('aria-expanded', 'false');
+
+  // Badge type
+  const badge = document.getElementById('q-type-badge');
+  const labels = { explicite: 'Explicite', implicite: 'Implicite', opinion: 'Mon avis' };
+  badge.textContent = labels[q.type] || q.type;
+  badge.className   = 'q-type-badge ' + q.type;
+
+  // Texte de la question
+  document.getElementById('q-text').textContent = q.question;
+
+  // Réinitialiser feedback et bouton suivant
+  const feedbackEl = document.getElementById('q-feedback');
+  feedbackEl.className = 'q-feedback';
+  feedbackEl.textContent = '';
+
+  const nextBtn = document.getElementById('next-q-btn');
+  nextBtn.classList.remove('visible');
+
+  if (q.type === 'opinion') {
+    // Afficher la zone opinion, masquer QCM
+    document.getElementById('answer-list').style.display = 'none';
+    const zone = document.getElementById('opinion-zone');
+    zone.classList.add('visible');
+
+    const ta = document.getElementById('opinion-ta');
+    ta.value = '';
+
+    const seeBtn = document.getElementById('see-ex-btn');
+    seeBtn.disabled = true;
+
+    const exDiv = document.getElementById('opinion-ex');
+    exDiv.classList.remove('visible');
+    document.getElementById('opinion-ex-text').textContent = q.exemple || '';
+
+  } else {
+    // Afficher QCM, masquer opinion
+    document.getElementById('opinion-zone').classList.remove('visible');
+    const answerList = document.getElementById('answer-list');
+    answerList.style.display = 'flex';
+    answerList.innerHTML = '';
+
+    q.choix.forEach((choix, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'answer-btn';
+      btn.textContent = choix;
+      btn.addEventListener('click', () => handleQCMAnswer(i, btn, q));
+      answerList.appendChild(btn);
+    });
+  }
+}
+
+function handleQCMAnswer(idx, btn, q) {
+  // Désactiver tous les boutons, colorier correct/wrong
+  document.querySelectorAll('.answer-btn').forEach((b, i) => {
+    b.disabled = true;
+    if (i === q.reponse) b.classList.add('correct');
+    else if (b === btn)  b.classList.add('wrong');
+  });
+
+  const correct = (idx === q.reponse);
+  if (correct) {
+    score++;
+    playCorrect();
+    launchConfetti();
+  } else {
+    playIncorrect();
+  }
+
+  const feedbackEl = document.getElementById('q-feedback');
+  if (correct) {
+    feedbackEl.className = 'q-feedback correct';
+    feedbackEl.textContent = '✓ Bonne réponse !';
+  } else {
+    feedbackEl.className = 'q-feedback wrong';
+    feedbackEl.textContent = `La bonne réponse était : « ${q.choix[q.reponse]} »`;
+  }
+
+  showNextBtn();
+}
+
+// Opinion : activer "Voir un exemple" dès que le textarea est rempli
+document.getElementById('opinion-ta').addEventListener('input', function () {
+  document.getElementById('see-ex-btn').disabled = (this.value.trim() === '');
+});
+
+document.getElementById('see-ex-btn').addEventListener('click', function () {
+  this.disabled = true;
+  document.getElementById('opinion-ex').classList.add('visible');
+  showNextBtn();
+});
+
+function showNextBtn() {
+  const nextBtn = document.getElementById('next-q-btn');
+  const isLast  = (currentQIdx >= currentText.questions.length - 1);
+  nextBtn.textContent = isLast ? 'Voir mes résultats →' : 'Question suivante →';
+  nextBtn.classList.add('visible');
+}
+
+document.getElementById('next-q-btn').addEventListener('click', () => {
+  currentQIdx++;
+  if (currentQIdx >= currentText.questions.length) {
+    showResult();
+  } else {
+    renderQuestion();
+  }
+});
+
+// ── Vue 3, Phase 3 : résultat ─────────────────────────────────────────────────
+function showResult() {
+  const msgEl = document.getElementById('result-msg');
+  const emoji = document.getElementById('result-emoji');
+
+  if (qcmTotal > 0) {
+    const noun = qcmTotal === 1 ? 'question' : 'questions';
+    msgEl.textContent = `Tu as répondu correctement à ${score} ${noun} sur ${qcmTotal}.`;
+    emoji.textContent = (score === qcmTotal) ? '🏆' : (score >= qcmTotal / 2) ? '👍' : '📖';
+  } else {
+    msgEl.textContent = 'Tu as terminé toutes les questions !';
+    emoji.textContent = '🎉';
+  }
+
+  showPhase('phase-result');
+}
+
+document.getElementById('btn-autre-texte').addEventListener('click', () => {
+  loadModuleTextes(currentModule);
+});
+
+document.getElementById('btn-autre-module').addEventListener('click', () => {
+  showVue('vue-modules');
+});
+</script>
+<script src="feedbackUtils.js"></script>
+</body>
+</html>
