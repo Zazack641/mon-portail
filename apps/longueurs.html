@@ -279,6 +279,30 @@
     return arr;
   }
 
+  function pointToSegDist(px, py, ax, ay, bx, by) {
+    const dx = bx - ax, dy = by - ay;
+    const lenSq = dx * dx + dy * dy;
+    if (lenSq === 0) return Math.hypot(px - ax, py - ay);
+    const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / lenSq));
+    return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+  }
+
+  function segToSegDist(ax, ay, bx, by, cx, cy, dx, dy) {
+    const cross = (ux, uy, vx, vy) => ux * vy - uy * vx;
+    const d1 = cross(dx - cx, dy - cy, ax - cx, ay - cy);
+    const d2 = cross(dx - cx, dy - cy, bx - cx, by - cy);
+    const d3 = cross(bx - ax, by - ay, cx - ax, cy - ay);
+    const d4 = cross(bx - ax, by - ay, dx - ax, dy - ay);
+    if (((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) &&
+        ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0))) return 0;
+    return Math.min(
+      pointToSegDist(ax, ay, cx, cy, dx, dy),
+      pointToSegDist(bx, by, cx, cy, dx, dy),
+      pointToSegDist(cx, cy, ax, ay, bx, by),
+      pointToSegDist(dx, dy, ax, ay, bx, by)
+    );
+  }
+
   // ── canvas sizing ─────────────────────────────────────────────────────────
 
   function resizeCanvas() {
@@ -343,10 +367,10 @@
 
   // ── NIVEAU 2 : 3 barres dans des directions et positions variées ──────────
 
-  function tryPlaceBar(lenFrac, W, H, pad, maxBarPx) {
+  function tryPlaceBar(lenFrac, W, H, pad, maxBarPx, placedBars = []) {
     const barPx = lenFrac * maxBarPx;
-    // Try multiple random angles until the bar fits entirely inside the safe zone
-    for (let attempt = 0; attempt < 80; attempt++) {
+    const MIN_GAP = 22; // min distance between bar centerlines (bar height = 13px → ~9px visual gap)
+    for (let attempt = 0; attempt < 300; attempt++) {
       const deg = randBetween(-65, 65);
       const angle = (deg * Math.PI) / 180;
       const ex = Math.cos(angle) * barPx;
@@ -357,14 +381,20 @@
       const minSy = pad + Math.max(0, -ey);
       const maxSy = H - pad - Math.max(0, ey);
 
-      if (maxSx - minSx > 10 && maxSy - minSy > 10) {
-        return {
-          sx: randBetween(minSx, maxSx),
-          sy: randBetween(minSy, maxSy),
-          angle,
-          barPx,
-        };
+      if (maxSx - minSx <= 10 || maxSy - minSy <= 10) continue;
+
+      const sx = randBetween(minSx, maxSx);
+      const sy = randBetween(minSy, maxSy);
+
+      let tooClose = false;
+      for (const p of placedBars) {
+        if (segToSegDist(sx, sy, sx + ex, sy + ey,
+                         p.sx, p.sy, p.sx + Math.cos(p.angle) * p.barPx, p.sy + Math.sin(p.angle) * p.barPx) < MIN_GAP) {
+          tooClose = true;
+          break;
+        }
       }
+      if (!tooClose) return { sx, sy, angle, barPx };
     }
     return null;
   }
@@ -536,7 +566,8 @@
 
     state.lines.forEach((line, i) => {
       if (!line.placement) {
-        line.placement = tryPlaceBar(line.len, W, H, pad, maxBarPx);
+        const placed = state.lines.slice(0, i).map(l => l.placement).filter(Boolean);
+        line.placement = tryPlaceBar(line.len, W, H, pad, maxBarPx, placed);
         if (!line.placement) {
           const barPx = line.len * maxBarPx;
           line.placement = { sx: pad, sy: pad + (H - pad * 2) * i / state.lines.length + 20, angle: 0, barPx };
