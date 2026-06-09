@@ -12,6 +12,22 @@ Ces règles s'appliquent à chaque tâche, sans exception.
 
 ---
 
+## Convention de nommage des apps
+
+Tout nouveau fichier app doit respecter ces règles :
+
+- Nom en français, kebab-case, sans accents : `comparaison-nombres-c1.html`
+- Suffixe de cycle obligatoire quand l'app cible un groupe d'années précis :
+  - `-c1.html` pour le Cycle 1 (1H–4H)
+  - `-c2.html` pour le Cycle 2 (5H–8H)
+- Pas de suffixe uniquement si l'app couvre les deux cycles
+- Un fichier par objectif PER par groupe d'années — jamais un seul fichier pour deux objectifs différents
+
+Exemples corrects : `comparaison-nombres-c1.html`, `decodi-dictee-c2.html`, `balance-c1.html`
+Exemples incorrects : `comparaison-nombres.html` (cycle ambigu), `mathApp.html` (anglais, camelCase)
+
+---
+
 ## Objectif du site
 
 Portail web monopage pour élèves du primaire, conçu pour **iPad tactile** (et responsive jusqu'au desktop).  

@@ -21,7 +21,9 @@
       "Bash(command -v python3)",
       "Bash(git -C /Users/isaacferretti/Documents/mon-portail add apps/surfaces.html apps/surfaces-c2.html index.html SUIVI.md)",
       "Bash(git -C /Users/isaacferretti/Documents/mon-portail commit -m ' *)",
-      "Bash(git -C /Users/isaacferretti/Documents/mon-portail push)"
+      "Bash(git -C /Users/isaacferretti/Documents/mon-portail push)",
+      "Bash(git push *)",
+      "Bash(xargs -I{} basename {})"
     ]
   }
 }
