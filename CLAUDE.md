@@ -1,5 +1,17 @@
 # CLAUDE.md — Portail pédagogique « Mes outils pour apprendre »
 
+## ⛔ Interdictions absolues
+
+Ces règles s'appliquent à chaque tâche, sans exception.
+
+1. Ne jamais copier une app existante comme base de travail — toujours partir de `apps/_template.html`.
+2. Ne jamais redéfinir inline ce qui est fourni par `app-base.css` ou `appUtils.js`.
+3. Ne jamais inventer de conventions de couleur — utiliser `var(--color-units)`, `var(--color-tens)`, `var(--color-hundreds)`.
+4. Ne jamais appliquer le title case anglais aux titres français.
+5. Ne jamais modifier les IDs JS critiques (`#search-input`, `#app-grid`, etc.) ni les attributs `data-*` des cartes.
+
+---
+
 ## Objectif du site
 
 Portail web monopage pour élèves du primaire, conçu pour **iPad tactile** (et responsive jusqu'au desktop).  
