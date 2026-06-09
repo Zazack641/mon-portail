@@ -21,7 +21,7 @@
   /* ===== HEADER ===== */
   .site-header {
     background: #1A3A5C;
-    padding: 36px 24px 30px;
+    padding: 14px 24px 12px;
     text-align: center;
     position: relative;
     overflow: hidden;
@@ -36,25 +36,17 @@
   }
   .site-header h1 {
     font-family: 'Nunito', sans-serif;
-    font-size: clamp(26px, 5.5vw, 38px);
+    font-size: clamp(20px, 4vw, 28px);
     font-weight: 900;
     color: #fff;
     letter-spacing: -0.5px;
     position: relative;
   }
-  .site-header p {
-    font-size: clamp(16px, 2.5vw, 19px);
-    color: rgba(255,255,255,0.78);
-    margin-top: 8px;
-    position: relative;
-    font-weight: 600;
-  }
-
   /* ===== CONTROLS BAR ===== */
   .controls {
     background: #fff;
     border-bottom: 1px solid #E2E8F0;
-    padding: 16px 18px 14px;
+    padding: 10px 18px 8px;
     position: sticky;
     top: 0;
     z-index: 100;
@@ -64,7 +56,7 @@
   /* Search */
   .search-wrap {
     position: relative;
-    margin-bottom: 14px;
+    margin-bottom: 8px;
   }
   .search-icon {
     position: absolute;
@@ -78,7 +70,7 @@
   }
   .search-input {
     width: 100%;
-    padding: 13px 16px 13px 46px;
+    padding: 9px 16px 9px 46px;
     border: 1.5px solid #E2E8F0;
     border-radius: 12px;
     font-size: 17px;
@@ -97,16 +89,6 @@
   .search-input::placeholder { color: #94A3B8; }
 
   /* Filter groups */
-  .filter-group { margin-bottom: 12px; }
-  .filter-group:last-child { margin-bottom: 0; }
-  .filter-group-label {
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.9px;
-    color: #94A3B8;
-    margin-bottom: 8px;
-  }
   .filter-row {
     display: flex;
     flex-wrap: wrap;
@@ -176,7 +158,7 @@
   .result-count {
     font-size: 13px;
     color: #94A3B8;
-    margin-top: 12px;
+    margin-top: 6px;
     min-height: 18px;
     font-weight: 500;
   }
@@ -383,7 +365,7 @@
   /* ===== RESPONSIVE IPAD ===== */
   @media (min-width: 768px) {
     .app-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; padding: 24px 28px 48px; }
-    .controls { padding: 18px 28px 16px; }
+    .controls { padding: 10px 28px 8px; }
     .filter-btn { min-height: 40px; font-size: 15px; padding: 10px 20px; }
     .launch-btn { padding: 18px; font-size: 18px; }
     .card-title { font-size: 20px; }
@@ -400,7 +382,6 @@
 
 <header class="site-header" role="banner">
   <h1>Mes outils pour apprendre</h1>
-  <p>Choisis une activité et commence !</p>
 </header>
 
 <nav class="controls" aria-label="Filtres et recherche">
@@ -412,55 +393,24 @@
     <input type="search" id="search-input" class="search-input" placeholder="Rechercher une activité..." autocomplete="off" aria-label="Rechercher une activité">
   </div>
 
-  <!-- Filtre par branche — groupé par domaine PER -->
-  <div class="filter-group" id="domain-filters" role="group" aria-label="Filtrer par branche">
-    <div class="filter-group-label">Branche</div>
-    <div class="filter-row">
+  <!-- Filtres — branche et cycle sur une ligne -->
+  <div class="filter-row">
+    <div id="domain-filters" role="group" aria-label="Filtrer par branche" style="display: contents">
       <button class="filter-btn active-domain" data-domain="all" aria-pressed="true">Toutes les branches</button>
+      <button class="filter-btn" data-domain="maths" aria-pressed="false">
+        <span class="filter-dot" style="background:#C0272D"></span>Mathématiques
+      </button>
+      <button class="filter-btn" data-domain="francais" aria-pressed="false">
+        <span class="filter-dot" style="background:#B8960C"></span>Français
+      </button>
+      <button class="filter-btn" data-domain="geo" aria-pressed="false">
+        <span class="filter-dot" style="background:#1A6B4A"></span>Géographie
+      </button>
     </div>
-    <div class="domain-subgroups">
-      <div class="domain-subgroup">
-        <span class="domain-sublabel">Langues</span>
-        <button class="filter-btn" data-domain="francais" aria-pressed="false">
-          <span class="filter-dot" style="background:#B8960C"></span>Français
-        </button>
-        <button class="filter-btn" data-domain="allemand" aria-pressed="false">
-          <span class="filter-dot" style="background:#A08510"></span>Allemand
-        </button>
-        <button class="filter-btn" data-domain="anglais" aria-pressed="false">
-          <span class="filter-dot" style="background:#8C7515"></span>Anglais
-        </button>
-      </div>
-      <div class="domain-subgroup">
-        <span class="domain-sublabel">MSN</span>
-        <button class="filter-btn" data-domain="maths" aria-pressed="false">
-          <span class="filter-dot" style="background:#C0272D"></span>Mathématiques
-        </button>
-        <button class="filter-btn" data-domain="sciences" aria-pressed="false">
-          <span class="filter-dot" style="background:#A02030"></span>Sciences
-        </button>
-      </div>
-      <div class="domain-subgroup">
-        <span class="domain-sublabel">SHS</span>
-        <button class="filter-btn" data-domain="geo" aria-pressed="false">
-          <span class="filter-dot" style="background:#1A6B4A"></span>Géographie
-        </button>
-        <button class="filter-btn" data-domain="histoire" aria-pressed="false">
-          <span class="filter-dot" style="background:#1A5C5C"></span>Histoire
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Filtre par années HarmoS -->
-  <div class="filter-group">
-    <div class="filter-group-label">Années HarmoS</div>
-    <div class="filter-row" id="harmos-filters" role="group" aria-label="Filtrer par années HarmoS">
-      <button class="filter-btn active-harmos" data-harmos="all" aria-pressed="true">Toutes les années</button>
-      <button class="filter-btn" data-harmos="1H-2H" aria-pressed="false">1H–2H</button>
-      <button class="filter-btn" data-harmos="3H-4H" aria-pressed="false">3H–4H</button>
-      <button class="filter-btn" data-harmos="5H-6H" aria-pressed="false">5H–6H</button>
-      <button class="filter-btn" data-harmos="7H-8H" aria-pressed="false">7H–8H</button>
+    <div id="cycle-filters" role="group" aria-label="Filtrer par cycle" style="display: contents">
+      <button class="filter-btn active-harmos" data-harmos="all" aria-pressed="true">Tous les cycles</button>
+      <button class="filter-btn" data-harmos="c1" aria-pressed="false">Cycle 1</button>
+      <button class="filter-btn" data-harmos="c2" aria-pressed="false">Cycle 2</button>
     </div>
   </div>
 
@@ -472,7 +422,7 @@
 
     <!-- ======= MATHÉMATIQUES — GRANDEURS ET MESURES ======= -->
 
-    <article class="app-card" data-domain="maths" data-harmos="3H-4H" data-per="MSN 14" data-keywords="aire surface grande petite formes grille grandeurs mesures" style="animation-delay: 0ms;">
+    <article class="app-card" data-domain="maths" data-harmos="c1" data-per="MSN 14" data-keywords="aire surface grande petite formes grille grandeurs mesures" style="animation-delay: 0ms;">
       <div class="card-header">
         <div class="card-icon icon-maths">📐</div>
         <div class="card-title-wrap">
@@ -489,7 +439,7 @@
       <a href="apps/surfaces.html" class="launch-btn maths">Lancer l'activité</a>
     </article>
 
-    <article class="app-card" data-domain="maths" data-harmos="1H-2H" data-per="MSN 14" data-keywords="capacité récipients contient plus moins formes grandeurs mesures" style="animation-delay: 30ms;">
+    <article class="app-card" data-domain="maths" data-harmos="c1" data-per="MSN 14" data-keywords="capacité récipients contient plus moins formes grandeurs mesures" style="animation-delay: 30ms;">
       <div class="card-header">
         <div class="card-icon icon-maths">🥛</div>
         <div class="card-title-wrap">
@@ -506,7 +456,7 @@
       <a href="apps/capacites.html" class="launch-btn maths">Lancer l'activité</a>
     </article>
 
-    <article class="app-card" data-domain="maths" data-harmos="3H-4H" data-per="MSN 14" data-keywords="longueur barres long court orientations grandeurs mesures" style="animation-delay: 60ms;">
+    <article class="app-card" data-domain="maths" data-harmos="c1" data-per="MSN 14" data-keywords="longueur barres long court orientations grandeurs mesures" style="animation-delay: 60ms;">
       <div class="card-header">
         <div class="card-icon icon-maths">📏</div>
         <div class="card-title-wrap">
@@ -523,7 +473,7 @@
       <a href="apps/longueurs.html" class="launch-btn maths">Lancer l'activité</a>
     </article>
 
-    <article class="app-card" data-domain="maths" data-harmos="3H-4H" data-per="MSN 14" data-keywords="balance masse lourd léger blocs équilibrer grandeurs mesures" style="animation-delay: 90ms;">
+    <article class="app-card" data-domain="maths" data-harmos="c1" data-per="MSN 14" data-keywords="balance masse lourd léger blocs équilibrer grandeurs mesures" style="animation-delay: 90ms;">
       <div class="card-header">
         <div class="card-icon icon-maths">⚖️</div>
         <div class="card-title-wrap">
@@ -542,7 +492,7 @@
 
     <!-- ======= MATHÉMATIQUES — NOMBRES ======= -->
 
-    <article class="app-card" data-domain="maths" data-harmos="3H-4H" data-per="MSN 12" data-keywords="comparer nombres comparateur grand petit symbole" style="animation-delay: 90ms;">
+    <article class="app-card" data-domain="maths" data-harmos="c1" data-per="MSN 12" data-keywords="comparer nombres comparateur grand petit symbole" style="animation-delay: 90ms;">
       <div class="card-header">
         <div class="card-icon icon-maths">🔢</div>
         <div class="card-title-wrap">
@@ -559,7 +509,7 @@
       <a href="apps/comparaison-nombres-c1.html" class="launch-btn maths">Lancer l'activité</a>
     </article>
 
-    <article class="app-card" data-domain="maths" data-harmos="5H-6H" data-per="MSN 22" data-keywords="nombres flèches droite graduée mille situer nombres" data-wip style="animation-delay: 120ms;">
+    <article class="app-card" data-domain="maths" data-harmos="c2" data-per="MSN 22" data-keywords="nombres flèches droite graduée mille situer nombres" data-wip style="animation-delay: 120ms;">
       <div class="card-header">
         <div class="card-icon icon-maths">↗️</div>
         <div class="card-title-wrap">
@@ -576,7 +526,7 @@
       <a href="apps/droite-graduee.html" class="launch-btn maths">Lancer l'activité</a>
     </article>
 
-    <article class="app-card" data-domain="maths" data-harmos="5H-6H" data-per="MSN 22" data-keywords="comparer nombres comparateur grand petit nombres" style="animation-delay: 150ms;">
+    <article class="app-card" data-domain="maths" data-harmos="c2" data-per="MSN 22" data-keywords="comparer nombres comparateur grand petit nombres" style="animation-delay: 150ms;">
       <div class="card-header">
         <div class="card-icon icon-maths">🔢</div>
         <div class="card-title-wrap">
@@ -593,7 +543,7 @@
       <a href="apps/comparaison-nombres.html" class="launch-btn maths">Lancer l'activité</a>
     </article>
 
-    <article class="app-card" data-domain="maths" data-harmos="5H-6H" data-keywords="saut dizaines centaines milliers ajouter enlever nombres décomposer valeur position" style="animation-delay: 180ms;">
+    <article class="app-card" data-domain="maths" data-harmos="c2" data-keywords="saut dizaines centaines milliers ajouter enlever nombres décomposer valeur position" style="animation-delay: 180ms;">
       <div class="card-header">
         <div class="card-icon icon-maths">🦘</div>
         <div class="card-title-wrap">
@@ -609,7 +559,7 @@
       <a href="apps/saut-de-nombre.html" class="launch-btn maths">Lancer l'activité</a>
     </article>
 
-    <article class="app-card" data-domain="maths" data-harmos="5H-6H" data-keywords="extracteur décomposer dizaines unités centaines nombres" data-wip style="animation-delay: 210ms;">
+    <article class="app-card" data-domain="maths" data-harmos="c2" data-keywords="extracteur décomposer dizaines unités centaines nombres" data-wip style="animation-delay: 210ms;">
       <div class="card-header">
         <div class="card-icon icon-maths">🧩</div>
         <div class="card-title-wrap">
@@ -625,7 +575,7 @@
       <a href="apps/valeur-position.html" class="launch-btn maths">Lancer l'activité</a>
     </article>
 
-    <article class="app-card" data-domain="maths" data-harmos="5H-6H" data-keywords="calcul colonne posé addition soustraction opérations" style="animation-delay: 240ms;">
+    <article class="app-card" data-domain="maths" data-harmos="c2" data-keywords="calcul colonne posé addition soustraction opérations" style="animation-delay: 240ms;">
       <div class="card-header">
         <div class="card-icon icon-maths">🧮</div>
         <div class="card-title-wrap">
@@ -641,7 +591,7 @@
       <a href="apps/vertical-calculation.html" class="launch-btn maths">Lancer l'activité</a>
     </article>
 
-    <article class="app-card" data-domain="maths" data-harmos="5H-6H" data-keywords="soustraction colonne posé emprunt opérations" style="animation-delay: 270ms;">
+    <article class="app-card" data-domain="maths" data-harmos="c2" data-keywords="soustraction colonne posé emprunt opérations" style="animation-delay: 270ms;">
       <div class="card-header">
         <div class="card-icon icon-maths">➖</div>
         <div class="card-title-wrap">
@@ -657,7 +607,7 @@
       <a href="apps/soustraction-colonne.html" class="launch-btn maths">Lancer l'activité</a>
     </article>
 
-    <article class="app-card" data-domain="maths" data-harmos="5H-6H" data-per="MSN 24" data-keywords="aire surface grande petite formes grille calcul longueur largeur grandeurs mesures" style="animation-delay: 300ms;">
+    <article class="app-card" data-domain="maths" data-harmos="c2" data-per="MSN 24" data-keywords="aire surface grande petite formes grille calcul longueur largeur grandeurs mesures" style="animation-delay: 300ms;">
       <div class="card-header">
         <div class="card-icon icon-maths">📐</div>
         <div class="card-title-wrap">
@@ -676,7 +626,7 @@
 
     <!-- ======= FRANÇAIS ======= -->
 
-    <article class="app-card" data-domain="francais" data-harmos="5H-6H" data-per="L1 21" data-keywords="lecture compréhension textes questions lire décodi inférence opinion français" style="animation-delay: 330ms;">
+    <article class="app-card" data-domain="francais" data-harmos="c2" data-per="L1 21" data-keywords="lecture compréhension textes questions lire décodi inférence opinion français" style="animation-delay: 330ms;">
       <div class="card-header">
         <div class="card-icon icon-francais">📖</div>
         <div class="card-title-wrap">
@@ -694,7 +644,7 @@
     </article>
 
 
-    <article class="app-card" data-domain="francais" data-harmos="3H-4H" data-per="L1 11" data-keywords="dictée orthographe écriture graphème mots décodi français cgp" style="animation-delay: 390ms;">
+    <article class="app-card" data-domain="francais" data-harmos="c1" data-per="L1 11" data-keywords="dictée orthographe écriture graphème mots décodi français cgp" style="animation-delay: 390ms;">
       <div class="card-header">
         <div class="card-icon icon-francais">✍️</div>
         <div class="card-title-wrap">
@@ -711,7 +661,7 @@
       <a href="apps/decodi-dictee.html" class="launch-btn francais">Lancer l'activité</a>
     </article>
 
-    <article class="app-card" data-domain="francais" data-harmos="5H-6H" data-per="L1 26" data-keywords="dictée orthographe écriture graphème mots décodi français cgp avancé" style="animation-delay: 420ms;">
+    <article class="app-card" data-domain="francais" data-harmos="c2" data-per="L1 26" data-keywords="dictée orthographe écriture graphème mots décodi français cgp avancé" style="animation-delay: 420ms;">
       <div class="card-header">
         <div class="card-icon icon-francais">✍️</div>
         <div class="card-title-wrap">
@@ -730,7 +680,7 @@
 
     <!-- ======= GÉOGRAPHIE ======= -->
 
-    <article class="app-card" data-domain="geo" data-harmos="5H-6H" data-keywords="ville village campagne fonctions aspect habitants dense géographie entraînement" style="animation-delay: 450ms;">
+    <article class="app-card" data-domain="geo" data-harmos="c2" data-keywords="ville village campagne fonctions aspect habitants dense géographie entraînement" style="animation-delay: 450ms;">
       <div class="card-header">
         <div class="card-icon icon-geo">🏙️</div>
         <div class="card-title-wrap">
@@ -766,7 +716,7 @@
   const noResults  = document.getElementById('no-results');
   const countEl    = document.getElementById('result-count');
   const domainBtns = document.querySelectorAll('#domain-filters .filter-btn');
-  const harmosBtns = document.querySelectorAll('#harmos-filters .filter-btn');
+  const harmosBtns = document.querySelectorAll('#cycle-filters .filter-btn');
 
   let activeDomain = 'all';
   let activeHarmos = 'all';
@@ -801,7 +751,7 @@
     applyFilters();
   });
 
-  document.getElementById('harmos-filters').addEventListener('click', e => {
+  document.getElementById('cycle-filters').addEventListener('click', e => {
     const btn = e.target.closest('.filter-btn');
     if (!btn) return;
     activeHarmos = btn.dataset.harmos;
