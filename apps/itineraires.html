@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Lis le trajet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-base.css">
+<style>
+  /* ── Grille ──────────────────────────────────────────────────────────────── */
+  .grid-wrapper {
+    width: min(340px, calc(100vw - 32px));
+    background: #7A9FB5;
+    border-radius: 18px;
+    padding: 8px;
+    box-shadow: 0 6px 28px rgba(26, 58, 92, 0.20);
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .grid-container {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    gap: 4px;
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .grid-cell {
+    background: #F5F2EA;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(20px, 4.8vw, 30px);
+    transition: background-color 0.22s, transform 0.14s;
+    user-select: none;
+    position: relative;
+  }
+
+  .grid-cell.start {
+    background: #BFDBFE;
+  }
+
+  .grid-cell.candidate {
+    background: #FEF9C3;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    outline: 3px solid #EAB308;
+    outline-offset: -3px;
+    border-radius: 8px;
+    animation: candidate-pulse 1.6s ease-in-out infinite;
+  }
+  .grid-cell.candidate:hover  { background: #FEF08A; transform: scale(1.06); z-index: 1; animation: none; }
+  .grid-cell.candidate:active { background: #FDE047; transform: scale(0.96); animation: none; }
+  .grid-cell.candidate:focus  { outline: 3px solid #1A3A5C; outline-offset: -3px; background: #FEF08A; }
+
+  @keyframes candidate-pulse {
+    0%, 100% { outline-color: #EAB308; box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.5); }
+    50%       { outline-color: #CA8A04; box-shadow: 0 0 0 5px rgba(234, 179, 8, 0); }
+  }
+
+  .grid-cell.path-cell {
+    background: #DBEAFE;
+  }
+
+  .grid-cell.correct-answer {
+    background: #BBF7D0 !important;
+    animation: cell-pop 0.42s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  }
+
+  .grid-cell.wrong-answer {
+    background: #FECACA !important;
+    animation: cell-wobble 0.38s ease both;
+  }
+
+  @keyframes cell-pop {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.22); }
+    70%  { transform: scale(0.92); }
+    100% { transform: scale(1); }
+  }
+
+  @keyframes cell-wobble {
+    0%, 100% { transform: translateX(0); }
+    20%  { transform: translateX(-6px) rotate(-4deg); }
+    40%  { transform: translateX(6px)  rotate(4deg); }
+    60%  { transform: translateX(-3px); }
+    80%  { transform: translateX(3px); }
+  }
+
+  /* ── Boîte d'instructions ────────────────────────────────────────────────── */
+  .instructions-box {
+    width: 100%;
+    background: #fff;
+    border: 1px solid var(--app-border);
+    border-radius: 14px;
+    padding: 14px 16px 18px;
+  }
+
+  .instructions-title {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    text-align: center;
+    margin-bottom: 14px;
+  }
+
+  .instructions-list {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .instruction-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    background: #F8FAFC;
+    border: 2px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 10px 14px 10px;
+    min-height: 72px;
+    min-width: 68px;
+    position: relative;
+  }
+
+  .instruction-step {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1A3A5C;
+    color: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-size: 11px;
+    font-weight: 900;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(26, 58, 92, 0.30);
+  }
+
+  .instruction-arrow {
+    font-size: 32px;
+    line-height: 1;
+    margin-top: 8px;
+  }
+
+  .instruction-label {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: #475569;
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────────── -->
+<header class="app-header">
+  <a href="../index.html" class="back-link">← Retour</a>
+  <h1>🗺️ Lis le trajet</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<!-- ── Sélecteur de niveau ─────────────────────────────────────────────────── -->
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1</button>
+  <button class="level-btn"        data-level="2" aria-pressed="false">Niveau 2</button>
+  <button class="level-btn"        data-level="3" aria-pressed="false">Niveau 3</button>
+</div>
+
+<!-- ── Contenu principal ───────────────────────────────────────────────────── -->
+<main>
+  <div class="question-box" id="question-box">Où arrive 🧒 ?</div>
+
+  <div class="grid-wrapper" aria-label="Plan de déplacement">
+    <div class="grid-container" id="grid" role="grid"></div>
+  </div>
+
+  <div class="instructions-box">
+    <div class="instructions-title">Les déplacements à suivre</div>
+    <div class="instructions-list" id="instructions-list" aria-label="Liste des déplacements"></div>
+  </div>
+
+  <div class="feedback" id="feedback"></div>
+
+  <div class="action-row">
+    <button class="new-btn" id="new-btn">Nouvel exercice</button>
+  </div>
+</main>
+
+<!-- ── Scripts ─────────────────────────────────────────────────────────────── -->
+<script src="appUtils.js"></script>
+<script>
+  // ── DOM ──────────────────────────────────────────────────────────────────────
+  const questionBox      = document.getElementById('question-box');
+  const feedbackEl       = document.getElementById('feedback');
+  const newBtn           = document.getElementById('new-btn');
+  const gridEl           = document.getElementById('grid');
+  const instructionsList = document.getElementById('instructions-list');
+
+  // ── Constantes ───────────────────────────────────────────────────────────────
+  const GRID  = 5;
+  const EMOJIS = ['🏫', '🌳', '🥐', '🏠', '🏥', '🏪'];
+  const NAMES  = {
+    '🏫': "à l'école",
+    '🌳': 'sous l\'arbre',
+    '🥐': 'à la boulangerie',
+    '🏠': 'à la maison',
+    '🏥': "à l'hôpital",
+    '🏪': 'à la boutique',
+  };
+  const DIRS = [
+    { dr: -1, dc:  0, arrow: '⬆️', label: 'en haut'  },
+    { dr:  1, dc:  0, arrow: '⬇️', label: 'en bas'   },
+    { dr:  0, dc: -1, arrow: '⬅️', label: 'à gauche' },
+    { dr:  0, dc:  1, arrow: '➡️', label: 'à droite' },
+  ];
+
+  // ── État ─────────────────────────────────────────────────────────────────────
+  let currentLevel = 1;
+  let state = {};
+
+  // ── Petits utilitaires ────────────────────────────────────────────────────────
+  function inGrid(r, c) { return r >= 0 && r < GRID && c >= 0 && c < GRID; }
+  function key(r, c) { return r * GRID + c; }
+  function mdist(a, b) { return Math.abs(a.row - b.row) + Math.abs(a.col - b.col); }
+
+  // ── Feedback ──────────────────────────────────────────────────────────────────
+  function showFeedback(correct, msg) {
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = msg;
+    if (correct) { newBtn.classList.add('visible'); playCorrect(); launchConfetti(); }
+    else { playIncorrect(); }
+  }
+
+  function resetFeedback() {
+    feedbackEl.className = 'feedback';
+    feedbackEl.textContent = '';
+    newBtn.classList.remove('visible');
+  }
+
+  // ── Sélecteur de niveau ───────────────────────────────────────────────────────
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLevel = parseInt(btn.dataset.level);
+      document.querySelectorAll('.level-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+      newExercise();
+    });
+  });
+
+  newBtn.addEventListener('click', newExercise);
+
+  // ── Génération d'exercice ─────────────────────────────────────────────────────
+  function chooseStart(level) {
+    if (level === 1) return { row: 4, col: 0 };
+    if (level === 2) return pick([
+      { row: 4, col: 0 }, { row: 0, col: 4 },
+      { row: 4, col: 4 }, { row: 0, col: 0 },
+    ], 1)[0];
+    const all = [];
+    for (let r = 0; r < GRID; r++)
+      for (let c = 0; c < GRID; c++)
+        all.push({ row: r, col: c });
+    return pick(all, 1)[0];
+  }
+
+  function buildPath(startPos, steps) {
+    let pos = { ...startPos };
+    const instructions = [];
+    const path = [{ ...pos }];
+    let lastDr = null, lastDc = null;
+
+    for (let i = 0; i < steps; i++) {
+      let valid = DIRS.filter(d => {
+        if (!inGrid(pos.row + d.dr, pos.col + d.dc)) return false;
+        if (lastDr !== null && d.dr === -lastDr && d.dc === -lastDc) return false;
+        return true;
+      });
+      if (!valid.length) valid = DIRS.filter(d => inGrid(pos.row + d.dr, pos.col + d.dc));
+      if (!valid.length) break;
+
+      const chosen = pick(valid, 1)[0];
+      instructions.push({ arrow: chosen.arrow, label: chosen.label });
+      lastDr = chosen.dr; lastDc = chosen.dc;
+      pos = { row: pos.row + chosen.dr, col: pos.col + chosen.dc };
+      path.push({ ...pos });
+    }
+
+    return { instructions, endPos: { ...pos }, path };
+  }
+
+  function pickWrongCandidates(startPos, endPos, path, n) {
+    const pathSet  = new Set(path.map(p => key(p.row, p.col)));
+    const excluded = new Set([key(endPos.row, endPos.col), key(startPos.row, startPos.col)]);
+
+    // Preferred pool: non-path, distance ≥ 2 from end
+    let pool = [];
+    for (let r = 0; r < GRID; r++) {
+      for (let c = 0; c < GRID; c++) {
+        const k = key(r, c);
+        if (excluded.has(k) || pathSet.has(k)) continue;
+        if (mdist({ row: r, col: c }, endPos) >= 2) pool.push({ row: r, col: c });
+      }
+    }
+
+    // Fallback: relax constraints
+    if (pool.length < n) {
+      pool = [];
+      for (let r = 0; r < GRID; r++)
+        for (let c = 0; c < GRID; c++) {
+          if (!excluded.has(key(r, c))) pool.push({ row: r, col: c });
+        }
+    }
+
+    if (pool.length <= n) return pool;
+
+    // Greedy spread: pick one at random, then pick the most distant remaining
+    const result = [pick(pool, 1)[0]];
+    const remaining = pool.filter(p => !(p.row === result[0].row && p.col === result[0].col));
+
+    while (result.length < n && remaining.length) {
+      let best = null, bestScore = -1;
+      for (const p of remaining) {
+        const d = result.reduce((s, c) => s + mdist(c, p), 0);
+        if (d > bestScore) { bestScore = d; best = p; }
+      }
+      if (!best) break;
+      result.push(best);
+      remaining.splice(remaining.indexOf(best), 1);
+    }
+
+    return result;
+  }
+
+  function generateExercise(level) {
+    const steps = level === 1 ? randInt(2, 3) : level === 2 ? randInt(3, 4) : randInt(4, 5);
+
+    for (let t = 0; t < 20; t++) {
+      const startPos = chooseStart(level);
+      const { instructions, endPos, path } = buildPath(startPos, steps);
+
+      // Écarter les cas où on revient au départ
+      if (endPos.row === startPos.row && endPos.col === startPos.col) continue;
+
+      const wrong = pickWrongCandidates(startPos, endPos, path, 2);
+      if (wrong.length < 2) continue;
+
+      const emojis = shuffle(EMOJIS).slice(0, 3);
+      const candidates = shuffle([
+        { ...endPos,    emoji: emojis[0], correct: true  },
+        { ...wrong[0],  emoji: emojis[1], correct: false },
+        { ...wrong[1],  emoji: emojis[2], correct: false },
+      ]);
+
+      return { startPos, endPos, instructions, path, candidates, answered: false };
+    }
+
+    // Repli de sécurité (ne devrait jamais être atteint sur une grille 5×5)
+    const startPos = { row: 4, col: 0 };
+    const { instructions, endPos, path } = buildPath(startPos, 2);
+    const wrong = pickWrongCandidates(startPos, endPos, path, 2);
+    const emojis = shuffle(EMOJIS).slice(0, 3);
+    return {
+      startPos, endPos, instructions, path, answered: false,
+      candidates: shuffle([
+        { ...endPos,   emoji: emojis[0], correct: true  },
+        { ...wrong[0], emoji: emojis[1], correct: false },
+        { ...wrong[1], emoji: emojis[2], correct: false },
+      ]),
+    };
+  }
+
+  // ── Rendu ─────────────────────────────────────────────────────────────────────
+  function renderGrid() {
+    gridEl.innerHTML = '';
+
+    for (let r = 0; r < GRID; r++) {
+      for (let c = 0; c < GRID; c++) {
+        const cell = document.createElement('div');
+        cell.className = 'grid-cell';
+        cell.dataset.row = r;
+        cell.dataset.col = c;
+        cell.setAttribute('role', 'gridcell');
+
+        const isStart   = r === state.startPos.row && c === state.startPos.col;
+        const candidate = state.candidates.find(ca => ca.row === r && ca.col === c);
+
+        if (isStart) {
+          cell.classList.add('start');
+          cell.textContent = '🧒';
+          cell.setAttribute('aria-label', 'Départ');
+        } else if (candidate) {
+          cell.classList.add('candidate');
+          cell.textContent = candidate.emoji;
+          cell.setAttribute('role', 'button');
+          cell.setAttribute('tabindex', '0');
+          cell.setAttribute('aria-label', `Aller ${NAMES[candidate.emoji] || ''}`);
+          cell.addEventListener('click', () => handleClick(cell, candidate));
+          cell.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick(cell, candidate); }
+          });
+        }
+
+        gridEl.appendChild(cell);
+      }
+    }
+  }
+
+  function renderInstructions() {
+    instructionsList.innerHTML = '';
+
+    state.instructions.forEach((inst, i) => {
+      const item = document.createElement('div');
+      item.className = 'instruction-item';
+
+      const step = document.createElement('span');
+      step.className = 'instruction-step';
+      step.textContent = i + 1;
+      step.setAttribute('aria-hidden', 'true');
+
+      const arrow = document.createElement('span');
+      arrow.className = 'instruction-arrow';
+      arrow.setAttribute('aria-hidden', 'true');
+      arrow.textContent = inst.arrow;
+
+      const label = document.createElement('span');
+      label.className = 'instruction-label';
+      label.textContent = inst.label;
+
+      item.setAttribute('aria-label', `Étape ${i + 1} : ${inst.label}`);
+      item.appendChild(step);
+      item.appendChild(arrow);
+      item.appendChild(label);
+      instructionsList.appendChild(item);
+    });
+  }
+
+  // ── Interaction ───────────────────────────────────────────────────────────────
+  function handleClick(cell, candidate) {
+    if (state.answered) return;
+
+    if (candidate.correct) {
+      state.answered = true;
+      cell.classList.add('correct-answer');
+      revealPath();
+      const where = NAMES[candidate.emoji];
+      showFeedback(true, `Bravo ! 🧒 est bien arrivé ${where} ! 🎉`);
+    } else {
+      playIncorrect();
+      cell.classList.add('wrong-answer');
+      feedbackEl.className = 'feedback wrong';
+      feedbackEl.textContent = 'Essaie encore… relis les déplacements un par un. 💪';
+      setTimeout(() => cell.classList.remove('wrong-answer'), 1200);
+    }
+  }
+
+  function revealPath() {
+    const pathSet = new Set(state.path.map(p => key(p.row, p.col)));
+
+    gridEl.querySelectorAll('.grid-cell').forEach(cell => {
+      const r = parseInt(cell.dataset.row);
+      const c = parseInt(cell.dataset.col);
+      const isStart    = r === state.startPos.row && c === state.startPos.col;
+      const isCandidate = cell.classList.contains('candidate');
+      if (!isStart && !isCandidate && pathSet.has(key(r, c))) {
+        cell.classList.add('path-cell');
+      }
+    });
+  }
+
+  // ── Nouvel exercice ───────────────────────────────────────────────────────────
+  function newExercise() {
+    resetFeedback();
+    state = generateExercise(currentLevel);
+    renderGrid();
+    renderInstructions();
+    questionBox.textContent = 'Lis les déplacements, puis touche la bonne case jaune !';
+  }
+
+  // ── Démarrage ─────────────────────────────────────────────────────────────────
+  newExercise();
+</script>
+<script src="feedbackUtils.js"></script>
+</body>
+</html>
