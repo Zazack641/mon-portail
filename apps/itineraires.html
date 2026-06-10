@@ -9,6 +9,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app-base.css">
 <style>
+  /* Couleur de branche : maths rouge PER */
+  :root { --app-header-bg: #C0272D; }
+
   /* ── Grille ──────────────────────────────────────────────────────────────── */
   .grid-wrapper {
     width: min(340px, calc(100vw - 32px));
@@ -162,7 +165,7 @@
 
   .instruction-label {
     font-family: 'Source Sans 3', sans-serif;
-    font-size: 12px;
+    font-size: 15px;
     font-weight: 700;
     color: #475569;
     white-space: nowrap;
@@ -468,10 +471,13 @@
       const where = NAMES[candidate.emoji];
       showFeedback(true, `Bravo ! 🧒 est bien arrivé ${where} ! 🎉`);
     } else {
+      state.attempts = (state.attempts || 0) + 1;
       playIncorrect();
       cell.classList.add('wrong-answer');
       feedbackEl.className = 'feedback wrong';
-      feedbackEl.textContent = 'Essaie encore… relis les déplacements un par un. 💪';
+      feedbackEl.textContent = state.attempts === 1
+        ? 'Pas tout à fait… relis chaque déplacement depuis le départ de 🧒.'
+        : 'Recompte pas à pas : pose ton doigt sur 🧒 et suis chaque flèche.';
       setTimeout(() => cell.classList.remove('wrong-answer'), 1200);
     }
   }
