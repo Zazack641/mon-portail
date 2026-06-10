@@ -71,7 +71,7 @@
 
   .sequence-title {
     font-family: 'Source Sans 3', sans-serif;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
     color: #94A3B8;
     text-transform: uppercase;
@@ -105,7 +105,7 @@
 
   .sequence-num {
     font-family: 'Nunito', sans-serif;
-    font-size: 10px;
+    font-size: 13px;
     font-weight: 900;
     color: #94A3B8;
     line-height: 1;
@@ -472,8 +472,9 @@
     updateButtons();
 
     if (arrived) {
+      const n = state.sequence.length;
       showFeedback(true,
-        `Bravo ! 🧒 est arrivé à ${NAMES[state.destEmoji]} ${state.destEmoji} ! 🎉`
+        `Bravo ! Tu as décrit le chemin en ${n} déplacement${n > 1 ? 's' : ''} ! 🎉`
       );
     }
   }
