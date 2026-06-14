@@ -120,7 +120,7 @@
     outline: none;
     transition: border-color 0.15s;
   }
-  .word-input:focus { border-color: #B8960C; }
+  .word-input:focus { border-color: #B8960C; outline: 3px solid #B8960C; outline-offset: 2px; }
 
   .listen-btn {
     padding: 14px 28px;
@@ -173,7 +173,7 @@
     outline: none;
     transition: border-color 0.15s;
   }
-  .recopy-input:focus { border-color: #D64045; }
+  .recopy-input:focus { border-color: #D64045; outline: 3px solid #D64045; outline-offset: 2px; }
   .recopy-ok {
     font-family: 'Nunito', sans-serif;
     font-size: 16px;
@@ -216,13 +216,13 @@
 </head>
 <body>
 
-<header class="app-header">
+<header class="app-header" role="banner">
   <a href="../index.html" class="back-link">← Retour</a>
   <h1>✍️ Dictée DéCoDi</h1>
   <div class="header-spacer"></div>
 </header>
 
-<div class="nav-bar" id="nav-bar" role="navigation" aria-label="Navigation dans l'activité">
+<div class="nav-bar" id="nav-bar" role="group" aria-label="Navigation dans l'activité">
   <span class="nav-bar-title" id="nav-label">Choisir un module</span>
   <button class="nav-back-btn" id="nav-back-btn" style="display:none">← Retour</button>
 </div>
@@ -262,7 +262,7 @@
       aria-label="Saisir le mot dicté"
     >
 
-    <div class="feedback" id="feedback"></div>
+    <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
 
     <div class="recopy-section" id="recopy-section" style="display:none">
       <p class="recopy-label">Recopie le mot : <strong id="recopy-word-display"></strong></p>
