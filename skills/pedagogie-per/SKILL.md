@@ -47,7 +47,7 @@ deux objectifs secondaires (ex. MSN 12 en soutien). Ne pas disperser.
 | longueurs.html | MSN 14 – Grandeurs et mesures (longueur) | C1 |
 | capacites.html | MSN 14 – Grandeurs et mesures (capacité) | C1 |
 | surfaces.html | MSN 14 – Grandeurs et mesures (aire) | C1 |
-| droite-graduee.html | MSN 22 – Nombres (représentation) | C2 |
+| place-le-nombre-c2.html | MSN 22 – Nombres (représentation) | C2 |
 
 ---
 

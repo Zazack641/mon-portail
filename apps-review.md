@@ -133,7 +133,7 @@
 
 ---
 
-## droite-graduee.html
+## place-le-nombre-c2.html
 
 **Tests à faire sur iPad :**
 1. Tester le tap et le touch sur la droite : vérifier que le marqueur apparaît exactement là où l'élève a touché (pas de décalage dû au scroll ou à la densité de pixels).

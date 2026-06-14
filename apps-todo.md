@@ -110,11 +110,11 @@ Feedback : vérification immédiate, bouton Nouvel exercice.
 
 ---
 
-## App 6 — droite-graduee.html [DONE]
+## App 6 — place-le-nombre-c2.html [DONE]
 
-Fichier à créer : apps/droite-graduee.html
+Fichier à créer : apps/place-le-nombre-c2.html
 Cartes à mettre à jour :
-  - file:///apps/arrow-numbers → apps/droite-graduee.html
+  - file:///apps/arrow-numbers → apps/place-le-nombre-c2.html
 
 Objectif unique : situer un nombre sur une droite graduée.
 Couleurs valeurs de position obligatoires.
