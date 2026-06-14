@@ -14,7 +14,7 @@
 
   /* ── Grille ──────────────────────────────────────────────────────────────── */
   .grid-wrapper {
-    width: min(340px, calc(100vw - 32px));
+    width: min(420px, calc(100vw - 32px));
     background: #7A9FB5;
     border-radius: 18px;
     padding: 8px;
@@ -27,7 +27,7 @@
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     grid-template-rows: repeat(5, 1fr);
-    gap: 4px;
+    gap: 12px;
     width: 100%;
     aspect-ratio: 1;
     border-radius: 12px;
@@ -40,7 +40,6 @@
     align-items: center;
     justify-content: center;
     font-size: clamp(20px, 4.8vw, 30px);
-    transition: background-color 0.22s, transform 0.14s;
     user-select: none;
     position: relative;
   }
@@ -57,10 +56,9 @@
     outline: 3px solid #EAB308;
     outline-offset: -3px;
     border-radius: 8px;
-    animation: candidate-pulse 1.6s ease-in-out infinite;
   }
-  .grid-cell.candidate:hover  { background: #FEF08A; transform: scale(1.06); z-index: 1; animation: none; }
-  .grid-cell.candidate:active { background: #FDE047; transform: scale(0.96); animation: none; }
+  .grid-cell.candidate:hover  { background: #FEF08A; z-index: 1; }
+  .grid-cell.candidate:active { background: #FDE047; }
   .grid-cell.candidate:focus  { outline: 3px solid #1A3A5C; outline-offset: -3px; background: #FEF08A; }
 
   @keyframes candidate-pulse {
@@ -74,12 +72,10 @@
 
   .grid-cell.correct-answer {
     background: #BBF7D0 !important;
-    animation: cell-pop 0.42s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
   }
 
   .grid-cell.wrong-answer {
     background: #FECACA !important;
-    animation: cell-wobble 0.38s ease both;
   }
 
   @keyframes cell-pop {
@@ -97,6 +93,19 @@
     80%  { transform: translateX(3px); }
   }
 
+  @media (prefers-reduced-motion: no-preference) {
+    .grid-cell { transition: background-color 0.22s, transform 0.14s; }
+    .grid-cell.candidate { animation: candidate-pulse 1.6s ease-in-out infinite; }
+    .grid-cell.candidate:hover  { transform: scale(1.06); animation: none; }
+    .grid-cell.candidate:active { transform: scale(0.96); animation: none; }
+    .grid-cell.correct-answer { animation: cell-pop 0.42s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+    .grid-cell.wrong-answer { animation: cell-wobble 0.38s ease both; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .level-btn, .verify-btn, .new-btn { transition: none; }
+  }
+
   /* ── Boîte d'instructions ────────────────────────────────────────────────── */
   .instructions-box {
     width: 100%;
@@ -108,9 +117,9 @@
 
   .instructions-title {
     font-family: 'Source Sans 3', sans-serif;
-    font-size: 12px;
+    font-size: 18px;
     font-weight: 700;
-    color: #94A3B8;
+    color: #64748B;
     text-transform: uppercase;
     letter-spacing: 0.07em;
     text-align: center;
@@ -165,7 +174,7 @@
 
   .instruction-label {
     font-family: 'Source Sans 3', sans-serif;
-    font-size: 15px;
+    font-size: 18px;
     font-weight: 700;
     color: #475569;
     white-space: nowrap;
@@ -190,18 +199,18 @@
 
 <!-- ── Contenu principal ───────────────────────────────────────────────────── -->
 <main>
-  <div class="question-box" id="question-box">Où arrive 🧒 ?</div>
+  <div class="question-box" id="question-box" aria-live="polite">Où arrive 🧒 ?</div>
 
-  <div class="grid-wrapper" aria-label="Plan de déplacement">
-    <div class="grid-container" id="grid" role="grid"></div>
+  <div class="grid-wrapper" role="group" aria-label="Plan de déplacement">
+    <div class="grid-container" id="grid"></div>
   </div>
 
   <div class="instructions-box">
     <div class="instructions-title">Les déplacements à suivre</div>
-    <div class="instructions-list" id="instructions-list" aria-label="Liste des déplacements"></div>
+    <div class="instructions-list" id="instructions-list" role="list" aria-label="Liste des déplacements"></div>
   </div>
 
-  <div class="feedback" id="feedback"></div>
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
 
   <div class="action-row">
     <button class="new-btn" id="new-btn">Nouvel exercice</button>
@@ -249,7 +258,7 @@
   function showFeedback(correct, msg) {
     feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
     feedbackEl.textContent = msg;
-    if (correct) { newBtn.classList.add('visible'); playCorrect(); launchConfetti(); }
+    if (correct) { newBtn.classList.add('visible'); playCorrect(); if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) { launchConfetti(); } }
     else { playIncorrect(); }
   }
 
@@ -405,8 +414,6 @@
         cell.className = 'grid-cell';
         cell.dataset.row = r;
         cell.dataset.col = c;
-        cell.setAttribute('role', 'gridcell');
-
         const isStart   = r === state.startPos.row && c === state.startPos.col;
         const candidate = state.candidates.find(ca => ca.row === r && ca.col === c);
 
@@ -424,6 +431,8 @@
           cell.addEventListener('keydown', e => {
             if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick(cell, candidate); }
           });
+        } else {
+          cell.setAttribute('aria-hidden', 'true');
         }
 
         gridEl.appendChild(cell);
@@ -437,6 +446,7 @@
     state.instructions.forEach((inst, i) => {
       const item = document.createElement('div');
       item.className = 'instruction-item';
+      item.setAttribute('role', 'listitem');
 
       const step = document.createElement('span');
       step.className = 'instruction-step';
@@ -468,6 +478,10 @@
       state.answered = true;
       cell.classList.add('correct-answer');
       revealPath();
+      gridEl.querySelectorAll('.candidate').forEach(c => {
+        c.setAttribute('aria-disabled', 'true');
+        c.setAttribute('tabindex', '-1');
+      });
       const where = NAMES[candidate.emoji];
       showFeedback(true, `Bravo ! 🧒 est bien arrivé ${where} ! 🎉`);
     } else {
