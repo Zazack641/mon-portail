@@ -189,7 +189,7 @@
 </head>
 <body>
 
-<header class="app-header">
+<header class="app-header" role="banner">
   <a href="../index.html" class="back-link">← Retour</a>
   <h1>🥛 Qui contient le plus ?</h1>
   <div class="header-spacer"></div>
@@ -203,7 +203,7 @@
 <main>
   <div class="question-box" id="question-box">Chargement…</div>
   <div class="containers-row" id="containers-row"></div>
-  <div class="feedback" id="feedback"></div>
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
   <div class="action-row">
     <button class="verify-btn" id="verify-btn" disabled>Vérifier</button>
     <button class="new-btn" id="new-btn">Nouvel exercice</button>
