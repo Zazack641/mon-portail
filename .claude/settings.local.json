@@ -24,7 +24,13 @@
       "Bash(git -C /Users/isaacferretti/Documents/mon-portail push)",
       "Bash(git push *)",
       "Bash(xargs -I{} basename {})",
-      "Bash(bash sauvegarder.sh)"
+      "Bash(bash sauvegarder.sh)",
+      "Bash(find apps/ -name '*.html')",
+      "Edit(apps/*.html)",
+      "Edit(SUIVI.md)",
+      "Bash(git add apps/ SUIVI.md)",
+      "Bash(git commit -m *)",
+      "Bash(git push)"
     ]
   }
 }
