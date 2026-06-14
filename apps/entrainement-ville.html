@@ -434,6 +434,13 @@
     .drop-zones { grid-template-columns: 1fr; }
     .next-btn { align-self: stretch; text-align: center; }
   }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+    }
+  }
 </style>
 </head>
 <body>
