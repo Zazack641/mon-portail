@@ -248,7 +248,7 @@
 </head>
 <body>
 
-<header class="app-header">
+<header class="app-header" role="banner">
   <a href="../index.html" class="back-link">← Retour</a>
   <h1>🦘 Le saut de nombre</h1>
   <div class="header-spacer"></div>
@@ -275,7 +275,7 @@
     <div class="target-number" id="target-number"></div>
   </div>
 
-  <div class="feedback" id="feedback"></div>
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
 
   <div class="action-row">
     <button class="verify-btn" id="verify-btn">Vérifier</button>
