@@ -367,14 +367,16 @@ playIncorrect();  // descente sawtooth, ~0,4s — aucune animation
 
 ## Skills disponibles
 
-Deux skills sont disponibles dans `skills/`. Les lire systématiquement avant de créer ou modifier une app.
+Trois skills sont disponibles dans `skills/`. Les lire systématiquement avant de créer ou modifier une app.
 
 | Skill | Fichier | Quand l'utiliser |
 |-------|---------|-----------------|
 | `pedagogie-per` | `skills/pedagogie-per/SKILL.md` | Créer ou réviser une app |
 | `design-portail` | `skills/design-portail/SKILL.md` | Créer ou modifier une app, ajouter une carte, vérifier la conformité |
+| `accessibilite` | `skills/accessibilite/SKILL.md` | Créer ou modifier une app — contraintes motricité, visuo-spatial, feedback |
 
 Les fichiers de référence PER sont dans `docs/per/`.
+Le référentiel WCAG 2.2 est dans `docs/accessibilite/wcag22-resume.md`.
 
 ---
 
