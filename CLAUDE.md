@@ -378,6 +378,18 @@ Trois skills sont disponibles dans `skills/`. Les lire systématiquement avant d
 Les fichiers de référence PER sont dans `docs/per/`.
 Le référentiel WCAG 2.2 est dans `docs/accessibilite/wcag22-resume.md`.
 
+## Hiérarchie des skills
+
+En cas de conflit entre les trois skills du projet, cet ordre de priorité s'applique :
+
+1. `skills/pedagogie-per/SKILL.md` — l'intention pédagogique est non négociable. Aucune contrainte de design ou d'accessibilité ne peut trahir l'objectif PER ciblé par l'app.
+
+2. `skills/accessibilite/SKILL.md` — les contraintes physiques du public (déficience motrice, troubles visuo-spatiaux) sont non négociables. Le design s'adapte, pas l'accessibilité.
+
+3. `skills/design-portail/SKILL.md` — les conventions visuelles s'appliquent dans le respect des deux niveaux supérieurs.
+
+En cas de doute sur un conflit, signaler à l'utilisateur plutôt qu'arbitrer silencieusement.
+
 ---
 
 ## Convention : périmètre des apps et titres
