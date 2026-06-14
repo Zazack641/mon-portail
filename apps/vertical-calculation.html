@@ -280,6 +280,13 @@
       .digit, .td-sign { font-size: 36px; }
       .result-inp { width: 52px; height: 60px; font-size: 34px; }
     }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -541,7 +548,7 @@
     const fb = document.getElementById('feedback');
     fb.textContent = allOk
       ? 'Bravo ! C\'est correct !'
-      : 'Pas tout à fait. Vérifie et réessaie !';
+      : 'Pas tout à fait. Les cases en rouge sont incorrectes. Corrige-les et réessaie !';
     fb.className = 'feedback ' + (allOk ? 'ok' : 'bad');
     if (allOk) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
   }
