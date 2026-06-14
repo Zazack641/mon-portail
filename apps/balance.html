@@ -39,7 +39,7 @@
 
   main { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 24px 16px 40px; gap: 20px; max-width: 600px; margin: 0 auto; width: 100%; }
 
-  .question-box { background: #fff; border: 1px solid #E2E8F0; border-radius: 16px; padding: 20px 24px; text-align: center; width: 100%; font-family: 'Nunito', sans-serif; font-size: clamp(17px,3.5vw,21px); font-weight: 800; color: #1A1A2E; line-height: 1.4; }
+  .question-box { background: #fff; border: 1px solid #E2E8F0; border-radius: 16px; padding: 20px 24px; text-align: center; width: 100%; font-family: 'Nunito', sans-serif; font-size: clamp(18px,3.5vw,21px); font-weight: 800; color: #1A1A2E; line-height: 1.5; }
 
   /* Hint sous la question */
   .click-hint { font-size: 13px; color: #94A3B8; text-align: center; font-style: italic; }
@@ -53,7 +53,7 @@
   .ui-panel.active { display: flex; }
 
   /* Bouton Égal (N2 uniquement) */
-  .egal-btn { padding: 16px 40px; background: #fff; border: 2px solid #E2E8F0; border-radius: 14px; font-family: 'Nunito', sans-serif; font-size: clamp(16px,3vw,19px); font-weight: 800; color: #1A1A2E; cursor: pointer; min-height: 56px; touch-action: manipulation; -webkit-appearance: none; transition: all 0.15s; }
+  .egal-btn { padding: 16px 40px; background: #fff; border: 2px solid #E2E8F0; border-radius: 14px; font-family: 'Nunito', sans-serif; font-size: clamp(18px,3vw,22px); font-weight: 800; color: #1A1A2E; cursor: pointer; min-height: 64px; touch-action: manipulation; -webkit-appearance: none; transition: all 0.15s; }
   .egal-btn:not(:disabled):hover { background: #EEF2F7; border-color: #3B7DD8; }
   .egal-btn.correct { background: #D1FAE5; border-color: #10B981; color: #065F46; }
   .egal-btn.wrong   { background: #FEE2E2; border-color: #EF4444; color: #991B1B; }
@@ -64,7 +64,7 @@
   .n3-side { display: flex; flex-direction: column; align-items: center; gap: 8px; }
   .n3-side-label { font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; }
   .n3-side-btns { display: flex; gap: 8px; }
-  .ctrl-btn { padding: 14px 18px; border-radius: 12px; border: 2px solid; background: #fff; font-family: 'Nunito', sans-serif; font-size: 20px; font-weight: 900; cursor: pointer; min-height: 52px; min-width: 52px; touch-action: manipulation; -webkit-appearance: none; transition: all 0.15s; }
+  .ctrl-btn { padding: 14px 18px; border-radius: 12px; border: 2px solid; background: #fff; font-family: 'Nunito', sans-serif; font-size: 20px; font-weight: 900; cursor: pointer; min-height: 64px; min-width: 64px; touch-action: manipulation; -webkit-appearance: none; transition: all 0.15s; }
   .ctrl-btn.add    { border-color: #3B7DD8; color: #3B7DD8; }
   .ctrl-btn.add:not(:disabled):hover    { background: #EFF6FF; }
   .ctrl-btn.remove { border-color: #D64045; color: #D64045; }
@@ -73,21 +73,28 @@
   .n3-count { font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700; color: #94A3B8; }
 
   /* Feedback */
-  .feedback { width: 100%; padding: 18px 24px; border-radius: 14px; text-align: center; font-family: 'Nunito', sans-serif; font-size: clamp(15px,2.8vw,18px); font-weight: 800; display: none; line-height: 1.5; }
+  .feedback { width: 100%; padding: 18px 24px; border-radius: 14px; text-align: center; font-family: 'Nunito', sans-serif; font-size: clamp(18px,3vw,19px); font-weight: 800; display: none; line-height: 1.5; }
   .feedback.correct { background: #D1FAE5; color: #065F46; display: block; }
   .feedback.wrong   { background: #FEE2E2; color: #991B1B; display: block; }
 
   .action-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-  .verify-btn { padding: 16px 36px; background: #C0272D; color: #fff; border: none; border-radius: 12px; font-family: 'Nunito', sans-serif; font-size: 18px; font-weight: 800; cursor: pointer; min-height: 56px; touch-action: manipulation; -webkit-appearance: none; transition: all 0.15s; }
+  .verify-btn { padding: 16px 36px; background: #C0272D; color: #fff; border: none; border-radius: 12px; font-family: 'Nunito', sans-serif; font-size: 18px; font-weight: 800; cursor: pointer; min-height: 64px; touch-action: manipulation; -webkit-appearance: none; transition: all 0.15s; }
   .verify-btn:hover { background: #A01F23; }
   .verify-btn:disabled { background: #94A3B8; cursor: default; }
-  .new-btn { padding: 16px 36px; background: #0F7860; color: #fff; border: none; border-radius: 12px; font-family: 'Nunito', sans-serif; font-size: 18px; font-weight: 800; cursor: pointer; min-height: 56px; touch-action: manipulation; -webkit-appearance: none; transition: all 0.15s; display: none; }
+  .new-btn { padding: 16px 36px; background: #0F7860; color: #fff; border: none; border-radius: 12px; font-family: 'Nunito', sans-serif; font-size: 18px; font-weight: 800; cursor: pointer; min-height: 64px; touch-action: manipulation; -webkit-appearance: none; transition: all 0.15s; display: none; }
   .new-btn.visible { display: block; }
   .new-btn:hover { background: #0A5C48; }
 
   /* Hover sur les plateaux cliquables */
   .plat-hover { transition: filter 0.15s; }
   .plat-hover:hover { filter: brightness(0.82); }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+    }
+  }
 </style>
 </head>
 <body>
@@ -519,8 +526,8 @@ function verifyN3() {
     correct
       ? `✅ Parfait ! Les deux plateaux ont ${totalL} cube${totalL>1?'s':''} chacun.`
       : totalL > totalR
-        ? `❌ Le plateau gauche est trop lourd (${totalL} vs ${totalR}). Essaie encore !`
-        : `❌ Le plateau droit est trop lourd (${totalR} vs ${totalL}). Essaie encore !`
+        ? `❌ Le plateau gauche est trop lourd (${totalL} vs ${totalR}). Enlève des cubes à gauche ou ajoute-en à droite.`
+        : `❌ Le plateau droit est trop lourd (${totalR} vs ${totalL}). Enlève des cubes à droite ou ajoute-en à gauche.`
   );
 
   if (!correct) {
