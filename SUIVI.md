@@ -25,7 +25,8 @@ Dernière mise à jour : 2026-06-14
 | decodi-comprehension.html | Compréhension DéCoDi | ✅ | ✅ | V1 : `role="banner"`, `aria-live`, `outline` textarea ; V2 : couvert par app-base.css |
 | decodi-dictee-c2.html | Dictée DéCoDi — Modules 11-15 | ✅ | ✅ | V1 : `role="banner"`, `role="group"` nav-bar, `aria-live`, `outline` ; V2 : couvert par app-base.css |
 | decodi-dictee.html | Dictée DéCoDi — Modules 6-10 | ✅ | ✅ | V1 : `outline`, `role="group"` nav-bar ; V2 : `prefers-reduced-motion` |
-| place-le-nombre-c2.html | Place le nombre | ✅ | ✅ | V1 : `role="banner"`, `aria-live`, canvas clavier (`role="slider"`) ; V2 : `prefers-reduced-motion`, question-box 18px/1.5, boutons 64px |
+| place-le-nombre-c1.html | Place le nombre (3H-4H) | ✅ | ✅ | Jumeau C1 de place-le-nombre-c2 (MSN 12, jusqu'à 100) ; mêmes garanties ARIA/contraste/tactiles |
+| place-le-nombre-c2.html | Place le nombre (5H-6H) | ✅ | ✅ | V1 : `role="banner"`, `aria-live`, canvas clavier (`role="slider"`) ; V2 : `prefers-reduced-motion`, question-box 18px/1.5, boutons 64px |
 | entrainement-ville.html | Entraînement — La ville | ✅ | ✅ | V1 : hover couleurs corrigées ; V2 : `prefers-reduced-motion` |
 | itineraires-decris.html | Itinéraires — Décris le trajet | ✅ | ✅ | V1 : `aria-live` ; V2 : `prefers-reduced-motion` |
 | itineraires.html | Itinéraires — Lis le trajet | ✅ | ✅ | Animations dans `@media (prefers-reduced-motion: no-preference)` déjà en place — aucun changement |
