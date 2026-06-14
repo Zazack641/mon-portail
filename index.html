@@ -42,6 +42,7 @@
     letter-spacing: -0.5px;
     position: relative;
   }
+
   /* ===== CONTROLS BAR ===== */
   .controls {
     background: #fff;
@@ -65,13 +66,13 @@
     transform: translateY(-50%);
     width: 20px;
     height: 20px;
-    color: #94A3B8;
+    color: #5E6E82;
     pointer-events: none;
   }
   .search-input {
     width: 100%;
     padding: 9px 16px 9px 46px;
-    border: 1.5px solid #E2E8F0;
+    border: 1.5px solid #7A8899;
     border-radius: 12px;
     font-size: 17px;
     font-family: 'Source Sans 3', sans-serif;
@@ -83,10 +84,10 @@
   }
   .search-input:focus {
     border-color: #3482D2;
-    box-shadow: 0 0 0 3px rgba(52,130,210,0.15);
+    box-shadow: 0 0 0 3px rgba(52,130,210,0.40);
     background: #fff;
   }
-  .search-input::placeholder { color: #94A3B8; }
+  .search-input::placeholder { color: #5E6E82; }
 
   /* Filter groups */
   .filter-row {
@@ -94,10 +95,16 @@
     flex-wrap: wrap;
     gap: 8px;
   }
+  .filter-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
   .filter-btn {
     padding: 9px 18px;
     border-radius: 999px;
-    border: 1.5px solid #E2E8F0;
+    border: 1.5px solid #7A8899;
     background: #F8FAFC;
     color: #4A5568;
     font-size: 14px;
@@ -106,22 +113,27 @@
     cursor: pointer;
     transition: all 0.15s;
     white-space: nowrap;
-    min-height: 36px;
+    min-height: 44px;
     display: flex;
     align-items: center;
     gap: 6px;
     -webkit-appearance: none;
     touch-action: manipulation;
   }
-  .filter-btn:hover { background: #EEF2F7; border-color: #CBD5E0; }
+  .filter-btn:hover { background: #EEF2F7; border-color: #4A5A6A; }
   .filter-btn:active { transform: scale(0.97); }
+  .filter-btn:focus-visible,
+  .launch-btn:focus-visible {
+    outline: 3px solid #1A3A5C;
+    outline-offset: 3px;
+  }
 
-  /* Active domain — couleur générique puis override par branche */
+  /* Active domain */
   .filter-btn.active-domain { color: #fff; font-weight: 700; }
   .filter-btn[data-domain="all"].active-domain      { background: #1A3A5C; border-color: #1A3A5C; }
-  .filter-btn[data-domain="francais"].active-domain { background: #B8960C; border-color: #B8960C; }
-  .filter-btn[data-domain="allemand"].active-domain { background: #A08510; border-color: #A08510; }
-  .filter-btn[data-domain="anglais"].active-domain  { background: #8C7515; border-color: #8C7515; }
+  .filter-btn[data-domain="francais"].active-domain { background: #7A6200; border-color: #7A6200; }
+  .filter-btn[data-domain="allemand"].active-domain { background: #7A6200; border-color: #7A6200; }
+  .filter-btn[data-domain="anglais"].active-domain  { background: #5C4A00; border-color: #5C4A00; }
   .filter-btn[data-domain="maths"].active-domain    { background: #C0272D; border-color: #C0272D; }
   .filter-btn[data-domain="sciences"].active-domain { background: #A02030; border-color: #A02030; }
   .filter-btn[data-domain="geo"].active-domain      { background: #1A6B4A; border-color: #1A6B4A; }
@@ -143,7 +155,7 @@
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.7px;
-    color: #94A3B8;
+    color: #5E6E82;
     min-width: 48px;
     flex-shrink: 0;
   }
@@ -157,7 +169,7 @@
   /* Result count */
   .result-count {
     font-size: 13px;
-    color: #94A3B8;
+    color: #5E6E82;
     margin-top: 6px;
     min-height: 18px;
     font-weight: 500;
@@ -183,16 +195,22 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
-    transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
-    animation: cardIn 0.3s ease both;
+    transition: box-shadow 0.18s, border-color 0.18s;
     touch-action: manipulation;
   }
   .app-card:hover {
-    transform: translateY(-4px);
     box-shadow: 0 12px 32px rgba(0,0,0,0.10);
     border-color: #CBD5E0;
   }
   .app-card.hidden { display: none; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .app-card {
+      animation: cardIn 0.3s ease both;
+      transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+    }
+    .app-card:hover { transform: translateY(-4px); }
+  }
 
   /* ===== BANDEAU "EN CHANTIER" ===== */
   .app-card[data-wip] { overflow: hidden; }
@@ -237,7 +255,6 @@
     font-size: 32px;
     flex-shrink: 0;
   }
-  /* Icônes par branche (fond = fond du badge de la branche) */
   .icon-maths    { background: #FDECEA; }
   .icon-francais { background: #FBF5D6; }
   .icon-sciences { background: #F8E4E4; }
@@ -274,7 +291,6 @@
     letter-spacing: 0.1px;
   }
 
-  /* Badges domaine (palette PER officielle) */
   .badge-maths    { background: #FDECEA; color: #8B0000; }
   .badge-francais { background: #FBF5D6; color: #7A6200; }
   .badge-allemand { background: #F5F0D0; color: #6B5800; }
@@ -283,19 +299,16 @@
   .badge-geo      { background: #E6F2ED; color: #0D4A30; }
   .badge-histoire { background: #E0EEEE; color: #0D3D3D; }
 
-  /* Badges HarmoS */
   .badge-1h2h { background: #FEF3E2; color: #8A4E00; }
   .badge-3h4h { background: #FEF3E2; color: #8A4E00; }
   .badge-5h6h { background: #F0EAFF; color: #5B2D9E; }
   .badge-7h8h { background: #F0EAFF; color: #5B2D9E; }
 
-  /* Badge thème */
   .badge-theme { background: #F1F5F9; color: #475569; }
 
-  /* Badge code objectif PER — discret, destiné à l'enseignant */
   .badge-per {
     background: #F1F5F9;
-    color: #64748B;
+    color: #475569;
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.3px;
@@ -322,18 +335,18 @@
     touch-action: manipulation;
     -webkit-appearance: none;
     letter-spacing: 0.2px;
+    scroll-margin-top: 160px;
   }
   .launch-btn:active { transform: scale(0.98); }
 
-  /* Bouton par branche — palette PER */
   .launch-btn.maths    { background: #C0272D; }
   .launch-btn.maths:hover { background: #A01F23; box-shadow: 0 4px 14px rgba(192,39,45,0.30); }
-  .launch-btn.francais { background: #B8960C; }
-  .launch-btn.francais:hover { background: #9A7C0A; box-shadow: 0 4px 14px rgba(184,150,12,0.30); }
-  .launch-btn.allemand { background: #A08510; }
-  .launch-btn.allemand:hover { background: #866E0D; box-shadow: 0 4px 14px rgba(160,133,16,0.30); }
-  .launch-btn.anglais  { background: #8C7515; }
-  .launch-btn.anglais:hover  { background: #745F11; box-shadow: 0 4px 14px rgba(140,117,21,0.30); }
+  .launch-btn.francais { background: #7A6200; }
+  .launch-btn.francais:hover { background: #5C4A00; box-shadow: 0 4px 14px rgba(122,98,0,0.35); }
+  .launch-btn.allemand { background: #7A6200; }
+  .launch-btn.allemand:hover { background: #5C4A00; box-shadow: 0 4px 14px rgba(122,98,0,0.35); }
+  .launch-btn.anglais  { background: #5C4A00; }
+  .launch-btn.anglais:hover  { background: #463800; box-shadow: 0 4px 14px rgba(92,74,0,0.35); }
   .launch-btn.sciences { background: #A02030; }
   .launch-btn.sciences:hover { background: #801828; box-shadow: 0 4px 14px rgba(160,32,48,0.30); }
   .launch-btn.geo      { background: #1A6B4A; }
@@ -346,7 +359,7 @@
     grid-column: 1 / -1;
     text-align: center;
     padding: 56px 20px;
-    color: #94A3B8;
+    color: #5E6E82;
     display: none;
   }
   .no-results.visible { display: block; }
@@ -358,7 +371,7 @@
     text-align: center;
     padding: 20px;
     font-size: 13px;
-    color: #94A3B8;
+    color: #5E6E82;
     border-top: 1px solid #E2E8F0;
   }
 
@@ -366,7 +379,7 @@
   @media (min-width: 768px) {
     .app-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; padding: 24px 28px 48px; }
     .controls { padding: 10px 28px 8px; }
-    .filter-btn { min-height: 40px; font-size: 15px; padding: 10px 20px; }
+    .filter-btn { min-height: 44px; font-size: 15px; padding: 10px 20px; }
     .launch-btn { padding: 18px; font-size: 18px; }
     .card-title { font-size: 20px; }
     .card-desc { font-size: 16px; }
@@ -393,21 +406,20 @@
     <input type="search" id="search-input" class="search-input" placeholder="Rechercher une activité..." autocomplete="off" aria-label="Rechercher une activité">
   </div>
 
-  <!-- Filtres — branche et cycle sur une ligne -->
   <div class="filter-row">
-    <div id="domain-filters" role="group" aria-label="Filtrer par branche" style="display: contents">
+    <div id="domain-filters" class="filter-group" role="group" aria-label="Filtrer par branche">
       <button class="filter-btn active-domain" data-domain="all" aria-pressed="true">Toutes les branches</button>
       <button class="filter-btn" data-domain="maths" aria-pressed="false">
-        <span class="filter-dot" style="background:#C0272D"></span>Mathématiques
+        <span class="filter-dot" style="background:#C0272D" aria-hidden="true"></span>Mathématiques
       </button>
       <button class="filter-btn" data-domain="francais" aria-pressed="false">
-        <span class="filter-dot" style="background:#B8960C"></span>Français
+        <span class="filter-dot" style="background:#B8960C" aria-hidden="true"></span>Français
       </button>
       <button class="filter-btn" data-domain="geo" aria-pressed="false">
-        <span class="filter-dot" style="background:#1A6B4A"></span>Géographie
+        <span class="filter-dot" style="background:#1A6B4A" aria-hidden="true"></span>Géographie
       </button>
     </div>
-    <div id="cycle-filters" role="group" aria-label="Filtrer par cycle" style="display: contents">
+    <div id="cycle-filters" class="filter-group" role="group" aria-label="Filtrer par cycle">
       <button class="filter-btn active-harmos" data-harmos="all" aria-pressed="true">Tous les cycles</button>
       <button class="filter-btn" data-harmos="c1" aria-pressed="false">Cycle 1</button>
       <button class="filter-btn" data-harmos="c2" aria-pressed="false">Cycle 2</button>
@@ -424,7 +436,7 @@
 
     <article class="app-card" data-domain="maths" data-harmos="c1" data-per="MSN 14" data-keywords="aire surface grande petite formes grille grandeurs mesures" style="animation-delay: 0ms;">
       <div class="card-header">
-        <div class="card-icon icon-maths">📐</div>
+        <div class="card-icon icon-maths" aria-hidden="true">📐</div>
         <div class="card-title-wrap">
           <h2 class="card-title">Les surfaces (3H-4H)</h2>
         </div>
@@ -436,12 +448,12 @@
         <span class="badge badge-theme">Grandeurs et mesures</span>
         <span class="badge badge-per">MSN 14</span>
       </div>
-      <a href="apps/surfaces.html" class="launch-btn maths">Lancer l'activité</a>
+      <a href="apps/surfaces.html" class="launch-btn maths" aria-label="Lancer l'activité : Les surfaces (3H-4H)">Lancer l'activité</a>
     </article>
 
     <article class="app-card" data-domain="maths" data-harmos="c1" data-per="MSN 14" data-keywords="capacité récipients contient plus moins formes grandeurs mesures" style="animation-delay: 30ms;">
       <div class="card-header">
-        <div class="card-icon icon-maths">🥛</div>
+        <div class="card-icon icon-maths" aria-hidden="true">🥛</div>
         <div class="card-title-wrap">
           <h2 class="card-title">Qui contient le plus ?</h2>
         </div>
@@ -453,12 +465,12 @@
         <span class="badge badge-theme">Grandeurs et mesures</span>
         <span class="badge badge-per">MSN 14</span>
       </div>
-      <a href="apps/capacites.html" class="launch-btn maths">Lancer l'activité</a>
+      <a href="apps/capacites.html" class="launch-btn maths" aria-label="Lancer l'activité : Qui contient le plus ?">Lancer l'activité</a>
     </article>
 
     <article class="app-card" data-domain="maths" data-harmos="c1" data-per="MSN 14" data-keywords="longueur barres long court orientations grandeurs mesures" style="animation-delay: 60ms;">
       <div class="card-header">
-        <div class="card-icon icon-maths">📏</div>
+        <div class="card-icon icon-maths" aria-hidden="true">📏</div>
         <div class="card-title-wrap">
           <h2 class="card-title">Les longueurs</h2>
         </div>
@@ -470,12 +482,12 @@
         <span class="badge badge-theme">Grandeurs et mesures</span>
         <span class="badge badge-per">MSN 14</span>
       </div>
-      <a href="apps/longueurs.html" class="launch-btn maths">Lancer l'activité</a>
+      <a href="apps/longueurs.html" class="launch-btn maths" aria-label="Lancer l'activité : Les longueurs">Lancer l'activité</a>
     </article>
 
     <article class="app-card" data-domain="maths" data-harmos="c1" data-per="MSN 14" data-keywords="balance masse lourd léger blocs équilibrer grandeurs mesures" style="animation-delay: 90ms;">
       <div class="card-header">
-        <div class="card-icon icon-maths">⚖️</div>
+        <div class="card-icon icon-maths" aria-hidden="true">⚖️</div>
         <div class="card-title-wrap">
           <h2 class="card-title">La balance</h2>
         </div>
@@ -487,14 +499,14 @@
         <span class="badge badge-theme">Grandeurs et mesures</span>
         <span class="badge badge-per">MSN 14</span>
       </div>
-      <a href="apps/balance.html" class="launch-btn maths">Lancer l'activité</a>
+      <a href="apps/balance.html" class="launch-btn maths" aria-label="Lancer l'activité : La balance">Lancer l'activité</a>
     </article>
 
     <!-- ======= MATHÉMATIQUES — NOMBRES ======= -->
 
     <article class="app-card" data-domain="maths" data-harmos="c1" data-per="MSN 12" data-keywords="comparer nombres comparateur grand petit symbole" style="animation-delay: 90ms;">
       <div class="card-header">
-        <div class="card-icon icon-maths">🔢</div>
+        <div class="card-icon icon-maths" aria-hidden="true">🔢</div>
         <div class="card-title-wrap">
           <h2 class="card-title">Le comparateur de nombres (3H-4H)</h2>
         </div>
@@ -506,12 +518,12 @@
         <span class="badge badge-theme">Nombres</span>
         <span class="badge badge-per">MSN 12</span>
       </div>
-      <a href="apps/comparaison-nombres-c1.html" class="launch-btn maths">Lancer l'activité</a>
+      <a href="apps/comparaison-nombres-c1.html" class="launch-btn maths" aria-label="Lancer l'activité : Le comparateur de nombres (3H-4H)">Lancer l'activité</a>
     </article>
 
     <article class="app-card" data-domain="maths" data-harmos="c2" data-per="MSN 22" data-keywords="nombres flèches droite graduée mille situer nombres" data-wip style="animation-delay: 120ms;">
       <div class="card-header">
-        <div class="card-icon icon-maths">↗️</div>
+        <div class="card-icon icon-maths" aria-hidden="true">↗️</div>
         <div class="card-title-wrap">
           <h2 class="card-title">Nombres flèches</h2>
         </div>
@@ -523,12 +535,12 @@
         <span class="badge badge-theme">Nombres</span>
         <span class="badge badge-per">MSN 22</span>
       </div>
-      <a href="apps/droite-graduee.html" class="launch-btn maths">Lancer l'activité</a>
+      <a href="apps/droite-graduee.html" class="launch-btn maths" aria-label="Lancer l'activité : Nombres flèches" aria-disabled="true" tabindex="-1">Lancer l'activité</a>
     </article>
 
     <article class="app-card" data-domain="maths" data-harmos="c2" data-per="MSN 22" data-keywords="comparer nombres comparateur grand petit nombres" style="animation-delay: 150ms;">
       <div class="card-header">
-        <div class="card-icon icon-maths">🔢</div>
+        <div class="card-icon icon-maths" aria-hidden="true">🔢</div>
         <div class="card-title-wrap">
           <h2 class="card-title">Le comparateur de nombres (5H-6H)</h2>
         </div>
@@ -540,12 +552,12 @@
         <span class="badge badge-theme">Nombres</span>
         <span class="badge badge-per">MSN 22</span>
       </div>
-      <a href="apps/comparaison-nombres.html" class="launch-btn maths">Lancer l'activité</a>
+      <a href="apps/comparaison-nombres.html" class="launch-btn maths" aria-label="Lancer l'activité : Le comparateur de nombres (5H-6H)">Lancer l'activité</a>
     </article>
 
     <article class="app-card" data-domain="maths" data-harmos="c2" data-keywords="saut dizaines centaines milliers ajouter enlever nombres décomposer valeur position" style="animation-delay: 180ms;">
       <div class="card-header">
-        <div class="card-icon icon-maths">🦘</div>
+        <div class="card-icon icon-maths" aria-hidden="true">🦘</div>
         <div class="card-title-wrap">
           <h2 class="card-title">Le saut de nombre</h2>
         </div>
@@ -556,12 +568,12 @@
         <span class="badge badge-5h6h">5H–6H</span>
         <span class="badge badge-theme">Nombres</span>
       </div>
-      <a href="apps/saut-de-nombre.html" class="launch-btn maths">Lancer l'activité</a>
+      <a href="apps/saut-de-nombre.html" class="launch-btn maths" aria-label="Lancer l'activité : Le saut de nombre">Lancer l'activité</a>
     </article>
 
     <article class="app-card" data-domain="maths" data-harmos="c2" data-keywords="extracteur décomposer dizaines unités centaines nombres" data-wip style="animation-delay: 210ms;">
       <div class="card-header">
-        <div class="card-icon icon-maths">🧩</div>
+        <div class="card-icon icon-maths" aria-hidden="true">🧩</div>
         <div class="card-title-wrap">
           <h2 class="card-title">L'extracteur</h2>
         </div>
@@ -572,12 +584,12 @@
         <span class="badge badge-5h6h">5H–6H</span>
         <span class="badge badge-theme">Nombres</span>
       </div>
-      <a href="apps/valeur-position.html" class="launch-btn maths">Lancer l'activité</a>
+      <a href="apps/valeur-position.html" class="launch-btn maths" aria-label="Lancer l'activité : L'extracteur" aria-disabled="true" tabindex="-1">Lancer l'activité</a>
     </article>
 
     <article class="app-card" data-domain="maths" data-harmos="c2" data-keywords="calcul colonne posé addition soustraction opérations" style="animation-delay: 240ms;">
       <div class="card-header">
-        <div class="card-icon icon-maths">🧮</div>
+        <div class="card-icon icon-maths" aria-hidden="true">🧮</div>
         <div class="card-title-wrap">
           <h2 class="card-title">Additions en colonne</h2>
         </div>
@@ -588,12 +600,12 @@
         <span class="badge badge-5h6h">5H–6H</span>
         <span class="badge badge-theme">Opérations</span>
       </div>
-      <a href="apps/vertical-calculation.html" class="launch-btn maths">Lancer l'activité</a>
+      <a href="apps/vertical-calculation.html" class="launch-btn maths" aria-label="Lancer l'activité : Additions en colonne">Lancer l'activité</a>
     </article>
 
     <article class="app-card" data-domain="maths" data-harmos="c2" data-keywords="soustraction colonne posé emprunt opérations" style="animation-delay: 270ms;">
       <div class="card-header">
-        <div class="card-icon icon-maths">➖</div>
+        <div class="card-icon icon-maths" aria-hidden="true">➖</div>
         <div class="card-title-wrap">
           <h2 class="card-title">Soustraction en colonne</h2>
         </div>
@@ -604,12 +616,12 @@
         <span class="badge badge-5h6h">5H–6H</span>
         <span class="badge badge-theme">Opérations</span>
       </div>
-      <a href="apps/soustraction-colonne.html" class="launch-btn maths">Lancer l'activité</a>
+      <a href="apps/soustraction-colonne.html" class="launch-btn maths" aria-label="Lancer l'activité : Soustraction en colonne">Lancer l'activité</a>
     </article>
 
     <article class="app-card" data-domain="maths" data-harmos="c2" data-per="MSN 24" data-keywords="aire surface grande petite formes grille calcul longueur largeur grandeurs mesures" style="animation-delay: 300ms;">
       <div class="card-header">
-        <div class="card-icon icon-maths">📐</div>
+        <div class="card-icon icon-maths" aria-hidden="true">📐</div>
         <div class="card-title-wrap">
           <h2 class="card-title">Les surfaces (5H-6H)</h2>
         </div>
@@ -621,14 +633,14 @@
         <span class="badge badge-theme">Grandeurs et mesures</span>
         <span class="badge badge-per">MSN 24</span>
       </div>
-      <a href="apps/surfaces-c2.html" class="launch-btn maths">Lancer l'activité</a>
+      <a href="apps/surfaces-c2.html" class="launch-btn maths" aria-label="Lancer l'activité : Les surfaces (5H-6H)">Lancer l'activité</a>
     </article>
 
     <!-- ======= FRANÇAIS ======= -->
 
     <article class="app-card" data-domain="francais" data-harmos="c2" data-per="L1 21" data-keywords="lecture compréhension textes questions lire décodi inférence opinion français" style="animation-delay: 330ms;">
       <div class="card-header">
-        <div class="card-icon icon-francais">📖</div>
+        <div class="card-icon icon-francais" aria-hidden="true">📖</div>
         <div class="card-title-wrap">
           <h2 class="card-title">Compréhension DéCoDi</h2>
         </div>
@@ -640,13 +652,12 @@
         <span class="badge badge-theme">Compréhension de l'écrit</span>
         <span class="badge badge-per">L1 21</span>
       </div>
-      <a href="apps/decodi-comprehension.html" class="launch-btn francais">Lancer l'activité</a>
+      <a href="apps/decodi-comprehension.html" class="launch-btn francais" aria-label="Lancer l'activité : Compréhension DéCoDi">Lancer l'activité</a>
     </article>
-
 
     <article class="app-card" data-domain="francais" data-harmos="c1" data-per="L1 11" data-keywords="dictée orthographe écriture graphème mots décodi français cgp" style="animation-delay: 390ms;">
       <div class="card-header">
-        <div class="card-icon icon-francais">✍️</div>
+        <div class="card-icon icon-francais" aria-hidden="true">✍️</div>
         <div class="card-title-wrap">
           <h2 class="card-title">Dictée DéCoDi (3H-4H)</h2>
         </div>
@@ -658,12 +669,12 @@
         <span class="badge badge-theme">Orthographe</span>
         <span class="badge badge-per">L1 11</span>
       </div>
-      <a href="apps/decodi-dictee.html" class="launch-btn francais">Lancer l'activité</a>
+      <a href="apps/decodi-dictee.html" class="launch-btn francais" aria-label="Lancer l'activité : Dictée DéCoDi (3H-4H)">Lancer l'activité</a>
     </article>
 
     <article class="app-card" data-domain="francais" data-harmos="c2" data-per="L1 26" data-keywords="dictée orthographe écriture graphème mots décodi français cgp avancé" style="animation-delay: 420ms;">
       <div class="card-header">
-        <div class="card-icon icon-francais">✍️</div>
+        <div class="card-icon icon-francais" aria-hidden="true">✍️</div>
         <div class="card-title-wrap">
           <h2 class="card-title">Dictée DéCoDi (5H-6H)</h2>
         </div>
@@ -675,14 +686,14 @@
         <span class="badge badge-theme">Orthographe</span>
         <span class="badge badge-per">L1 26</span>
       </div>
-      <a href="apps/decodi-dictee-c2.html" class="launch-btn francais">Lancer l'activité</a>
+      <a href="apps/decodi-dictee-c2.html" class="launch-btn francais" aria-label="Lancer l'activité : Dictée DéCoDi (5H-6H)">Lancer l'activité</a>
     </article>
 
     <!-- ======= GÉOGRAPHIE ======= -->
 
     <article class="app-card" data-domain="geo" data-harmos="c2" data-keywords="ville village campagne fonctions aspect habitants dense géographie entraînement" style="animation-delay: 450ms;">
       <div class="card-header">
-        <div class="card-icon icon-geo">🏙️</div>
+        <div class="card-icon icon-geo" aria-hidden="true">🏙️</div>
         <div class="card-title-wrap">
           <h2 class="card-title">Entraînement — La ville</h2>
         </div>
@@ -693,14 +704,14 @@
         <span class="badge badge-5h6h">5H–6H</span>
         <span class="badge badge-theme">La ville</span>
       </div>
-      <a href="apps/entrainement-ville.html" class="launch-btn geo">Lancer l'activité</a>
+      <a href="apps/entrainement-ville.html" class="launch-btn geo" aria-label="Lancer l'activité : Entraînement — La ville">Lancer l'activité</a>
     </article>
 
     <!-- ======= MATHÉMATIQUES — ESPACE ======= -->
 
     <article class="app-card" data-domain="maths" data-harmos="c1" data-per="MSN 11" data-keywords="espace itinéraire trajet repérage gauche droite plan grille déplacement" style="animation-delay: 480ms;">
       <div class="card-header">
-        <div class="card-icon icon-maths">🗺️</div>
+        <div class="card-icon icon-maths" aria-hidden="true">🗺️</div>
         <div class="card-title-wrap">
           <h2 class="card-title">Lis le trajet (3H-4H)</h2>
         </div>
@@ -712,12 +723,12 @@
         <span class="badge badge-theme">Espace</span>
         <span class="badge badge-per">MSN 11</span>
       </div>
-      <a href="apps/itineraires.html" class="launch-btn maths">Lancer l'activité</a>
+      <a href="apps/itineraires.html" class="launch-btn maths" aria-label="Lancer l'activité : Lis le trajet (3H-4H)">Lancer l'activité</a>
     </article>
 
     <article class="app-card" data-domain="maths" data-harmos="c1" data-per="MSN 11" data-keywords="espace itinéraire trajet repérage gauche droite plan grille déplacement décrire produire" style="animation-delay: 510ms;">
       <div class="card-header">
-        <div class="card-icon icon-maths">🗺️</div>
+        <div class="card-icon icon-maths" aria-hidden="true">🗺️</div>
         <div class="card-title-wrap">
           <h2 class="card-title">Décris le trajet (3H-4H)</h2>
         </div>
@@ -729,7 +740,7 @@
         <span class="badge badge-theme">Espace</span>
         <span class="badge badge-per">MSN 11</span>
       </div>
-      <a href="apps/itineraires-decris.html" class="launch-btn maths">Lancer l'activité</a>
+      <a href="apps/itineraires-decris.html" class="launch-btn maths" aria-label="Lancer l'activité : Décris le trajet (3H-4H)">Lancer l'activité</a>
     </article>
 
     <!-- No results -->
@@ -747,6 +758,8 @@
 
 <script>
   document.getElementById('year').textContent = new Date().getFullYear();
+
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const cards      = Array.from(document.querySelectorAll('.app-card'));
   const noResults  = document.getElementById('no-results');
@@ -768,7 +781,7 @@
       const show = domainOk && harmosOk && searchOk;
       card.classList.toggle('hidden', !show);
       if (show) {
-        card.style.animationDelay = (visible * 30) + 'ms';
+        if (!reducedMotion) card.style.animationDelay = (visible * 30) + 'ms';
         visible++;
       }
     });
