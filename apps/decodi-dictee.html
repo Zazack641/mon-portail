@@ -85,6 +85,22 @@
     width: 100%;
     margin-bottom: -4px;
   }
+  .bloc-btn {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 140px;
+  }
+  .bloc-btn-title {
+    font-size: 17px;
+    font-weight: 800;
+  }
+  .bloc-btn-words {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: #94A3B8;
+  }
 
   /* ── Vue dictée ──────────────────────────────────────────────────── */
   #view-dictee {
@@ -246,6 +262,12 @@
     <div class="select-grid" id="grapheme-grid"></div>
   </div>
 
+  <!-- VUE 2b — Sélection du bloc -->
+  <div id="view-bloc" style="display:none">
+    <p class="select-section-title" id="bloc-section-title">Choisir un bloc</p>
+    <div class="select-grid" id="bloc-grid"></div>
+  </div>
+
   <!-- VUE 3 — Dictée -->
   <div id="view-dictee" style="display:none">
 
@@ -295,6 +317,7 @@
       <p class="recap-detail" id="recap-detail"></p>
       <div class="recap-actions">
         <button class="verify-btn" id="next-bloc-btn" style="display:none">Bloc suivant</button>
+        <button class="new-btn visible" id="change-bloc-btn">Choisir un bloc</button>
         <button class="new-btn visible" id="change-grapheme-btn">Changer de graphème</button>
       </div>
     </div>
@@ -339,10 +362,13 @@ const BLOC_SIZE = 7;
 // ── Références DOM ────────────────────────────────────────────────────────────
 const viewModule    = document.getElementById('view-module');
 const viewGrapheme  = document.getElementById('view-grapheme');
+const viewBloc      = document.getElementById('view-bloc');
 const viewDictee    = document.getElementById('view-dictee');
 const moduleGrid    = document.getElementById('module-grid');
 const graphemeGrid  = document.getElementById('grapheme-grid');
-const graphSectionTitle = document.getElementById('grapheme-section-title');
+const blocGrid      = document.getElementById('bloc-grid');
+const graphSectionTitle  = document.getElementById('grapheme-section-title');
+const blocSectionTitle   = document.getElementById('bloc-section-title');
 const navLabel      = document.getElementById('nav-label');
 const navBackBtn    = document.getElementById('nav-back-btn');
 const blocInfo      = document.getElementById('bloc-info');
@@ -359,7 +385,8 @@ const newBtn        = document.getElementById('new-btn');
 const recapBox      = document.getElementById('recap-box');
 const recapScore    = document.getElementById('recap-score');
 const recapDetail   = document.getElementById('recap-detail');
-const nextBlocBtn   = document.getElementById('next-bloc-btn');
+const nextBlocBtn      = document.getElementById('next-bloc-btn');
+const changeBlocBtn    = document.getElementById('change-bloc-btn');
 const changeGraphemeBtn = document.getElementById('change-grapheme-btn');
 
 // ── État ──────────────────────────────────────────────────────────────────────
@@ -396,6 +423,7 @@ function showFeedback(correct, msg) {
 function showView(name) {
   viewModule.style.display   = name === 'module'   ? '' : 'none';
   viewGrapheme.style.display = name === 'grapheme' ? '' : 'none';
+  viewBloc.style.display     = name === 'bloc'     ? '' : 'none';
   viewDictee.style.display   = name === 'dictee'   ? 'flex' : 'none';
 }
 
@@ -408,10 +436,14 @@ function updateNavBar(view) {
     navLabel.textContent = selectedModule;
     navBackBtn.style.display = '';
     navBackBtn.onclick = () => goToModule();
-  } else {
+  } else if (view === 'bloc') {
     navLabel.textContent = selectedModule + ' — ' + selectedGrapheme;
     navBackBtn.style.display = '';
     navBackBtn.onclick = () => goToGrapheme();
+  } else {
+    navLabel.textContent = selectedModule + ' — ' + selectedGrapheme;
+    navBackBtn.style.display = '';
+    navBackBtn.onclick = () => goToBloc();
   }
 }
 
@@ -468,8 +500,35 @@ function selectGrapheme(grapheme) {
   for (let i = 0; i < allWords.length; i += BLOC_SIZE) {
     blocs.push(allWords.slice(i, i + BLOC_SIZE));
   }
-  currentBlocIdx = 0;
-  startBloc(0);
+  buildBlocGrid();
+  updateNavBar('bloc');
+  showView('bloc');
+}
+
+// ── Vue 2b — Blocs ────────────────────────────────────────────────────────────
+function buildBlocGrid() {
+  blocGrid.innerHTML = '';
+  blocSectionTitle.textContent = 'Choisir un bloc — ' + selectedGrapheme;
+  blocs.forEach((bloc, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'select-btn bloc-btn';
+    const preview = bloc.slice(0, 3).join(', ') + (bloc.length > 3 ? '…' : '');
+    btn.innerHTML =
+      `<span class="bloc-btn-title">Bloc ${idx + 1}</span>` +
+      `<span class="bloc-btn-words">${preview}</span>`;
+    btn.addEventListener('click', () => selectBloc(idx));
+    blocGrid.appendChild(btn);
+  });
+}
+
+function goToBloc() {
+  buildBlocGrid();
+  updateNavBar('bloc');
+  showView('bloc');
+}
+
+function selectBloc(idx) {
+  startBloc(idx);
   updateNavBar('dictee');
   showView('dictee');
 }
@@ -599,7 +658,12 @@ newBtn.addEventListener('click', nextWord);
 
 nextBlocBtn.addEventListener('click', () => {
   recapBox.style.display = 'none';
-  startBloc(currentBlocIdx + 1);
+  selectBloc(currentBlocIdx + 1);
+});
+
+changeBlocBtn.addEventListener('click', () => {
+  recapBox.style.display = 'none';
+  goToBloc();
 });
 
 changeGraphemeBtn.addEventListener('click', () => {

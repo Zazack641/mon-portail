@@ -203,6 +203,22 @@
   .ctrl-btn:hover:not(:disabled)  { background: #EEF2F7; }
   .ctrl-btn:active:not(:disabled) { background: #E2E8F0; }
   .ctrl-btn:disabled { opacity: 0.35; cursor: default; }
+  .grid-cell.obstacle { background: #94A3B8; }
+
+  .sequence-step.error {
+    border-color: #E53E3E;
+    background: #FEE2E2;
+  }
+
+  .ctrl-btn.verify {
+    background: #C0272D;
+    color: #fff;
+    border-color: #A01F24;
+  }
+  .ctrl-btn.verify:hover:not(:disabled)  { background: #A01F24; }
+  .ctrl-btn.verify:active:not(:disabled) { background: #8B1A1E; }
+  .ctrl-btn.verify:disabled { background: #F8FAFC; color: #94A3B8; border-color: #E2E8F0; }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       transition-duration: 0.01ms !important;
@@ -255,6 +271,7 @@
     <div class="controls-secondary">
       <button class="ctrl-btn" id="effacer-btn"     aria-label="Effacer la dernière instruction">⬅️ Effacer</button>
       <button class="ctrl-btn" id="recommencer-btn" aria-label="Recommencer depuis le début">🔄 Recommencer</button>
+      <button class="ctrl-btn verify" id="verifier-btn" aria-label="Vérifier la séquence">✅ Vérifier</button>
     </div>
   </div>
 
@@ -276,6 +293,7 @@
   const sequenceList   = document.getElementById('sequence-list');
   const effacerBtn     = document.getElementById('effacer-btn');
   const recommencerBtn = document.getElementById('recommencer-btn');
+  const verifierBtn    = document.getElementById('verifier-btn');
   const btnUp          = document.getElementById('btn-up');
   const btnDown        = document.getElementById('btn-down');
   const btnLeft        = document.getElementById('btn-left');
@@ -292,6 +310,26 @@
     '🏥': "l'hôpital",
     '🏪': "la boutique",
   };
+  const DIRS = { '⬆️': [-1, 0], '⬇️': [1, 0], '⬅️': [0, -1], '➡️': [0, 1] };
+  const ARROW_LABEL = { '⬆️': 'haut', '⬇️': 'bas', '⬅️': 'gauche', '➡️': 'droite' };
+
+  function edgeHint(dr, dc) {
+    if (dr === -1) return "tu es déjà au bord du haut";
+    if (dr ===  1) return "tu es déjà au bord du bas";
+    if (dc === -1) return "tu es déjà au bord gauche";
+    return "tu es déjà au bord droit";
+  }
+
+  function relativeHint(from, to) {
+    const dr = to.row - from.row;
+    const dc = to.col - from.col;
+    const parts = [];
+    if (dr > 0) parts.push(`${dr} case${dr > 1 ? 's' : ''} vers le bas`);
+    if (dr < 0) parts.push(`${-dr} case${-dr > 1 ? 's' : ''} vers le haut`);
+    if (dc > 0) parts.push(`${dc} case${dc > 1 ? 's' : ''} vers la droite`);
+    if (dc < 0) parts.push(`${-dc} case${-dc > 1 ? 's' : ''} vers la gauche`);
+    return parts.join(' et ');
+  }
 
   // ── État ─────────────────────────────────────────────────────────────────────
   let currentLevel = 1;
@@ -301,6 +339,53 @@
   function inGrid(r, c) { return r >= 0 && r < GRID && c >= 0 && c < GRID; }
   function key(r, c)    { return r * GRID + c; }
   function mdist(a, b)  { return Math.abs(a.row - b.row) + Math.abs(a.col - b.col); }
+  function sleep(ms)    { return new Promise(r => setTimeout(r, ms)); }
+
+  function hasPath(start, end, obstacles) {
+    const blocked = new Set(obstacles.map(o => key(o.row, o.col)));
+    const visited = new Set([key(start.row, start.col)]);
+    const queue   = [{ ...start }];
+    while (queue.length) {
+      const curr = queue.shift();
+      if (curr.row === end.row && curr.col === end.col) return true;
+      for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+        const nr = curr.row + dr, nc = curr.col + dc;
+        if (!inGrid(nr, nc)) continue;
+        const k = key(nr, nc);
+        if (visited.has(k) || blocked.has(k)) continue;
+        visited.add(k);
+        queue.push({ row: nr, col: nc });
+      }
+    }
+    return false;
+  }
+
+  function bfsPath(start, end, obstacles) {
+    const blocked = new Set(obstacles.map(o => key(o.row, o.col)));
+    const parent  = new Map([[key(start.row, start.col), null]]);
+    const queue   = [start];
+    while (queue.length) {
+      const curr = queue.shift();
+      if (curr.row === end.row && curr.col === end.col) {
+        const path = [];
+        let k = key(curr.row, curr.col);
+        while (k !== null) {
+          path.unshift({ row: Math.floor(k / GRID), col: k % GRID });
+          k = parent.get(k);
+        }
+        return path;
+      }
+      for (const [dr, dc] of shuffle([[-1,0],[1,0],[0,-1],[0,1]])) {
+        const nr = curr.row + dr, nc = curr.col + dc;
+        if (!inGrid(nr, nc)) continue;
+        const k = key(nr, nc);
+        if (parent.has(k) || blocked.has(k)) continue;
+        parent.set(k, key(curr.row, curr.col));
+        queue.push({ row: nr, col: nc });
+      }
+    }
+    return null;
+  }
 
   // ── Feedback ──────────────────────────────────────────────────────────────────
   function showFeedback(correct, msg) {
@@ -345,13 +430,10 @@
     else                  startPos = pick(allCells, 1)[0];
 
     const [minD, maxD] = level === 1 ? [2, 3] : level === 2 ? [3, 4] : [4, 6];
-
     let pool = allCells.filter(p => {
       const d = mdist(p, startPos);
       return d >= minD && d <= maxD;
     });
-
-    // Fallbacks progressifs si la grille est trop petite pour le range demandé
     if (!pool.length) pool = allCells.filter(p => mdist(p, startPos) >= 2);
     if (!pool.length) pool = allCells.filter(p => mdist(p, startPos) >= 1);
 
@@ -359,23 +441,71 @@
     return { startPos, endPos };
   }
 
+  function generateObstacles(startPos, endPos) {
+    const shortest = bfsPath(startPos, endPos, []);
+    if (!shortest || shortest.length <= 2) return [];
+
+    // 2 obstacles sur le chemin direct (force le détour)
+    const intermediates = shuffle(shortest.slice(1, -1));
+    const obstacles = [];
+    for (const candidate of intermediates) {
+      if (obstacles.length >= 2) break;
+      if (hasPath(startPos, endPos, [...obstacles, candidate])) {
+        obstacles.push(candidate);
+      }
+    }
+
+    // 1 obstacle hors-chemin, en évitant que les 3 soient alignés
+    const onPath = new Set(shortest.map(p => key(p.row, p.col)));
+    const offPath = [];
+    for (let r = 0; r < GRID; r++)
+      for (let c = 0; c < GRID; c++) {
+        const k = key(r, c);
+        if (!onPath.has(k) &&
+            !(r === startPos.row && c === startPos.col) &&
+            !(r === endPos.row   && c === endPos.col))
+          offPath.push({ row: r, col: c });
+      }
+    for (const candidate of shuffle(offPath)) {
+      const all = [...obstacles, candidate];
+      const aligned = all.every(o => o.row === all[0].row) ||
+                      all.every(o => o.col === all[0].col);
+      if (aligned) continue;
+      if (hasPath(startPos, endPos, all)) {
+        obstacles.push(candidate);
+        break;
+      }
+    }
+
+    return obstacles;
+  }
+
   function generateExercise(level) {
     const { startPos, endPos } = choosePositions(level);
+    const obstacles = level === 3 ? generateObstacles(startPos, endPos) : [];
     return {
       startPos,
       endPos,
-      destEmoji:  pick(EMOJIS, 1)[0],
-      currentPos: { ...startPos },
-      path:       [{ ...startPos }],
-      sequence:   [],
-      answered:   false,
+      obstacles,
+      destEmoji: pick(EMOJIS, 1)[0],
+      sequence:  [],
+      animPos:   null,
+      animPath:  [],
+      answered:  false,
+      animating: false,
+      errorStep: -1,
     };
   }
 
   // ── Rendu ─────────────────────────────────────────────────────────────────────
   function renderGrid() {
     gridEl.innerHTML = '';
-    const pathSet = new Set(state.path.map(p => key(p.row, p.col)));
+    const obstacleSet = new Set(state.obstacles.map(o => key(o.row, o.col)));
+    const animPathSet = new Set((state.animPath || []).map(p => key(p.row, p.col)));
+
+    const displayPos = state.answered
+      ? (state.animPos || state.endPos)
+      : (state.animating ? state.animPos : state.startPos);
 
     for (let r = 0; r < GRID; r++) {
       for (let c = 0; c < GRID; c++) {
@@ -385,12 +515,17 @@
         cell.dataset.col = c;
         cell.setAttribute('role', 'gridcell');
 
-        const isStart   = r === state.startPos.row  && c === state.startPos.col;
-        const isDest    = r === state.endPos.row     && c === state.endPos.col;
-        const isCurrent = r === state.currentPos.row && c === state.currentPos.col;
-        const inPath    = pathSet.has(key(r, c));
+        const isStart    = r === state.startPos.row && c === state.startPos.col;
+        const isDest     = r === state.endPos.row   && c === state.endPos.col;
+        const isCurrent  = displayPos && r === displayPos.row && c === displayPos.col;
+        const isObstacle = obstacleSet.has(key(r, c));
+        const inAnimPath = animPathSet.has(key(r, c));
 
-        if (state.answered && isDest) {
+        if (isObstacle) {
+          cell.classList.add('obstacle');
+          cell.textContent = '🧱';
+          cell.setAttribute('aria-label', 'Obstacle');
+        } else if (state.answered && isDest) {
           cell.classList.add('cell-arrived');
           cell.textContent = '🧒';
           cell.setAttribute('aria-label', 'Arrivée !');
@@ -405,7 +540,7 @@
         } else if (isStart) {
           cell.classList.add('start');
           cell.setAttribute('aria-label', 'Départ');
-        } else if (inPath) {
+        } else if (inAnimPath) {
           cell.classList.add('path-cell');
         }
 
@@ -420,14 +555,14 @@
     if (!state.sequence.length) {
       const empty = document.createElement('span');
       empty.className = 'sequence-empty';
-      empty.textContent = 'Appuie sur les flèches pour démarrer';
+      empty.textContent = 'Appuie sur les flèches pour construire ta séquence';
       sequenceList.appendChild(empty);
       return;
     }
 
     state.sequence.forEach((arrow, i) => {
       const step = document.createElement('div');
-      step.className = 'sequence-step';
+      step.className = 'sequence-step' + (i === state.errorStep ? ' error' : '');
       step.setAttribute('role', 'listitem');
       step.setAttribute('aria-label', `Étape ${i + 1} : ${arrow}`);
 
@@ -446,82 +581,143 @@
       sequenceList.appendChild(step);
     });
 
-    // Scroll au dernier élément ajouté
     sequenceList.scrollLeft = sequenceList.scrollWidth;
   }
 
   function updateButtons() {
-    const done = state.answered;
-    btnUp.disabled    = done || !inGrid(state.currentPos.row - 1, state.currentPos.col);
-    btnDown.disabled  = done || !inGrid(state.currentPos.row + 1, state.currentPos.col);
-    btnLeft.disabled  = done || !inGrid(state.currentPos.row, state.currentPos.col - 1);
-    btnRight.disabled = done || !inGrid(state.currentPos.row, state.currentPos.col + 1);
-    effacerBtn.disabled     = done || state.sequence.length === 0;
-    recommencerBtn.disabled = done;
+    const locked = state.answered || state.animating;
+    btnUp.disabled    = locked;
+    btnDown.disabled  = locked;
+    btnLeft.disabled  = locked;
+    btnRight.disabled = locked;
+    effacerBtn.disabled     = locked || state.sequence.length === 0;
+    recommencerBtn.disabled = locked || state.sequence.length === 0;
+    verifierBtn.disabled    = locked || state.sequence.length === 0;
   }
 
-  // ── Déplacement ───────────────────────────────────────────────────────────────
-  function move(dr, dc, arrow) {
-    if (state.answered) return;
-    const nr = state.currentPos.row + dr;
-    const nc = state.currentPos.col + dc;
-    if (!inGrid(nr, nc)) return;
-
-    state.currentPos = { row: nr, col: nc };
-    state.path.push({ ...state.currentPos });
+  // ── Ajout d'une instruction à la séquence ─────────────────────────────────────
+  function addToSequence(arrow) {
+    if (state.answered || state.animating) return;
     state.sequence.push(arrow);
-
-    const arrived = nr === state.endPos.row && nc === state.endPos.col;
-    if (arrived) state.answered = true;
-
-    renderGrid();
+    state.errorStep = -1;
+    resetFeedback();
     renderSequence();
     updateButtons();
-
-    if (arrived) {
-      const n = state.sequence.length;
-      showFeedback(true,
-        `Bravo ! Tu as décrit le chemin en ${n} déplacement${n > 1 ? 's' : ''} ! 🎉`
-      );
-    }
   }
 
-  // ── Boutons ───────────────────────────────────────────────────────────────────
-  btnUp.addEventListener('click',    () => move(-1,  0, '⬆️'));
-  btnDown.addEventListener('click',  () => move( 1,  0, '⬇️'));
-  btnLeft.addEventListener('click',  () => move( 0, -1, '⬅️'));
-  btnRight.addEventListener('click', () => move( 0,  1, '➡️'));
+  // ── Boutons directionnels ──────────────────────────────────────────────────────
+  btnUp.addEventListener('click',    () => addToSequence('⬆️'));
+  btnDown.addEventListener('click',  () => addToSequence('⬇️'));
+  btnLeft.addEventListener('click',  () => addToSequence('⬅️'));
+  btnRight.addEventListener('click', () => addToSequence('➡️'));
 
   effacerBtn.addEventListener('click', () => {
-    if (state.answered || !state.sequence.length) return;
-    state.path.pop();
+    if (state.answered || state.animating || !state.sequence.length) return;
     state.sequence.pop();
-    state.currentPos = { ...state.path[state.path.length - 1] };
-    renderGrid();
+    state.errorStep = -1;
+    resetFeedback();
     renderSequence();
     updateButtons();
   });
 
   recommencerBtn.addEventListener('click', () => {
-    if (state.answered) return;
-    state.currentPos = { ...state.startPos };
-    state.path       = [{ ...state.startPos }];
-    state.sequence   = [];
+    if (state.answered || state.animating) return;
+    state.sequence  = [];
+    state.errorStep = -1;
+    state.animPath  = [];
+    state.animPos   = null;
     resetFeedback();
     renderGrid();
     renderSequence();
     updateButtons();
   });
 
-  // Support clavier (flèches + Backspace)
   document.addEventListener('keydown', e => {
-    if (state.answered) return;
-    if (e.key === 'ArrowUp')    { e.preventDefault(); move(-1,  0, '⬆️'); }
-    if (e.key === 'ArrowDown')  { e.preventDefault(); move( 1,  0, '⬇️'); }
-    if (e.key === 'ArrowLeft')  { e.preventDefault(); move( 0, -1, '⬅️'); }
-    if (e.key === 'ArrowRight') { e.preventDefault(); move( 0,  1, '➡️'); }
+    if (state.answered || state.animating) return;
+    if (e.key === 'ArrowUp')    { e.preventDefault(); addToSequence('⬆️'); }
+    if (e.key === 'ArrowDown')  { e.preventDefault(); addToSequence('⬇️'); }
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); addToSequence('⬅️'); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); addToSequence('➡️'); }
     if (e.key === 'Backspace')  { e.preventDefault(); effacerBtn.click(); }
+    if (e.key === 'Enter')      { e.preventDefault(); verifierBtn.click(); }
   });
+
+  // ── Vérification animée de la séquence ───────────────────────────────────────
+  async function verifySequence() {
+    if (state.answered || state.animating || !state.sequence.length) return;
+
+    state.animating = true;
+    state.animPath  = [];
+    state.errorStep = -1;
+    resetFeedback();
+    updateButtons();
+
+    const obstacleSet = new Set(state.obstacles.map(o => key(o.row, o.col)));
+    let pos = { ...state.startPos };
+    state.animPos  = { ...pos };
+    state.animPath = [{ ...pos }];
+    renderGrid();
+    renderSequence();
+    await sleep(300);
+
+    for (let i = 0; i < state.sequence.length; i++) {
+      const [dr, dc] = DIRS[state.sequence[i]];
+      const nr = pos.row + dr;
+      const nc = pos.col + dc;
+
+      if (!inGrid(nr, nc)) {
+        state.errorStep = i;
+        state.animating = false;
+        state.animPos   = null;
+        state.animPath  = [];
+        renderGrid();
+        renderSequence();
+        updateButtons();
+        showFeedback(false, `Étape ${i + 1} — tu veux aller vers le ${ARROW_LABEL[state.sequence[i]]} mais ${edgeHint(dr, dc)}. Change cette instruction.`);
+        return;
+      }
+
+      if (obstacleSet.has(key(nr, nc))) {
+        state.errorStep = i;
+        state.animating = false;
+        state.animPos   = null;
+        state.animPath  = [];
+        renderGrid();
+        renderSequence();
+        updateButtons();
+        showFeedback(false, `Étape ${i + 1} — il y a un mur 🧱 vers le ${ARROW_LABEL[state.sequence[i]]}. Trouve une autre direction pour le contourner.`);
+        return;
+      }
+
+      pos = { row: nr, col: nc };
+      state.animPos = { ...pos };
+      state.animPath.push({ ...pos });
+      renderGrid();
+      await sleep(400);
+    }
+
+    state.animating = false;
+
+    if (pos.row === state.endPos.row && pos.col === state.endPos.col) {
+      state.answered = true;
+      renderGrid();
+      updateButtons();
+      const n = state.sequence.length;
+      showFeedback(true,
+        `Bravo ! Tu as trouvé le chemin en ${n} déplacement${n > 1 ? 's' : ''} ! 🎉`
+      );
+    } else {
+      state.animPos  = null;
+      state.animPath = [];
+      renderGrid();
+      updateButtons();
+      showFeedback(false,
+        `🧒 s'est arrêté, mais n'est pas encore à ${NAMES[state.destEmoji]}. Il lui manque encore : ${relativeHint(pos, state.endPos)}.`
+      );
+    }
+  }
+
+  verifierBtn.addEventListener('click', verifySequence);
 
   // ── Nouvel exercice ───────────────────────────────────────────────────────────
   function newExercise() {
@@ -531,7 +727,7 @@
     renderSequence();
     updateButtons();
     questionBox.textContent =
-      `Guide 🧒 jusqu'à ${NAMES[state.destEmoji]} ${state.destEmoji} !`;
+      `Construis la séquence pour guider 🧒 jusqu'à ${NAMES[state.destEmoji]} ${state.destEmoji} !`;
   }
 
   // ── Démarrage ─────────────────────────────────────────────────────────────────
