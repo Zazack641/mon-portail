@@ -193,7 +193,7 @@
 </head>
 <body>
 
-<header class="app-header">
+<header class="app-header" role="banner">
   <a href="../index.html" class="back-link">← Retour</a>
   <h1>↗️ La droite graduée</h1>
   <div class="header-spacer"></div>
@@ -208,13 +208,16 @@
   <div class="question-box" id="question-box">Place ce nombre sur la droite :</div>
   <div class="target-number" id="target-number"></div>
 
-  <div class="numberline-wrap" id="nl-wrap">
+  <div class="numberline-wrap" id="nl-wrap"
+       tabindex="0" role="slider"
+       aria-label="Droite graduée — utilise les flèches gauche/droite pour placer le nombre"
+       aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
     <canvas id="nl-canvas"></canvas>
   </div>
 
-  <div class="hint" id="hint">Appuie sur la droite pour placer le nombre.</div>
+  <div class="hint" id="hint">Appuie sur la droite ou utilise les flèches ← → pour placer le nombre.</div>
 
-  <div class="feedback" id="feedback"></div>
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
 
   <div class="action-row">
     <button class="verify-btn" id="verify-btn" disabled>Vérifier</button>
@@ -294,9 +297,13 @@
     questionBox.textContent = `Place le nombre ${target} sur la droite graduée.`;
     renderTargetNumber(target);
     feedbackEl.className = 'feedback';
+    feedbackEl.textContent = '';
     verifyBtn.style.display = '';
     verifyBtn.disabled = true;
     newBtn.classList.remove('visible');
+    nlWrap.setAttribute('aria-valuemin', nlStart);
+    nlWrap.setAttribute('aria-valuemax', nlEnd);
+    nlWrap.setAttribute('aria-valuenow', nlStart);
     resizeAndDraw();
   }
 
@@ -434,6 +441,29 @@
 
   canvas.addEventListener('click', handleTap);
   canvas.addEventListener('touchstart', handleTap, { passive: false });
+
+  nlWrap.addEventListener('keydown', e => {
+    if (state.answered) return;
+    const step = currentLevel === 1 ? 1 : 10;
+    const range = state.nlEnd - state.nlStart;
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      const curVal = state.userPos !== null ? Math.round(state.nlStart + state.userPos * range) : state.nlStart;
+      const newVal = Math.min(state.nlEnd, curVal + step);
+      state.userPos = (newVal - state.nlStart) / range;
+      drawLine(state.userPos);
+      verifyBtn.disabled = false;
+      nlWrap.setAttribute('aria-valuenow', newVal);
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      const curVal = state.userPos !== null ? Math.round(state.nlStart + state.userPos * range) : state.nlStart;
+      const newVal = Math.max(state.nlStart, curVal - step);
+      state.userPos = (newVal - state.nlStart) / range;
+      drawLine(state.userPos);
+      verifyBtn.disabled = false;
+      nlWrap.setAttribute('aria-valuenow', newVal);
+    }
+  });
 
   verifyBtn.addEventListener('click', () => {
     if (state.userPos === null) return;
