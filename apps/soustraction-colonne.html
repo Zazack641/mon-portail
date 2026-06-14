@@ -332,6 +332,13 @@
       .digit-orig, .td-sign { font-size: 36px; }
       .result-inp { width: 52px; height: 60px; font-size: 34px; }
     }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
   </style>
 </head>
 <body>
