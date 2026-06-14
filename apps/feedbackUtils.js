@@ -57,6 +57,7 @@
   // ── Confetti ──────────────────────────────────────────────────────────────
 
   function launchConfetti() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const PARTICLE_COUNT = 60;
     const DURATION_MS    = 1800;
     const COLORS = ['#3B7DD8','#D64045','#3A9E6F','#F59E0B','#A855F7','#EC4899'];

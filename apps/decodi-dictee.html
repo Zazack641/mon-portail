@@ -117,10 +117,9 @@
     min-height: 64px;
     touch-action: manipulation;
     -webkit-appearance: none;
-    outline: none;
-    transition: border-color 0.15s;
+    transition: border-color 0.15s, outline 0.1s;
   }
-  .word-input:focus { border-color: #B8960C; }
+  .word-input:focus { border-color: #B8960C; outline: 3px solid #B8960C; outline-offset: 2px; }
 
   .listen-btn {
     padding: 14px 28px;
@@ -170,10 +169,9 @@
     min-height: 60px;
     touch-action: manipulation;
     -webkit-appearance: none;
-    outline: none;
-    transition: border-color 0.15s;
+    transition: border-color 0.15s, outline 0.1s;
   }
-  .recopy-input:focus { border-color: #D64045; }
+  .recopy-input:focus { border-color: #D64045; outline: 3px solid #D64045; outline-offset: 2px; }
   .recopy-ok {
     font-family: 'Nunito', sans-serif;
     font-size: 16px;
@@ -222,7 +220,7 @@
   <div class="header-spacer"></div>
 </header>
 
-<div class="nav-bar" id="nav-bar" role="navigation" aria-label="Navigation dans l'activité">
+<div class="nav-bar" id="nav-bar" role="group" aria-label="Navigation dans l'activité">
   <span class="nav-bar-title" id="nav-label">Choisir un module</span>
   <button class="nav-back-btn" id="nav-back-btn" style="display:none">← Retour</button>
 </div>
