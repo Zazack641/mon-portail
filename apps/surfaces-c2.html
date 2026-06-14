@@ -79,7 +79,7 @@
   <div class="question-box" id="question-box">Chargement…</div>
   <div class="grid-note" id="grid-note"></div>
   <div class="shapes-row" id="shapes-row"></div>
-  <div class="feedback" id="feedback"></div>
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
   <div class="action-row">
     <button class="verify-btn" id="verify-btn" disabled>Vérifier</button>
     <button class="new-btn"    id="new-btn">Nouvel exercice</button>
@@ -185,12 +185,22 @@
     shapes.forEach(shape => {
       const item = document.createElement('div');
       item.className = 'shape-item';
-      item.appendChild(drawGrid(shape, shape.color, 20));
+      item.setAttribute('role', 'button');
+      item.setAttribute('tabindex', '0');
+      item.setAttribute('aria-label', 'Surface ' + shape.name + ' — ' + shape.area + ' carreaux');
+      item.setAttribute('aria-pressed', 'false');
+      const cv = drawGrid(shape, shape.color, 20);
+      cv.setAttribute('aria-hidden', 'true');
+      item.appendChild(cv);
       const lbl = document.createElement('div');
       lbl.className = 'shape-label';
       lbl.textContent = 'Surface ' + shape.name;
       item.appendChild(lbl);
-      item.addEventListener('click', () => selectShape(shape.name, item));
+      const handler = () => selectShape(shape.name, item);
+      item.addEventListener('click', handler);
+      item.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handler(); }
+      });
       shapesRow.appendChild(item);
     });
   }
@@ -235,7 +245,13 @@
     shapes.forEach(shape => {
       const item = document.createElement('div');
       item.className = 'shape-item';
-      item.appendChild(drawRect(shape, shape.color));
+      item.setAttribute('role', 'button');
+      item.setAttribute('tabindex', '0');
+      item.setAttribute('aria-label', 'Surface ' + shape.name + ' — ' + shape.cols + ' × ' + shape.rows + ' = ' + shape.area);
+      item.setAttribute('aria-pressed', 'false');
+      const cv = drawRect(shape, shape.color);
+      cv.setAttribute('aria-hidden', 'true');
+      item.appendChild(cv);
       const lbl = document.createElement('div');
       lbl.className = 'shape-label';
       lbl.textContent = 'Surface ' + shape.name;
@@ -244,7 +260,11 @@
       dim.className = 'dim-label';
       dim.textContent = shape.cols + ' × ' + shape.rows;
       item.appendChild(dim);
-      item.addEventListener('click', () => selectShape(shape.name, item));
+      const handler = () => selectShape(shape.name, item);
+      item.addEventListener('click', handler);
+      item.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handler(); }
+      });
       shapesRow.appendChild(item);
     });
   }
@@ -252,8 +272,12 @@
   // ── Sélection et vérification ──────────────────────────────────────────────
   function selectShape(name, item) {
     if (state.answered) return;
-    document.querySelectorAll('.shape-item').forEach(d => d.classList.remove('selected'));
+    document.querySelectorAll('.shape-item').forEach(d => {
+      d.classList.remove('selected');
+      d.setAttribute('aria-pressed', 'false');
+    });
     item.classList.add('selected');
+    item.setAttribute('aria-pressed', 'true');
     state.selected = name;
     verifyBtn.disabled = false;
   }
