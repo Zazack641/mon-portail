@@ -203,6 +203,13 @@
   .ctrl-btn:hover:not(:disabled)  { background: #EEF2F7; }
   .ctrl-btn:active:not(:disabled) { background: #E2E8F0; }
   .ctrl-btn:disabled { opacity: 0.35; cursor: default; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+    }
+  }
 </style>
 </head>
 <body>
