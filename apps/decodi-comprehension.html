@@ -319,7 +319,7 @@
     line-height: 1.5;
     background: #F8FAFC;
   }
-  .opinion-zone textarea:focus { border-color: #B8960C; background: #fff; }
+  .opinion-zone textarea:focus { border-color: #B8960C; background: #fff; outline: 3px solid #B8960C; outline-offset: 2px; }
   .see-ex-btn {
     padding: 14px 24px;
     background: #B8960C;
@@ -415,7 +415,7 @@
 </head>
 <body>
 
-<header class="app-header">
+<header class="app-header" role="banner">
   <a href="../index.html" class="back-link">← Retour</a>
   <h1>📖 Compréhension DéCoDi</h1>
   <div class="header-spacer"></div>
@@ -497,7 +497,7 @@
         </div>
 
         <!-- Feedback QCM -->
-        <div class="q-feedback" id="q-feedback" aria-live="polite"></div>
+        <div class="q-feedback" id="q-feedback" role="status" aria-live="polite" aria-atomic="true"></div>
 
         <!-- Bouton suivant -->
         <button class="next-q-btn" id="next-q-btn">Question suivante →</button>
