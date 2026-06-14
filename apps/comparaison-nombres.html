@@ -97,9 +97,10 @@
     text-align: center;
     width: 100%;
     font-family: 'Nunito', sans-serif;
-    font-size: clamp(17px, 3.5vw, 21px);
+    font-size: clamp(18px, 3.5vw, 21px);
     font-weight: 800;
     color: #1A1A2E;
+    line-height: 1.5;
   }
 
   /* Comparison display */
@@ -145,8 +146,8 @@
     align-items: center;
   }
   .symbol-btn {
-    width: clamp(56px, 12vw, 72px);
-    height: clamp(56px, 12vw, 72px);
+    width: clamp(64px, 12vw, 80px);
+    height: clamp(64px, 12vw, 80px);
     border-radius: 14px;
     border: 2.5px solid #E2E8F0;
     background: #fff;
@@ -196,7 +197,7 @@
     border-radius: 14px;
     text-align: center;
     font-family: 'Nunito', sans-serif;
-    font-size: clamp(16px, 3vw, 19px);
+    font-size: clamp(18px, 3vw, 19px);
     font-weight: 800;
     display: none;
   }
@@ -214,7 +215,7 @@
     font-size: 18px;
     font-weight: 800;
     cursor: pointer;
-    min-height: 56px;
+    min-height: 64px;
     touch-action: manipulation;
     -webkit-appearance: none;
     transition: all 0.15s;
@@ -222,6 +223,13 @@
   }
   .new-btn.visible { display: block; }
   .new-btn:hover { background: #0A5C48; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+    }
+  }
 </style>
 </head>
 <body>
