@@ -223,7 +223,7 @@
     <canvas id="nl-canvas"></canvas>
   </div>
 
-  <div class="hint" id="hint">Appuie sur la droite ou utilise les flèches ← → pour placer le nombre.</div>
+  <div class="hint" id="hint">Touche la droite pour placer le repère. Déplace-le si besoin, puis vérifie.</div>
 
   <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
 
@@ -287,6 +287,7 @@
 
     state = {
       nlStart, nlEnd, step, segments, target,
+      snapStep: currentLevel === 1 ? 10 : 1,
       userPos: null,
       answered: false,
     };
@@ -308,9 +309,9 @@
     const dpr = window.devicePixelRatio || 1;
     const w = nlWrap.clientWidth - 16;
     canvas.width = Math.round(w * dpr);
-    canvas.height = Math.round(100 * dpr);
+    canvas.height = Math.round(140 * dpr);
     canvas.style.width = w + 'px';
-    canvas.style.height = '100px';
+    canvas.style.height = '140px';
     drawLine();
   }
 
@@ -321,14 +322,14 @@
     ctx.save();
     ctx.scale(dpr, dpr);
 
-    const padL = 40, padR = 40;
-    const lineY = H * 0.55;
+    const padL = 46, padR = 46;
+    const lineY = H * 0.5;
     const lineW = W - padL - padR;
     const { nlStart, nlEnd, step, segments } = state;
 
     // Main line
     ctx.strokeStyle = '#64748B';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 3.5;
     ctx.lineCap = 'round';
     ctx.beginPath();
     ctx.moveTo(padL, lineY);
@@ -337,14 +338,15 @@
 
     // Arrow right
     ctx.beginPath();
-    ctx.moveTo(padL + lineW - 8, lineY - 6);
-    ctx.lineTo(padL + lineW + 4, lineY);
-    ctx.lineTo(padL + lineW - 8, lineY + 6);
+    ctx.moveTo(padL + lineW - 10, lineY - 8);
+    ctx.lineTo(padL + lineW + 5, lineY);
+    ctx.lineTo(padL + lineW - 10, lineY + 8);
     ctx.fillStyle = '#64748B';
     ctx.fill();
 
     // Ticks & labels
-    ctx.font = `bold 12px 'Source Sans 3', sans-serif`;
+    const labelSize = Math.max(14, Math.min(18, Math.round(lineW / 36)));
+    ctx.font = `bold ${labelSize}px 'Source Sans 3', sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
 
@@ -354,14 +356,14 @@
       const isEndpoint = i === 0 || i === segments;
 
       ctx.strokeStyle = '#64748B';
-      ctx.lineWidth = isEndpoint ? 2.5 : 1.5;
+      ctx.lineWidth = isEndpoint ? 3 : 1.8;
       ctx.beginPath();
-      ctx.moveTo(x, lineY - (isEndpoint ? 12 : 8));
-      ctx.lineTo(x, lineY + (isEndpoint ? 12 : 8));
+      ctx.moveTo(x, lineY - (isEndpoint ? 16 : 11));
+      ctx.lineTo(x, lineY + (isEndpoint ? 16 : 11));
       ctx.stroke();
 
       ctx.fillStyle = '#475569';
-      ctx.fillText(val, x, lineY + 16);
+      ctx.fillText(val, x, lineY + 20);
     }
 
     // Niveau 2 : sous-graduations (de 5) pour aider à placer les unités
@@ -375,8 +377,8 @@
         ctx.strokeStyle = '#CBD5E0';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(x, lineY - 5);
-        ctx.lineTo(x, lineY + 5);
+        ctx.moveTo(x, lineY - 8);
+        ctx.lineTo(x, lineY + 8);
         ctx.stroke();
       }
     }
@@ -387,16 +389,16 @@
       const ux = padL + frac * lineW;
       ctx.fillStyle = '#1A3A5C';
       ctx.beginPath();
-      ctx.arc(ux, lineY, 8, 0, Math.PI * 2);
+      ctx.arc(ux, lineY, 11, 0, Math.PI * 2);
       ctx.fill();
 
       // Label above
       const userVal = Math.round(nlStart + frac * (nlEnd - nlStart));
-      ctx.font = `bold 14px 'Nunito', sans-serif`;
+      ctx.font = `bold 18px 'Nunito', sans-serif`;
       ctx.fillStyle = '#1A3A5C';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'bottom';
-      ctx.fillText(userVal, ux, lineY - 12);
+      ctx.fillText(userVal, ux, lineY - 16);
     }
 
     // Correct marker (after verification)
@@ -405,13 +407,13 @@
       const cx = padL + correctFrac * lineW;
       ctx.fillStyle = '#10B981';
       ctx.beginPath();
-      ctx.arc(cx, lineY, 8, 0, Math.PI * 2);
+      ctx.arc(cx, lineY, 11, 0, Math.PI * 2);
       ctx.fill();
-      ctx.font = `bold 14px 'Nunito', sans-serif`;
+      ctx.font = `bold 18px 'Nunito', sans-serif`;
       ctx.fillStyle = '#10B981';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'bottom';
-      ctx.fillText(state.target, cx, lineY - 28);
+      ctx.fillText(state.target, cx, lineY - 36);
     }
     ctx.restore();
   }
@@ -422,43 +424,49 @@
     return clientX - rect.left;
   }
 
-  function handleTap(e) {
+  function setUserValue(rawVal) {
+    const range = state.nlEnd - state.nlStart;
+    let val = Math.round(rawVal / state.snapStep) * state.snapStep;
+    val = Math.max(state.nlStart, Math.min(state.nlEnd, val));
+    state.userPos = (val - state.nlStart) / range;
+    nlWrap.setAttribute('aria-valuenow', val);
+    drawLine(state.userPos);
+    verifyBtn.disabled = false;
+  }
+
+  function placeFromEvent(e) {
     if (state.answered) return;
     e.preventDefault();
     const x = getCanvasX(e);
     const dpr = window.devicePixelRatio || 1;
-    const padL = 40, padR = 40;
+    const padL = 46, padR = 46;
     const lineW = canvas.width / dpr - padL - padR;
     let frac = (x - padL) / lineW;
     frac = Math.max(0, Math.min(1, frac));
-    state.userPos = frac;
-    drawLine(frac);
-    verifyBtn.disabled = false;
+    setUserValue(state.nlStart + frac * (state.nlEnd - state.nlStart));
   }
 
-  canvas.addEventListener('click', handleTap);
-  canvas.addEventListener('touchstart', handleTap, { passive: false });
+  let dragging = false;
+  canvas.addEventListener('pointerdown', e => {
+    if (state.answered) return;
+    dragging = true;
+    if (canvas.setPointerCapture) { try { canvas.setPointerCapture(e.pointerId); } catch (_) {} }
+    placeFromEvent(e);
+  });
+  canvas.addEventListener('pointermove', e => { if (dragging) placeFromEvent(e); });
+  canvas.addEventListener('pointerup', () => { dragging = false; });
+  canvas.addEventListener('pointercancel', () => { dragging = false; });
 
   nlWrap.addEventListener('keydown', e => {
     if (state.answered) return;
-    const step = currentLevel === 1 ? 10 : 1;
     const range = state.nlEnd - state.nlStart;
+    const curVal = state.userPos !== null ? Math.round(state.nlStart + state.userPos * range) : state.nlStart;
     if (e.key === 'ArrowRight') {
       e.preventDefault();
-      const curVal = state.userPos !== null ? Math.round(state.nlStart + state.userPos * range) : state.nlStart;
-      const newVal = Math.min(state.nlEnd, curVal + step);
-      state.userPos = (newVal - state.nlStart) / range;
-      drawLine(state.userPos);
-      verifyBtn.disabled = false;
-      nlWrap.setAttribute('aria-valuenow', newVal);
+      setUserValue(curVal + state.snapStep);
     } else if (e.key === 'ArrowLeft') {
       e.preventDefault();
-      const curVal = state.userPos !== null ? Math.round(state.nlStart + state.userPos * range) : state.nlStart;
-      const newVal = Math.max(state.nlStart, curVal - step);
-      state.userPos = (newVal - state.nlStart) / range;
-      drawLine(state.userPos);
-      verifyBtn.disabled = false;
-      nlWrap.setAttribute('aria-valuenow', newVal);
+      setUserValue(curVal - state.snapStep);
     }
   });
 
@@ -467,8 +475,7 @@
     state.answered = true;
 
     const userVal = Math.round(state.nlStart + state.userPos * (state.nlEnd - state.nlStart));
-    const tolerance = currentLevel === 1 ? 4 : 3;
-    const correct = Math.abs(userVal - state.target) <= tolerance;
+    const correct = userVal === state.target;
 
     drawLine(state.userPos, true);
 
