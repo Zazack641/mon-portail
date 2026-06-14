@@ -444,6 +444,7 @@
     let frac = (x - padL) / lineW;
     frac = Math.max(0, Math.min(1, frac));
     setUserValue(state.nlStart + frac * (state.nlEnd - state.nlStart));
+    nlWrap.focus();
   }
 
   let dragging = false;
@@ -472,22 +473,25 @@
 
   verifyBtn.addEventListener('click', () => {
     if (state.userPos === null) return;
-    state.answered = true;
 
     const userVal = Math.round(state.nlStart + state.userPos * (state.nlEnd - state.nlStart));
     const correct = userVal === state.target;
 
-    drawLine(state.userPos, true);
-
-    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
-    feedbackEl.textContent = correct
-      ? `Bravo ! ${state.target} est bien placé sur la droite.`
-      : (currentLevel === 1
-          ? `Presque ! Compte les dizaines depuis 0 jusqu'à ${state.target}.`
-          : `Presque ! Repère la dizaine juste avant ${state.target}, puis compte les unités.`);
-    if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
-    verifyBtn.style.display = 'none';
-    newBtn.classList.add('visible');
+    if (correct) {
+      state.answered = true;
+      drawLine(state.userPos, true);
+      feedbackEl.className = 'feedback correct';
+      feedbackEl.textContent = `Bravo ! ${state.target} est bien placé sur la droite.`;
+      playCorrect(); launchConfetti();
+      verifyBtn.style.display = 'none';
+      newBtn.classList.add('visible');
+    } else {
+      feedbackEl.className = 'feedback wrong';
+      feedbackEl.textContent = currentLevel === 1
+        ? `Presque ! Compte les dizaines depuis 0 jusqu'à ${state.target}.`
+        : `Presque ! Repère la dizaine juste avant ${state.target}, puis compte les unités.`;
+      playIncorrect();
+    }
   });
 
   document.querySelectorAll('.level-btn').forEach(btn => {

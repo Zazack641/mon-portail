@@ -450,6 +450,7 @@
     let frac = (x - padL) / lineW;
     frac = Math.max(0, Math.min(1, frac));
     setUserValue(state.nlStart + frac * (state.nlEnd - state.nlStart));
+    nlWrap.focus();
   }
 
   let dragging = false;
@@ -478,22 +479,25 @@
 
   verifyBtn.addEventListener('click', () => {
     if (state.userPos === null) return;
-    state.answered = true;
 
     const userVal = Math.round(state.nlStart + state.userPos * (state.nlEnd - state.nlStart));
     const correct = userVal === state.target;
 
-    drawLine(state.userPos, true);
-
-    const refWord   = currentLevel === 1 ? 'centaine' : 'dizaine';
-    const countWord = currentLevel === 1 ? 'dizaines' : 'unités';
-    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
-    feedbackEl.textContent = correct
-      ? `Bravo ! ${state.target} est bien placé sur la droite.`
-      : `Presque ! Repère la ${refWord} juste avant ${state.target}, puis compte les ${countWord}.`;
-    if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
-    verifyBtn.style.display = 'none';
-    newBtn.classList.add('visible');
+    if (correct) {
+      state.answered = true;
+      drawLine(state.userPos, true);
+      feedbackEl.className = 'feedback correct';
+      feedbackEl.textContent = `Bravo ! ${state.target} est bien placé sur la droite.`;
+      playCorrect(); launchConfetti();
+      verifyBtn.style.display = 'none';
+      newBtn.classList.add('visible');
+    } else {
+      const refWord   = currentLevel === 1 ? 'centaine' : 'dizaine';
+      const countWord = currentLevel === 1 ? 'dizaines' : 'unités';
+      feedbackEl.className = 'feedback wrong';
+      feedbackEl.textContent = `Presque ! Repère la ${refWord} juste avant ${state.target}, puis compte les ${countWord}.`;
+      playIncorrect();
+    }
   });
 
   document.querySelectorAll('.level-btn').forEach(btn => {
