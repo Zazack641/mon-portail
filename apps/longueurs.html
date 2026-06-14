@@ -220,16 +220,16 @@
 </head>
 <body>
 
-<header class="app-header">
+<header class="app-header" role="banner">
   <a href="../index.html" class="back-link">← Retour</a>
   <h1>📏 Les longueurs</h1>
   <div class="header-spacer"></div>
 </header>
 
-<div class="level-bar">
-  <button class="level-btn active" data-level="1">Niveau 1</button>
-  <button class="level-btn" data-level="2">Niveau 2</button>
-  <button class="level-btn" data-level="3">Niveau 3</button>
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1</button>
+  <button class="level-btn" data-level="2" aria-pressed="false">Niveau 2</button>
+  <button class="level-btn" data-level="3" aria-pressed="false">Niveau 3</button>
 </div>
 
 <main>
@@ -242,7 +242,7 @@
   <p class="hint" id="hint" style="display:none"></p>
 
   <div class="choices" id="choices"></div>
-  <div class="feedback" id="feedback"></div>
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
 
   <div class="action-row">
     <button class="verify-btn" id="verify-btn">Vérifier</button>
@@ -789,8 +789,12 @@
   document.querySelectorAll('.level-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       currentLevel = parseInt(btn.dataset.level);
-      document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.level-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
       btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
       newExercise();
     });
   });
