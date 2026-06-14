@@ -111,10 +111,10 @@ main {
   text-align: center;
   width: 100%;
   font-family: 'Nunito', sans-serif;
-  font-size: clamp(17px, 3.5vw, 21px);
+  font-size: clamp(18px, 3.5vw, 21px);
   font-weight: 800;
   color: var(--app-text);
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 /* ── Feedback ────────────────────────────────────────────────────────────── */
@@ -125,7 +125,7 @@ main {
   border-radius: 14px;
   text-align: center;
   font-family: 'Nunito', sans-serif;
-  font-size: clamp(16px, 3vw, 19px);
+  font-size: clamp(18px, 3vw, 19px);
   font-weight: 800;
   display: none;
   line-height: 1.5;
@@ -152,7 +152,7 @@ main {
   font-size: 18px;
   font-weight: 800;
   cursor: pointer;
-  min-height: 56px;
+  min-height: 64px;
   touch-action: manipulation;
   -webkit-appearance: none;
   transition: all 0.15s;
@@ -169,7 +169,7 @@ main {
   font-size: 18px;
   font-weight: 800;
   cursor: pointer;
-  min-height: 56px;
+  min-height: 64px;
   touch-action: manipulation;
   -webkit-appearance: none;
   transition: all 0.15s;
@@ -177,3 +177,11 @@ main {
 }
 .new-btn.visible { display: block; }
 .new-btn:hover   { background: #0A5C48; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
