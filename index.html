@@ -79,8 +79,10 @@
     background: #F8FAFC;
     color: #1A2535;
     outline: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
     -webkit-appearance: none;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .search-input { transition: border-color 0.15s, box-shadow 0.15s; }
   }
   .search-input:focus {
     border-color: #3482D2;
@@ -111,7 +113,6 @@
     font-family: 'Source Sans 3', sans-serif;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.15s;
     white-space: nowrap;
     min-height: 44px;
     display: flex;
@@ -120,16 +121,22 @@
     -webkit-appearance: none;
     touch-action: manipulation;
   }
+  @media (prefers-reduced-motion: no-preference) {
+    .filter-btn { transition: all 0.15s; }
+  }
   .filter-btn:hover { background: #EEF2F7; border-color: #4A5A6A; }
-  .filter-btn:active { transform: scale(0.97); }
+  @media (prefers-reduced-motion: no-preference) {
+    .filter-btn:active { transform: scale(0.97); }
+  }
   .filter-btn:focus-visible,
   .launch-btn:focus-visible {
-    outline: 3px solid #1A3A5C;
-    outline-offset: 3px;
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 5px #1A3A5C;
   }
 
   /* Active domain */
-  .filter-btn.active-domain { color: #fff; font-weight: 700; }
+  .filter-btn.active-domain { color: #fff; font-weight: 700; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.55); }
   .filter-btn[data-domain="all"].active-domain      { background: #1A3A5C; border-color: #1A3A5C; }
   .filter-btn[data-domain="francais"].active-domain { background: #7A6200; border-color: #7A6200; }
   .filter-btn[data-domain="allemand"].active-domain { background: #7A6200; border-color: #7A6200; }
@@ -145,6 +152,7 @@
     color: #fff;
     border-color: #0F7860;
     font-weight: 700;
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,0.55);
   }
 
   /* Sous-groupes domaine */
@@ -286,7 +294,7 @@
     gap: 4px;
     padding: 5px 12px;
     border-radius: 999px;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 700;
     letter-spacing: 0.1px;
   }
@@ -309,7 +317,7 @@
   .badge-per {
     background: #F1F5F9;
     color: #475569;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 600;
     letter-spacing: 0.3px;
     font-family: 'Source Sans 3', sans-serif;
@@ -320,6 +328,7 @@
     display: block;
     width: 100%;
     padding: 17px 14px;
+    min-height: 56px;
     background: #1A3A5C;
     color: #fff;
     border: none;
@@ -330,14 +339,16 @@
     text-align: center;
     text-decoration: none;
     cursor: pointer;
-    transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
     margin-top: auto;
     touch-action: manipulation;
     -webkit-appearance: none;
     letter-spacing: 0.2px;
     scroll-margin-top: 160px;
   }
-  .launch-btn:active { transform: scale(0.98); }
+  @media (prefers-reduced-motion: no-preference) {
+    .launch-btn { transition: background 0.15s, transform 0.1s, box-shadow 0.15s; }
+    .launch-btn:active { transform: scale(0.98); }
+  }
 
   .launch-btn.maths    { background: #C0272D; }
   .launch-btn.maths:hover { background: #A01F23; box-shadow: 0 4px 14px rgba(192,39,45,0.30); }
@@ -429,7 +440,7 @@
   <div class="result-count" id="result-count" aria-live="polite" aria-atomic="true">13 activités affichées</div>
 </nav>
 
-<main>
+<main aria-label="Liste des activités">
   <div class="app-grid" id="app-grid">
 
     <!-- ======= MATHÉMATIQUES — GRANDEURS ET MESURES ======= -->
