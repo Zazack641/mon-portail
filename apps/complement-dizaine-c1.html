@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Le complément à 10 — Maths 3H-4H</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-base.css">
+<style>
+  :root {
+    --app-header-bg: #C0272D;
+    --color-units:    #3B7DD8;
+    --color-tens:     #D64045;
+    --color-hundreds: #3A9E6F;
+  }
+
+  /* Equation display */
+  .equation {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(8px, 2.5vw, 20px);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: clamp(38px, 10vw, 68px);
+    margin: 16px auto 8px;
+    flex-wrap: wrap;
+    line-height: 1.1;
+  }
+
+  .eq-operator {
+    color: #64748B;
+    font-weight: 700;
+  }
+
+  .eq-blank {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: clamp(60px, 14vw, 90px);
+    min-height: clamp(56px, 12vw, 80px);
+    border-bottom: 5px solid var(--app-header-bg);
+    color: transparent;
+    font-size: inherit;
+    font-weight: 900;
+    border-radius: 4px;
+    padding: 0 6px;
+  }
+
+  .eq-blank.revealed {
+    color: var(--app-correct-fg);
+    border-bottom: none;
+    background: var(--app-correct-bg);
+    border-radius: 12px;
+    padding: 0 14px;
+  }
+
+  /* Answer choice buttons */
+  .choices {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-width: 320px;
+    margin: 20px auto 8px;
+    padding: 0 8px;
+  }
+
+  .choice-btn {
+    min-height: 72px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: clamp(28px, 7vw, 44px);
+    border-radius: 16px;
+    border: 3px solid var(--app-border, #E2E8F0);
+    background: #fff;
+    color: #1A1A2E;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+
+  .choice-btn.correct {
+    background: var(--app-correct-bg);
+    border-color: var(--app-correct-fg);
+    color: var(--app-correct-fg);
+  }
+
+  .choice-btn.wrong {
+    background: var(--app-wrong-bg);
+    border-color: var(--app-wrong-fg);
+    color: var(--app-wrong-fg);
+  }
+
+  .choice-btn:disabled {
+    cursor: default;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .choice-btn:not(:disabled):active {
+      transform: scale(0.94);
+    }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <a href="../index.html" class="back-link">← Retour</a>
+  <h1>🔢 Le complément à 10</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1 · à 10</button>
+  <button class="level-btn"        data-level="2" aria-pressed="false">Niveau 2 · aux dizaines</button>
+  <button class="level-btn"        data-level="3" aria-pressed="false">Niveau 3 · à 100</button>
+</div>
+
+<main>
+  <div class="question-box" id="question-box">Trouve le nombre manquant.</div>
+
+  <div class="equation" id="equation" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="choices" id="choices" role="group" aria-label="Choisir la réponse"></div>
+
+  <div class="feedback" id="feedback"></div>
+
+  <div class="action-row">
+    <button class="new-btn" id="new-btn">Nouvel exercice</button>
+  </div>
+</main>
+
+<script src="appUtils.js"></script>
+<script>
+  const questionBox = document.getElementById('question-box');
+  const feedbackEl  = document.getElementById('feedback');
+  const equationEl  = document.getElementById('equation');
+  const choicesEl   = document.getElementById('choices');
+  const newBtn      = document.getElementById('new-btn');
+
+  let currentLevel = 1;
+  let state = {};
+
+  function showFeedback(correct, msg) {
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = msg;
+    newBtn.classList.add('visible');
+    if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+  }
+
+  function generateExercise() {
+    let a, target;
+    if (currentLevel === 1) {
+      // Complement to 10: a + ? = 10, a in 1–9
+      a = randInt(1, 9);
+      target = 10;
+    } else if (currentLevel === 2) {
+      // Complement to next multiple of 10: (10k + d) + ? = 10(k+1), k in 1–8, d in 1–9
+      const decade = randInt(1, 8);
+      const units  = randInt(1, 9);
+      a = decade * 10 + units;
+      target = (decade + 1) * 10;
+    } else {
+      // Complement to 100: a + ? = 100, a in 1–99
+      a = randInt(1, 99);
+      target = 100;
+    }
+    return { a, target, answer: target - a };
+  }
+
+  function generateChoices(answer) {
+    const pool = new Set([answer]);
+    const deltas = shuffle([-1, 1, -2, 2, -3, 3, 4, -4, 5, -5]);
+    for (const d of deltas) {
+      const v = answer + d;
+      if (v >= 1 && v !== answer) pool.add(v);
+      if (pool.size >= 4) break;
+    }
+    // Fallback: fill with sequential values starting from 1
+    for (let v = 1; pool.size < 4; v++) {
+      if (v !== answer) pool.add(v);
+    }
+    return shuffle([...pool].slice(0, 4));
+  }
+
+  function renderEquation(a, target) {
+    equationEl.innerHTML =
+      `<span class="eq-number">${a}</span>` +
+      `<span class="eq-operator">+</span>` +
+      `<span class="eq-blank" id="eq-blank"> </span>` +
+      `<span class="eq-operator">=</span>` +
+      `<span class="eq-number">${target}</span>`;
+  }
+
+  function handleChoice(choice, btn) {
+    if (state.answered) return;
+    state.answered = true;
+
+    choicesEl.querySelectorAll('.choice-btn').forEach(b => { b.disabled = true; });
+
+    const correct = (choice === state.answer);
+    btn.classList.add(correct ? 'correct' : 'wrong');
+
+    const blank = document.getElementById('eq-blank');
+    if (blank) {
+      blank.textContent = state.answer;
+      blank.classList.add('revealed');
+    }
+
+    if (correct) {
+      showFeedback(true,
+        `Bravo ! ${state.a} + ${state.answer} = ${state.target}.`);
+    } else {
+      showFeedback(false,
+        `Pas tout à fait. Le nombre manquant était ${state.answer}. ${state.a} + ${state.answer} = ${state.target}.`);
+    }
+    newBtn.focus();
+  }
+
+  function newExercise() {
+    feedbackEl.className = 'feedback';
+    feedbackEl.textContent = '';
+    newBtn.classList.remove('visible');
+
+    const ex = generateExercise();
+    state = { a: ex.a, target: ex.target, answer: ex.answer, answered: false };
+
+    questionBox.textContent = 'Trouve le nombre manquant.';
+    renderEquation(ex.a, ex.target);
+
+    const choices = generateChoices(ex.answer);
+    choicesEl.innerHTML = '';
+    choices.forEach((choice, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.textContent = choice;
+      btn.setAttribute('aria-label', `Réponse : ${choice}`);
+      btn.setAttribute('tabindex', idx === 0 ? '0' : '-1');
+      btn.addEventListener('click', () => handleChoice(choice, btn));
+      choicesEl.appendChild(btn);
+    });
+    choicesEl.querySelector('.choice-btn').focus();
+  }
+
+  // Roving tabindex : flèches haut/bas naviguent entre les choix.
+  choicesEl.addEventListener('keydown', e => {
+    const btns = Array.from(choicesEl.querySelectorAll('.choice-btn:not(:disabled)'));
+    const cur = btns.indexOf(document.activeElement);
+    if (cur === -1) return;
+
+    let next = -1;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') next = (cur + 1) % btns.length;
+    if (e.key === 'ArrowUp'   || e.key === 'ArrowLeft')  next = (cur - 1 + btns.length) % btns.length;
+
+    if (next !== -1) {
+      e.preventDefault();
+      btns.forEach(b => b.setAttribute('tabindex', '-1'));
+      btns[next].setAttribute('tabindex', '0');
+      btns[next].focus();
+    }
+  });
+
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLevel = parseInt(btn.dataset.level);
+      document.querySelectorAll('.level-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+      newExercise();
+    });
+  });
+
+  newBtn.addEventListener('click', newExercise);
+
+  // Raccourcis clavier : 1–4 sélectionnent le bouton correspondant,
+  // Entrée ou Espace déclenchent « Nouvel exercice » après une réponse.
+  document.addEventListener('keydown', e => {
+    if (state.answered) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        newBtn.click();
+      }
+      return;
+    }
+    const idx = parseInt(e.key, 10);
+    if (idx >= 1 && idx <= 4) {
+      const btns = choicesEl.querySelectorAll('.choice-btn:not(:disabled)');
+      if (btns[idx - 1]) btns[idx - 1].click();
+    }
+  });
+
+  newExercise();
+</script>
+<script src="feedbackUtils.js"></script>
+</body>
+</html>

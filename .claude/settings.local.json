@@ -30,7 +30,10 @@
       "Edit(SUIVI.md)",
       "Bash(git add apps/ SUIVI.md)",
       "Bash(git commit -m *)",
-      "Bash(git push)"
+      "Bash(git push)",
+      "Bash(rm /Users/isaacferretti/Documents/mon-portail/apps/calcul-mental-c1.html)",
+      "Skill(commit-commands:commit)",
+      "Skill(commit-commands:commit:*)"
     ]
   }
 }

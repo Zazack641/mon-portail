@@ -115,6 +115,7 @@ Copier un bloc `<article class="app-card" …>` existant et renseigner :
 - `data-domain` : `"math"` ou `"fr"`
 - `data-cycle` : `"c1"` ou `"c2"`
 - `data-keywords` : mots-clés de recherche supplémentaires (minuscules, séparés par des espaces)
+- `data-per` : code objectif PER ciblé par l'app (ex. `"MSN 11"`, `"MSN 21"`). Obligatoire pour les apps maths. Consulter `docs/per/per-msn.md` pour trouver le bon code.
 - `href` du `.launch-btn` : URL réelle de l'application
 - Classe du bouton : `.launch-btn` (math, bleu marine) ou `.launch-btn.fr` (français, vert)
 - `style="animation-delay: NNNms;"` : incrémenter de 30ms par rapport à la carte précédente

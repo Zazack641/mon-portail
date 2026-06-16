@@ -1,46 +1,126 @@
-## Référentiel
-WCAG 2.2 niveau AA (voir docs/accessibilite/wcag22-resume.md).
-Pour ce projet, certains critères sont renforcés au-delà du standard AA
-en raison du public cible.
+# Skill — Accessibilité
+Référentiel : WCAG 2.2 niveau AA, renforcé pour élèves avec déficiences
+motrices, visuo-spatiales et cognitives.
 
-## Motricité (WCAG 2.5.8 renforcé)
-- Éléments principaux (boutons de réponse, boutons d'action) : 64×64px minimum
-- Éléments secondaires (retour, changement de niveau) : 44×44px minimum
-- Espacement minimum entre deux zones tactiles adjacentes : 12px (WCAG 2.5.8)
-- Aucun geste complexe comme seule option (WCAG 2.5.1 et 2.5.7) : pas de
-  glisser-déposer exclusif, pas de double-tap requis, pas de geste multi-doigts
-- Pas de minuterie ni contrainte de vitesse
-- Feedback visuel immédiat au touch : changement d'état visible sans délai
-  perceptible
-- États :hover/:active/:focus clairement visibles (WCAG 2.4.7 et 2.4.12)
+---
 
-## Visuo-spatial (WCAG 1.4.x renforcé)
-- Contraste texte : ratio minimum 4,5:1 (WCAG 1.4.3), viser 7:1 pour les
-  éléments critiques
-- Contraste composants non textuels : ratio minimum 3:1 (WCAG 1.4.11)
-- Jamais communiquer une information par la couleur seule : toujours doubler
-  avec une forme, une icône ou un texte
-- Un seul élément actif ou zone d'attention à la fois : éviter les mises en
-  page avec plusieurs zones qui changent simultanément
+## 1. Tailles tactiles
+
+| Élément | Minimum |
+|---|---|
+| Boutons de réponse, boutons d'action | 64×64px |
+| Boutons secondaires (retour, niveau) | 44×44px |
+| Espacement entre zones tactiles adjacentes | 12px |
+
+```css
+.answer-btn  { min-width: 64px; min-height: 64px; }
+.action-btn  { min-width: 64px; min-height: 64px; }
+.back-btn    { min-width: 44px; min-height: 44px; }
+/* Toujours aussi : */
+touch-action: manipulation;
+-webkit-appearance: none;
+```
+
+Aucun geste complexe comme seule option : pas de glisser-déposer exclusif,
+pas de double-tap, pas de multi-doigts. Si drag-and-drop existe, un
+tap simple doit toujours faire la même chose.
+
+---
+
+## 2. Contraste et couleur
+
+- Texte : ratio minimum 4,5:1 — viser 7:1 pour les consignes et feedbacks
+- Composants non textuels (bordures, icônes) : minimum 3:1
 - Taille de texte minimum : 18px pour les consignes, 22px pour les éléments
   interactifs
-- Interlignage minimum : 1.5 (WCAG 1.4.12)
-- Pas d'éléments décoratifs animés en arrière-plan pendant qu'une tâche
-  est en cours
-- Toujours respecter prefers-reduced-motion : envelopper toute animation CSS
-  dans @media (prefers-reduced-motion: no-preference)
-- Repères positionnels stables : score, niveau, consigne restent au même
-  emplacement pendant toute la session
+- Interlignage minimum : 1.5
 
-## Feedback (WCAG 3.3.1 renforcé)
-- Toujours au minimum deux canaux simultanés : visuel + sonore
-  (feedbackUtils.js le fournit déjà)
-- Le message reste affiché jusqu'à une action explicite de l'élève,
-  pas de disparition automatique
+**Ne jamais communiquer par la couleur seule.** Toujours doubler avec une
+forme, une icône ou un texte.
+
+```html
+<!-- ❌ -->
+<button class="wrong">A</button>
+
+<!-- ✅ -->
+<button class="wrong" aria-label="A — mauvaise réponse">❌ A</button>
+```
+
+---
+
+## 3. Animations
+
+Toute animation CSS doit être enveloppée dans :
+
+```css
+@media (prefers-reduced-motion: no-preference) {
+  .mon-element { transition: transform 0.2s; }
+}
+```
+
+Les confettis (`launchConfetti`) doivent être supprimés si
+`prefers-reduced-motion` est activé :
+
+```js
+if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  launchConfetti();
+}
+```
+
+Pas d'éléments animés en arrière-plan pendant qu'une tâche est en cours.
+
+---
+
+## 4. Structure et repères
+
+- Un seul élément actif ou zone d'attention à la fois
+- Score, niveau et consigne restent au même emplacement pendant toute
+  la session — ne jamais les déplacer dynamiquement
+- Pas de minuterie, pas de contrainte de vitesse
+
+---
+
+## 5. Feedback
+
+- Toujours deux canaux simultanés : visuel + sonore (fourni par `feedbackUtils.js`)
+- Le message reste affiché jusqu'à une action explicite de l'élève
 - En cas d'erreur : indiquer quoi faire, pas seulement signaler l'échec
 
-## Ce qui peut diverger selon les utilisateurs
-- Les animations de confettis (launchConfetti) sont conservées par défaut
-  mais doivent être supprimées si prefers-reduced-motion est activé
-- Le glisser-déposer peut exister comme option supplémentaire (confort),
-  mais une alternative par tap simple doit toujours exister en parallèle
+```html
+<!-- Le feedback ne se cache pas automatiquement -->
+<!-- Il disparaît uniquement quand l'élève clique sur "Nouvel exercice" -->
+<div class="feedback" id="feedback" role="status" aria-live="polite"></div>
+```
+
+---
+
+## 6. Gestion du focus — règle absolue
+
+Après toute modification du DOM et après chaque validation de réponse,
+repositionner le focus explicitement. Ne jamais laisser le focus se perdre.
+
+### Après réécriture du DOM
+
+```js
+container.innerHTML = '...';
+container.querySelector('[data-focus-target]').focus();
+```
+
+Marquer l'élément qui doit recevoir le focus avec `data-focus-target`
+lors de la construction du HTML.
+
+### Après validation d'une réponse
+
+```js
+// Priorité 1 : si un bouton d'action suivante est visible
+nextBtn.focus();
+
+// Priorité 2 : si seul le feedback est visible
+feedbackEl.setAttribute('tabindex', '-1');
+feedbackEl.focus();
+```
+
+### Règle de priorité
+1. Bouton d'action suivante visible → focus sur ce bouton
+2. Sinon → focus sur le feedback
+3. Jamais sur un élément désactivé ou invisible
