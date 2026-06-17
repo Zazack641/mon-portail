@@ -94,14 +94,6 @@
     flex-shrink: 0;
   }
 
-  /* overrides app-base.css pour accessibilité */
-  .back-link { display: inline-flex; align-items: center; min-height: 44px; }
-  .back-link:focus-visible { outline: 3px solid rgba(255,255,255,0.9); outline-offset: 4px; border-radius: 4px; }
-  .level-bar { gap: 12px; }
-  .level-btn { min-width: 44px; }
-  .level-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; }
-  .new-btn { min-width: 64px; }
-  .new-btn:focus-visible { outline: 3px solid rgba(255,255,255,0.9); outline-offset: 3px; }
   @media (prefers-reduced-motion: no-preference) {
     .symbol-btn { transition: all 0.15s; }
     .symbol-btn:active { transform: scale(0.95); }

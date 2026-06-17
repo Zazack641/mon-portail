@@ -1,7 +1,7 @@
 # Suivi des applications
 
 Audit complet — accessibilité (WCAG 2.2 AA), design portail, pédagogie PER.  
-Dernière mise à jour : 2026-06-17 (audit capacites.html, comparaison-nombres-c1.html)  
+Dernière mise à jour : 2026-06-17 (audit capacites.html, comparaison-nombres-c1.html ; correctif global app-base.css v2)  
 Campagne audit accessibilité v2 démarrée le 2026-06-16
 
 ---
@@ -12,6 +12,8 @@ Campagne audit accessibilité v2 démarrée le 2026-06-16
 |---------|-------------|
 | `apps/feedbackUtils.js` | `launchConfetti()` : vérification `prefers-reduced-motion` ajoutée (bénéficie à toutes les apps) |
 | `apps/app-base.css` | `.question-box` : font-size `clamp(17→18px)`, `line-height: 1.5` ; `.feedback` : font-size `clamp(16→18px)` ; `.verify-btn` + `.new-btn` : `min-height: 64px` ; bloc `prefers-reduced-motion` ajouté |
+| `apps/app-base.css` (v2) | `.back-link` : `display:inline-flex`, `align-items:center`, `min-height:44px`, `:focus-visible` ; `.level-bar gap` 10→12px ; `.level-btn` : `min-width:44px`, `:focus-visible` (inactif/actif) ; `.verify-btn` + `.new-btn` : `min-width:64px`, `:focus-visible` ; transitions déplacées dans `(prefers-reduced-motion: no-preference)` (bénéficie aux 9 apps utilisant app-base.css) |
+| `apps/_template.html` | `role="banner"` sur header ; `role="status" aria-live="polite" aria-atomic="true"` sur feedback ; `newBtn.focus()` dans `showFeedback` |
 
 ---
 

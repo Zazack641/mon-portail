@@ -41,7 +41,7 @@
 <body>
 
 <!-- ── Header ──────────────────────────────────────────────────────────────── -->
-<header class="app-header">
+<header class="app-header" role="banner">
   <a href="../index.html" class="back-link">← Retour</a>
   <h1>TODO 🎯 Titre de l'activité</h1>
   <div class="header-spacer"></div>
@@ -67,7 +67,7 @@
 
   <!-- TODO : zone de contenu spécifique à l'app (canvas, SVG, grille de choix…) -->
 
-  <div class="feedback" id="feedback"></div>
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
 
   <div class="action-row">
     <!-- Supprimer .verify-btn si la réponse est immédiate (clic direct) -->
@@ -98,6 +98,7 @@
     feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
     feedbackEl.textContent = msg;
     newBtn.classList.add('visible');
+    newBtn.focus();
     if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
   }
 
