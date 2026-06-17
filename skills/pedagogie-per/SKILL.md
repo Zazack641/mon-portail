@@ -39,6 +39,18 @@ Demi-cycle / années HarmoS : [ex. 3H-4H]
 **Règle de granularité :** chaque app doit viser UN objectif principal (ex. MSN 14) et au plus
 deux objectifs secondaires (ex. MSN 12 en soutien). Ne pas disperser.
 
+**Modélisation (MSN 15 / MSN 25) — jamais un objectif principal autonome.** La modélisation
+ne s'enseigne pas pour elle-même : elle se travaille **à travers** un objectif concret, dont elle
+emprunte la progression et les attentes fondamentales.
+
+- MSN 15 (C1) se réalise à travers MSN 11, 12, 13 ou 14.
+- MSN 25 (C2) se réalise à travers MSN 21, 22, 23 ou 24.
+
+Une app de modélisation a donc toujours **un objectif concret comme principal** (ex. MSN 13 –
+choix du « sens de l'opération » dans une situation) **et** MSN 15/25 comme objectif transversal
+co-visé. C'est ce double ancrage qui doit figurer dans `data-per` (deux codes) et sur la carte
+(deux badges `.badge-per`). Ne jamais tagguer une app « MSN 15 » ou « MSN 25 » seule.
+
 **Tableau de correspondance rapide pour les apps existantes du portail :**
 
 | App | Objectif principal | Cycle |

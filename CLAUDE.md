@@ -162,7 +162,23 @@ Chaque branche appartient à un domaine PER parent.
 | Histoire              | `"histoire"`   |
 
 - **`data-harmos`** : niveau HarmoS de l'activité — valeurs possibles : `"1H-2H"`, `"3H-4H"`, `"5H-6H"`, `"7H-8H"`
-- **`data-per`** : code objectif PER (ex. `"MSN 14"`, `"L1 16"`, `"SHS 11"`)
+- **`data-per`** : code(s) objectif PER (ex. `"MSN 14"`, `"L1 16"`, `"SHS 11"`)
+
+### MSN 15 / MSN 25 (Modélisation) — jamais autonomes
+
+La **modélisation** ne se travaille pas pour elle-même : elle se réalise **à travers** un objectif concret et emprunte sa progression.
+
+- MSN 15 (C1) se travaille à travers MSN 11, 12, 13 ou 14.
+- MSN 25 (C2) se travaille à travers MSN 21, 22, 23 ou 24.
+
+Donc : **ne jamais créer une app dont l'objectif principal est MSN 15 ou MSN 25 seul.** Une app de modélisation porte **deux codes PER** — le concret puis le transversal — séparés par une espace dans `data-per`, et **deux badges** `.badge-per` dans la carte.
+
+```html
+<article class="app-card" ... data-per="MSN 13 MSN 15" ...>
+  ...
+  <span class="badge badge-per">MSN 13</span>
+  <span class="badge badge-per">MSN 15</span>
+```
 
 ---
 
@@ -267,7 +283,9 @@ Ne jamais supprimer ces attributs. Les mettre à jour dynamiquement via JS si l'
 
 ## Convention des couleurs de valeurs de position (apps maths)
 
-Toutes les applications mathématiques qui affichent des valeurs de position (unités, dizaines, centaines…) doivent respecter cette palette :
+**Quand colorier (règle de jugement).** Colorier les rangs uniquement lorsque **la valeur de position est l'objet d'apprentissage** de l'app (numération, décomposition, complément à la dizaine/centaine, calcul en colonne…). S'en abstenir lorsque les nombres ne sont que des **quantités-support** d'une autre tâche (ex. choisir l'opération qui modélise une situation) : y colorier chaque chiffre concurrencerait le point d'attention unique exigé par l'accessibilité. En cas de conflit, l'accessibilité (« un seul point d'attention ») prime sur cette convention de design.
+
+Quand le coloriage s'applique, toutes les applications mathématiques qui affichent des valeurs de position (unités, dizaines, centaines…) doivent respecter cette palette :
 
 | Rang | Couleur | Hex |
 |------|---------|-----|

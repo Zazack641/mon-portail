@@ -74,6 +74,15 @@ Quand présent, afficher un badge discret `.badge-per` dans `.card-badges`.
 <span class="badge badge-per">MSN 14</span>
 ```
 
+**Apps de modélisation (MSN 15 / MSN 25) — deux codes.** La modélisation n'est jamais autonome : elle se réalise à travers un objectif concret (MSN 11–14 en C1, MSN 21–24 en C2). Une telle app porte donc **deux codes** dans `data-per` (concret puis transversal, séparés par une espace) et **deux badges** `.badge-per`. Voir `skills/pedagogie-per/SKILL.md`.
+
+```html
+<article class="app-card" ... data-per="MSN 13 MSN 15" ...>
+  ...
+  <span class="badge badge-per">MSN 13</span>
+  <span class="badge badge-per">MSN 15</span>
+```
+
 Style `.badge-per` : `background: #F1F5F9; color: #64748B; font-size: 11px; font-weight: 600`.
 Ce badge est destiné à l'enseignant — pas à l'élève.
 
@@ -211,6 +220,8 @@ playIncorrect();    // descente 320->160 Hz, ~0.4s
 - Pas de confettis sur mauvaise réponse
 
 ### Couleurs de valeurs de position (apps maths avec chiffres)
+
+**Colorier seulement quand la valeur de position est l'objet d'apprentissage** (numération, décomposition, complément, calcul en colonne…). Si les nombres ne sont que des quantités-support d'une autre tâche (ex. choisir l'opération qui modélise une situation), **ne pas colorier** : cela concurrencerait le point d'attention unique. L'accessibilité prime sur cette convention (hiérarchie des skills).
 
 ```css
 :root {

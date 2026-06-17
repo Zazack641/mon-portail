@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>La bonne opération — Maths 3H-4H</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-base.css">
+<style>
+  :root {
+    --app-header-bg: #C0272D; /* branche Mathématiques (CIIP) */
+  }
+
+  /* Carte de l'histoire (situation à modéliser) */
+  .story {
+    background: #fff;
+    border: 1px solid var(--app-border);
+    border-radius: 16px;
+    padding: 22px 24px;
+    width: 100%;
+    text-align: center;
+  }
+  .story-emoji {
+    font-size: clamp(44px, 11vw, 68px);
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+  .story-text {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: clamp(18px, 3.6vw, 22px);
+    font-weight: 600;
+    line-height: 1.5;
+  }
+  .story-question {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: clamp(18px, 3.6vw, 22px);
+    line-height: 1.5;
+    margin-top: 12px;
+    color: var(--app-text);
+  }
+
+  /* Boutons calcul (le modèle à choisir) */
+  .choices {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .choice-btn {
+    flex: 1 1 0;
+    min-width: 120px;
+    max-width: 240px;
+    min-height: 80px;
+    padding: 12px 18px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: clamp(30px, 7vw, 46px);
+    border-radius: 16px;
+    border: 3px solid var(--app-border);
+    background: #fff;
+    color: #1A1A2E;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+  .choice-btn.correct {
+    background: var(--app-correct-bg);
+    border-color: var(--app-correct-fg);
+    color: var(--app-correct-fg);
+  }
+  .choice-btn.wrong {
+    background: var(--app-wrong-bg);
+    border-color: var(--app-wrong-fg);
+    color: var(--app-wrong-fg);
+  }
+  .choice-btn:disabled { cursor: default; }
+  .choice-btn:focus-visible {
+    outline: 3px solid var(--app-header-bg);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .choice-btn { transition: transform 0.12s, background 0.15s, border-color 0.15s; }
+    .choice-btn:not(:disabled):active { transform: scale(0.96); }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <a href="../index.html" class="back-link">← Retour</a>
+  <h1>🧩 La bonne opération</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1 · jusqu'à 20</button>
+  <button class="level-btn"        data-level="2" aria-pressed="false">Niveau 2 · jusqu'à 50</button>
+  <button class="level-btn"        data-level="3" aria-pressed="false">Niveau 3 · comparer</button>
+</div>
+
+<main>
+  <div class="question-box" id="question-box">Choisis le calcul qui raconte l'histoire.</div>
+
+  <div class="story" id="story" aria-live="polite">
+    <div class="story-emoji" id="story-emoji" aria-hidden="true">🧩</div>
+    <p class="story-text" id="story-text">Chargement…</p>
+    <p class="story-question" id="story-question"></p>
+  </div>
+
+  <div class="choices" id="choices" role="group" aria-label="Choisir le calcul"></div>
+
+  <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
+
+  <div class="action-row">
+    <button class="new-btn" id="new-btn">Nouvel exercice</button>
+  </div>
+</main>
+
+<script src="appUtils.js"></script>
+<script>
+  // ── Références DOM ──────────────────────────────────────────────────────────
+  const questionBox = document.getElementById('question-box');
+  const feedbackEl   = document.getElementById('feedback');
+  const storyEmojiEl = document.getElementById('story-emoji');
+  const storyTextEl  = document.getElementById('story-text');
+  const storyQEl     = document.getElementById('story-question');
+  const choicesEl    = document.getElementById('choices');
+  const newBtn       = document.getElementById('new-btn');
+
+  let currentLevel = 1;
+  let state = {};
+
+  // ── Banque de situations ────────────────────────────────────────────────────
+  // kind: 'add' (on réunit / on ajoute) ou 'sub' (on enlève / on compare)
+  const SCENARIOS_BASE = [
+    { emoji: '🔵', kind: 'add',
+      text: (a, b) => `Léa a ${a} billes. Tom lui donne ${b} billes.`,
+      question: 'Combien Léa a-t-elle de billes ?',
+      why: 'Tom donne des billes à Léa : elle en a plus. On additionne.' },
+    { emoji: '🐦', kind: 'add',
+      text: (a, b) => `${a} oiseaux sont sur le fil. ${b} oiseaux arrivent.`,
+      question: "Combien y a-t-il d'oiseaux ?",
+      why: "D'autres oiseaux arrivent : le groupe grandit. On additionne." },
+    { emoji: '🌷', kind: 'add',
+      text: (a, b) => `Il y a ${a} tulipes et ${b} roses dans le vase.`,
+      question: 'Combien de fleurs en tout ?',
+      why: 'On réunit les tulipes et les roses. On additionne.' },
+    { emoji: '🍎', kind: 'sub',
+      text: (a, b) => `Il y a ${a} pommes. On en mange ${b}.`,
+      question: 'Combien reste-t-il de pommes ?',
+      why: 'On enlève les pommes mangées : il en reste moins. On soustrait.' },
+    { emoji: '🍬', kind: 'sub',
+      text: (a, b) => `Max a ${a} bonbons. Il en donne ${b}.`,
+      question: 'Combien reste-t-il de bonbons à Max ?',
+      why: 'Max donne des bonbons : il lui en reste moins. On soustrait.' },
+    { emoji: '🚗', kind: 'sub',
+      text: (a, b) => `${a} voitures sont garées. ${b} voitures partent.`,
+      question: 'Combien reste-t-il de voitures ?',
+      why: 'Des voitures partent : il en reste moins. On soustrait.' },
+  ];
+
+  // Situations de comparaison (écart) — réservées au Niveau 3.
+  const SCENARIOS_COMPARE = [
+    { emoji: '🖼️', kind: 'sub',
+      text: (a, b) => `Léa a ${a} images. Tom a ${b} images.`,
+      question: "Combien Léa a-t-elle d'images de plus que Tom ?",
+      why: "On cherche l'écart entre Léa et Tom. On soustrait." },
+    { emoji: '⚽', kind: 'sub',
+      text: (a, b) => `Maya a marqué ${a} buts. Sam a marqué ${b} buts.`,
+      question: 'Combien Sam a-t-il marqué de buts de moins ?',
+      why: 'On cherche la différence entre les deux. On soustrait.' },
+  ];
+
+  // ── Génération d'un exercice ────────────────────────────────────────────────
+  function generateExercise() {
+    let pool, a, b;
+    if (currentLevel === 1) {
+      pool = SCENARIOS_BASE;
+      b = randInt(2, 6);
+      a = randInt(b, 20 - b);          // a ≥ b, a + b ≤ 20
+    } else if (currentLevel === 2) {
+      pool = SCENARIOS_BASE;
+      b = randInt(5, 18);
+      a = randInt(b, 50 - b);          // a ≥ b, a + b ≤ 50
+    } else {
+      // Niveau 3 : surtout des comparaisons, plus quelques retraits/ajouts.
+      pool = SCENARIOS_COMPARE.concat(SCENARIOS_BASE);
+      b = randInt(10, 40);
+      a = randInt(b, 100 - b);         // a ≥ b, a + b ≤ 100
+    }
+
+    const scenario = pick(pool, 1)[0];
+    const op    = scenario.kind === 'add' ? '+' : '−';
+    const value = scenario.kind === 'add' ? a + b : a - b;
+    return { scenario, a, b, op, value };
+  }
+
+  // ── Rendu ───────────────────────────────────────────────────────────────────
+  function renderChoices(a, b) {
+    // Deux modèles possibles sur les MÊMES nombres : addition ou soustraction.
+    const options = shuffle([
+      { op: '+', label: `${a} + ${b}`, aria: `${a} plus ${b}` },
+      { op: '−', label: `${a} − ${b}`, aria: `${a} moins ${b}` },
+    ]);
+    choicesEl.innerHTML = '';
+    options.forEach((opt, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.textContent = opt.label;
+      btn.setAttribute('aria-label', `Calcul : ${opt.aria}`);
+      btn.setAttribute('tabindex', idx === 0 ? '0' : '-1');
+      btn.addEventListener('click', () => handleChoice(opt.op, btn));
+      choicesEl.appendChild(btn);
+    });
+  }
+
+  function showFeedback(correct, msg) {
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = msg;
+    newBtn.classList.add('visible');
+    if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+  }
+
+  function handleChoice(chosenOp, btn) {
+    if (state.answered) return;
+    state.answered = true;
+
+    choicesEl.querySelectorAll('.choice-btn').forEach(b => { b.disabled = true; });
+
+    const correct = (chosenOp === state.op);
+    btn.classList.add(correct ? 'correct' : 'wrong');
+
+    const calcul = `${state.a} ${state.op} ${state.b} = ${state.value}`;
+    if (correct) {
+      showFeedback(true, `Bravo ! ${state.why} ${calcul}.`);
+    } else {
+      showFeedback(false, `Pas tout à fait. ${state.why} Le bon calcul est ${calcul}.`);
+    }
+    newBtn.focus();
+  }
+
+  function newExercise() {
+    feedbackEl.className = 'feedback';
+    feedbackEl.textContent = '';
+    newBtn.classList.remove('visible');
+
+    const ex = generateExercise();
+    state = { a: ex.a, b: ex.b, op: ex.op, value: ex.value, why: ex.scenario.why, answered: false };
+
+    storyEmojiEl.textContent = ex.scenario.emoji;
+    storyTextEl.textContent  = ex.scenario.text(ex.a, ex.b);
+    storyQEl.textContent     = ex.scenario.question;
+
+    renderChoices(ex.a, ex.b);
+    choicesEl.querySelector('.choice-btn').focus();
+  }
+
+  // ── Roving tabindex : flèches naviguent entre les calculs ────────────────────
+  choicesEl.addEventListener('keydown', e => {
+    const btns = Array.from(choicesEl.querySelectorAll('.choice-btn:not(:disabled)'));
+    const cur = btns.indexOf(document.activeElement);
+    if (cur === -1) return;
+
+    let next = -1;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (cur + 1) % btns.length;
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   next = (cur - 1 + btns.length) % btns.length;
+
+    if (next !== -1) {
+      e.preventDefault();
+      btns.forEach(b => b.setAttribute('tabindex', '-1'));
+      btns[next].setAttribute('tabindex', '0');
+      btns[next].focus();
+    }
+  });
+
+  // ── Sélecteur de niveau ──────────────────────────────────────────────────────
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLevel = parseInt(btn.dataset.level);
+      document.querySelectorAll('.level-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+      newExercise();
+    });
+  });
+
+  newBtn.addEventListener('click', newExercise);
+
+  // Raccourcis clavier : 1–2 choisissent un calcul ; Entrée/Espace = nouvel exercice.
+  document.addEventListener('keydown', e => {
+    if (state.answered) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        newBtn.click();
+      }
+      return;
+    }
+    const idx = parseInt(e.key, 10);
+    if (idx >= 1 && idx <= 2) {
+      const btns = choicesEl.querySelectorAll('.choice-btn:not(:disabled)');
+      if (btns[idx - 1]) btns[idx - 1].click();
+    }
+  });
+
+  newExercise();
+</script>
+<script src="feedbackUtils.js"></script>
+</body>
+</html>
