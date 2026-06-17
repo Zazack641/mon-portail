@@ -33,7 +33,9 @@
       "Bash(git push)",
       "Bash(rm /Users/isaacferretti/Documents/mon-portail/apps/calcul-mental-c1.html)",
       "Skill(commit-commands:commit)",
-      "Skill(commit-commands:commit:*)"
+      "Skill(commit-commands:commit:*)",
+      "Bash(sort -t: -k2)",
+      "Bash(uniq -f1 -c)"
     ]
   }
 }
