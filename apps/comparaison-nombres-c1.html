@@ -213,6 +213,28 @@
     newBtn.classList.remove('visible');
   }
 
+  function buildMsg(correct, a, b, sym) {
+    if (currentLevel === 1) {
+      const label = sym === '<' ? 'est plus petit que' : 'est plus grand que';
+      return correct
+        ? `Bravo ! ${a} ${sym} ${b}, c'est juste.`
+        : `Pas tout à fait. Il fallait « ${sym} » car ${a} ${label} ${b}. Appuie sur « Nouvel exercice » pour continuer.`;
+    }
+    const tensA = Math.floor(a / 10), unitsA = a % 10;
+    const tensB = Math.floor(b / 10), unitsB = b % 10;
+    if (tensA !== tensB) {
+      const tensComp = tensA < tensB ? 'est plus petit que' : 'est plus grand que';
+      return correct
+        ? `Bravo ! ${a} ${sym} ${b}. Le chiffre des dizaines de ${a} est ${tensA} et celui de ${b} est ${tensB} : ${tensA} ${tensComp} ${tensB}.`
+        : `Pas tout à fait. Regarde le chiffre des dizaines : ${a} a ${tensA} et ${b} a ${tensB}. Comme ${tensA} ${tensComp} ${tensB}, on a ${a} ${sym} ${b}. Appuie sur « Nouvel exercice » pour continuer.`;
+    } else {
+      const unitsComp = unitsA < unitsB ? 'est plus petit que' : 'est plus grand que';
+      return correct
+        ? `Bravo ! ${a} ${sym} ${b}. Les dizaines sont identiques (${tensA}). Le chiffre des unités de ${a} est ${unitsA} et celui de ${b} est ${unitsB} : ${unitsA} ${unitsComp} ${unitsB}.`
+        : `Pas tout à fait. Les dizaines sont identiques (${tensA}). Regarde le chiffre des unités : ${a} a ${unitsA} et ${b} a ${unitsB}. Comme ${unitsA} ${unitsComp} ${unitsB}, on a ${a} ${sym} ${b}. Appuie sur « Nouvel exercice » pour continuer.`;
+    }
+  }
+
   function answer(sym, btn) {
     if (state.answered) return;
     state.answered = true;
@@ -229,12 +251,7 @@
       }
     });
 
-    const symLabel = state.correct === '<' ? 'est plus petit que' : 'est plus grand que';
-    showFeedback(correct,
-      correct
-        ? `Bravo ! ${state.a} ${state.correct} ${state.b}, c'est juste.`
-        : `Pas tout à fait. Il fallait « ${state.correct} » car ${state.a} ${symLabel} ${state.b}. Appuie sur « Nouvel exercice » pour continuer.`
-    );
+    showFeedback(correct, buildMsg(correct, state.a, state.b, state.correct));
   }
 
   document.querySelectorAll('.level-btn').forEach(btn => {
