@@ -48,12 +48,12 @@
   .symbol-zone {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
     align-items: center;
   }
   .symbol-btn {
-    width: clamp(56px, 12vw, 72px);
-    height: clamp(56px, 12vw, 72px);
+    width: clamp(64px, 12vw, 80px);
+    height: clamp(64px, 12vw, 80px);
     border-radius: 14px;
     border: 2.5px solid var(--app-border);
     background: #fff;
@@ -64,13 +64,12 @@
     cursor: pointer;
     touch-action: manipulation;
     -webkit-appearance: none;
-    transition: all 0.15s;
     display: flex;
     align-items: center;
     justify-content: center;
   }
   .symbol-btn:hover  { background: #EEF2F7; border-color: var(--color-units); }
-  .symbol-btn:active { transform: scale(0.95); }
+  .symbol-btn:focus-visible { outline: 3px solid var(--color-units); outline-offset: 3px; }
   .symbol-btn.correct  { background: var(--app-correct-bg); color: var(--app-correct-fg); border-color: #10B981; }
   .symbol-btn.wrong    { background: var(--app-wrong-bg);   color: var(--app-wrong-fg);   border-color: #EF4444; }
   .symbol-btn:disabled { cursor: default; }
@@ -85,7 +84,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 600;
     color: #64748B;
   }
@@ -93,6 +92,19 @@
     width: 12px; height: 12px;
     border-radius: 50%;
     flex-shrink: 0;
+  }
+
+  /* overrides app-base.css pour accessibilité */
+  .back-link { display: inline-flex; align-items: center; min-height: 44px; }
+  .back-link:focus-visible { outline: 3px solid rgba(255,255,255,0.9); outline-offset: 4px; border-radius: 4px; }
+  .level-bar { gap: 12px; }
+  .level-btn { min-width: 44px; }
+  .level-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; }
+  .new-btn { min-width: 64px; }
+  .new-btn:focus-visible { outline: 3px solid rgba(255,255,255,0.9); outline-offset: 3px; }
+  @media (prefers-reduced-motion: no-preference) {
+    .symbol-btn { transition: all 0.15s; }
+    .symbol-btn:active { transform: scale(0.95); }
   }
 </style>
 </head>
@@ -175,6 +187,7 @@
     feedbackEl.textContent = msg;
     if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
     newBtn.classList.add('visible');
+    newBtn.focus();
   }
 
   function newExercise() {
@@ -201,6 +214,8 @@
       btn.addEventListener('click', () => answer(sym, btn));
       symbolZone.appendChild(btn);
     });
+    const firstSymBtn = symbolZone.querySelector('.symbol-btn');
+    if (firstSymBtn) firstSymBtn.focus();
 
     feedbackEl.className = 'feedback';
     newBtn.classList.remove('visible');
@@ -213,15 +228,20 @@
 
     document.querySelectorAll('.symbol-btn').forEach(b => {
       b.disabled = true;
-      if (b.textContent === state.correct) b.classList.add('correct');
-      else if (b === btn) b.classList.add('wrong');
+      if (b.textContent === state.correct) {
+        b.classList.add('correct');
+        b.textContent = b.textContent + ' ✓';
+      } else if (b === btn) {
+        b.classList.add('wrong');
+        b.textContent = b.textContent + ' ✗';
+      }
     });
 
     const symLabel = state.correct === '<' ? 'est plus petit que' : 'est plus grand que';
     showFeedback(correct,
       correct
         ? `Bravo ! ${state.a} ${state.correct} ${state.b}, c'est juste.`
-        : `Pas tout à fait. Il fallait « ${state.correct} » car ${state.a} ${symLabel} ${state.b}.`
+        : `Pas tout à fait. Il fallait « ${state.correct} » car ${state.a} ${symLabel} ${state.b}. Appuie sur « Nouvel exercice » pour continuer.`
     );
   }
 

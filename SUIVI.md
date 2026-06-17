@@ -1,7 +1,7 @@
 # Suivi des applications
 
 Audit complet — accessibilité (WCAG 2.2 AA), design portail, pédagogie PER.  
-Dernière mise à jour : 2026-06-17 (audit capacites.html)  
+Dernière mise à jour : 2026-06-17 (audit capacites.html, comparaison-nombres-c1.html)  
 Campagne audit accessibilité v2 démarrée le 2026-06-16
 
 ---
@@ -21,7 +21,7 @@ Campagne audit accessibilité v2 démarrée le 2026-06-16
 |---------|-------|------------|-----------|------------------|----------------------|
 | balance.html | La balance | ✅ | ✅ | Gap level-bar 10→12px, gap ctrl-btns 8→12px ; `min-width: 64px` sur verify/new/egal-btn ; back-link min-height 44px ; `.n3-count` et `.click-hint` contraste corrigé (#94A3B8→#4A5568/#475569) et font-size 13→15px ; `.n3-side-label` contraste corrigé (#64748B→#4A5568) ; `:focus-visible` ajouté ; `tabindex="-1"` sur feedback ; focus géré après réponse (newBtn.focus / feedbackEl.focus) | V1 : `role="banner"`, level-bar ARIA, `aria-live` ; V2 : `prefers-reduced-motion`, tailles boutons 64px, font 18px, message d'erreur avec action ("Enlève des cubes…") |
 | capacites.html | Qui contient le plus ? | ✅ | ✅ | `level-bar gap` 10→12px ; `back-link` min-height 44px + display:inline-flex ; `level-btn` min-width 44px ; `container-item` min 48→64px×64px ; `.label` font-size 16→22px ; `.container-svg-wrap` bordure `#E2E8F0`→`#64748B` (contraste 1.2→4.75:1) ; `.feedback` line-height 1.5 ; `verify-btn/new-btn` min-width 64px ; `:focus-visible` sur tous les éléments ; transitions encapsulées dans `(prefers-reduced-motion: no-preference)` ; `data-focus-target` + focus sur premier container après DOM rebuild ; `newBtn.focus()` après validation ; indicateurs ✓/✗ textuels sur labels containers ; message d'erreur avec action ("Appuie sur Nouvel exercice") | V1 : `role="banner"`, `aria-live` ; V2 : `prefers-reduced-motion`, feedback 18px, boutons 64px |
-| comparaison-nombres-c1.html | Le comparateur de nombres (3H-4H) | ✅ | ❌ | | V1 : `role="banner"`, `aria-live` ; V2 : couvert par app-base.css |
+| comparaison-nombres-c1.html | Le comparateur de nombres (3H-4H) | ✅ | ✅ | `symbol-zone gap` 10→12px ; `symbol-btn` clamp min 56→64px ; transition + `:active transform` encapsulés dans `(prefers-reduced-motion: no-preference)` ; `legend-item font-size` 13→15px ; `:focus-visible` sur tous les éléments (overrides app-base.css) ; `back-link` min-height 44px ; `level-bar gap` 12px ; `level-btn/new-btn` min-width ; focus sur premier symbol-btn après DOM rebuild ; `newBtn.focus()` après validation ; indicateurs ✓/✗ sur boutons symboles ; message d'erreur avec action | V1 : `role="banner"`, `aria-live` ; V2 : couvert par app-base.css |
 | comparaison-nombres.html | Comparaison de nombres | ✅ | ❌ | | V1 : `role="banner"`, `aria-live` ; V2 : `prefers-reduced-motion`, symbol-btn 64px, feedback 18px, new-btn 64px |
 | decodi-comprehension.html | Compréhension DéCoDi | ✅ | ❌ | | V1 : `role="banner"`, `aria-live`, `outline` textarea ; V2 : couvert par app-base.css |
 | decodi-dictee-c2.html | Dictée DéCoDi — Modules 11-15 | ✅ | ❌ | | V1 : `role="banner"`, `role="group"` nav-bar, `aria-live`, `outline` ; V2 : couvert par app-base.css |
