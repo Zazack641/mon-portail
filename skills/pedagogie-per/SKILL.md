@@ -125,6 +125,11 @@ Selon le domaine, appliquer les principes suivants :
 - L'élève doit pouvoir progresser sans aide extérieure (consignes autonomisantes)
 - Éviter le découragement : offrir un Niveau 1 accessible à tous
 
+**Les messages de feedback sont du contenu pédagogique protégé.**
+Un audit d'accessibilité ou un correctif technique ne doit jamais les réécrire.
+Seul un travail explicitement pédagogique (ex. révision PER) peut les modifier.
+Voir la règle de non-régression dans `skills/accessibilite/SKILL.md` § 5.
+
 ---
 
 ## Étape 6 — Guider le contenu pédagogique

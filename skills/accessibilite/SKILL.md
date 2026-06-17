@@ -86,6 +86,13 @@ Pas d'éléments animés en arrière-plan pendant qu'une tâche est en cours.
 - Le message reste affiché jusqu'à une action explicite de l'élève
 - En cas d'erreur : indiquer quoi faire, pas seulement signaler l'échec
 
+**Règle de non-régression pédagogique — ne jamais réécrire un message de feedback.**
+Les messages de feedback sont du contenu PER protégé (voir `skills/pedagogie-per/SKILL.md`).
+Les correctifs accessibilité s'appliquent de façon **additive uniquement** :
+appender l'indication d'action en fin de message si elle manque
+(ex. « Appuie sur "Nouvel exercice" pour continuer. »),
+sans toucher au contenu formatif existant.
+
 ```html
 <!-- Le feedback ne se cache pas automatiquement -->
 <!-- Il disparaît uniquement quand l'élève clique sur "Nouvel exercice" -->
