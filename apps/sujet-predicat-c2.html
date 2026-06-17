@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Sujet et prédicat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-base.css">
+<style>
+  :root { --app-header-bg: #B8960C; }
+
+  .phrase-area {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin: 20px 0;
+  }
+
+  /* Niveau 1 — deux blocs cliquables */
+  .bloc-phrase {
+    min-height: 80px;
+    padding: 18px 24px;
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(18px, 3.8vw, 24px);
+    font-weight: 800;
+    border: 3px solid var(--app-border);
+    border-radius: 16px;
+    background: #fff;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    text-align: center;
+    line-height: 1.4;
+    color: var(--app-text);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .bloc-phrase { transition: border-color 0.15s, background 0.15s, transform 0.1s; }
+    .bloc-phrase:active { transform: scale(0.97); }
+  }
+
+  .bloc-phrase.correct { border-color: #059669; background: var(--app-correct-bg); color: var(--app-correct-fg); }
+  .bloc-phrase.wrong   { border-color: #DC2626; background: var(--app-wrong-bg);   color: var(--app-wrong-fg); }
+  .bloc-phrase:disabled { cursor: default; }
+  .bloc-phrase:focus-visible { outline: 3px solid #B8960C; outline-offset: 3px; }
+
+  /* Niveau 2 — mots séparés */
+  .phrase-tokens {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin: 20px 0;
+  }
+
+  .token {
+    min-height: 64px;
+    padding: 10px 18px;
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(18px, 3.5vw, 22px);
+    font-weight: 800;
+    border: 3px solid var(--app-border);
+    border-radius: 12px;
+    background: #fff;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    line-height: 1.3;
+    color: var(--app-text);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .token { transition: border-color 0.15s, background 0.15s, transform 0.1s; }
+    .token:active { transform: scale(0.95); }
+  }
+
+  .token.selected { border-color: #B8960C; background: #FBF5D6; }
+  .token.correct  { border-color: #059669; background: var(--app-correct-bg); color: var(--app-correct-fg); }
+  .token.wrong    { border-color: #DC2626; background: var(--app-wrong-bg);   color: var(--app-wrong-fg); }
+  .token:disabled { cursor: default; }
+  .token:focus-visible { outline: 3px solid #B8960C; outline-offset: 3px; }
+</style>
+</head>
+<body>
+
+<header class="app-header" role="banner">
+  <a href="../index.html" class="back-link">← Retour</a>
+  <h1>✏️ Sujet et prédicat</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1 · deux blocs</button>
+  <button class="level-btn"        data-level="2" aria-pressed="false">Niveau 2 · mots séparés</button>
+</div>
+
+<main>
+  <div class="question-box" id="question-box">Chargement…</div>
+
+  <div id="phrase-area" class="phrase-area" role="group" aria-label="Parties de la phrase"></div>
+
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="action-row">
+    <button class="verify-btn" id="verify-btn" disabled>Vérifier</button>
+    <button class="new-btn"    id="new-btn">Nouvel exercice</button>
+  </div>
+</main>
+
+<script src="appUtils.js"></script>
+<script>
+const questionBox = document.getElementById('question-box');
+const feedbackEl  = document.getElementById('feedback');
+const phraseArea  = document.getElementById('phrase-area');
+const verifyBtn   = document.getElementById('verify-btn');
+const newBtn      = document.getElementById('new-btn');
+
+let currentLevel = 1;
+let state = {};
+
+const PHRASES = [
+  { sujet: 'Les enfants',  predicat: 'jouent dans la cour' },
+  { sujet: 'Le chien',     predicat: 'court dans le jardin' },
+  { sujet: 'Ma sœur',      predicat: 'lit un livre' },
+  { sujet: 'Les élèves',   predicat: 'écoutent la maîtresse' },
+  { sujet: 'Le soleil',    predicat: 'brille ce matin' },
+  { sujet: 'Mon frère',    predicat: 'mange une pomme' },
+  { sujet: 'La maîtresse', predicat: 'écrit au tableau' },
+  { sujet: 'Les oiseaux',  predicat: 'chantent dans les arbres' },
+  { sujet: 'Le chat',      predicat: 'dort sur le canapé' },
+  { sujet: 'Nous',         predicat: 'apprenons de nouvelles choses' },
+  { sujet: 'La voiture',   predicat: 'roule très vite' },
+  { sujet: 'Les fleurs',   predicat: 'poussent au printemps' },
+  { sujet: 'Le garçon',    predicat: 'range son sac' },
+  { sujet: 'Ma mère',      predicat: 'prépare le repas' },
+  { sujet: 'Les nuages',   predicat: 'cachent le soleil' },
+  { sujet: 'Le boulanger', predicat: 'fabrique du pain frais' },
+  { sujet: 'La rivière',   predicat: 'coule doucement' },
+  { sujet: 'Mon ami',      predicat: 'joue au football' },
+  { sujet: 'Les lapins',   predicat: 'mangent des carottes' },
+];
+
+// ── Feedback unifié ───────────────────────────────────────────────────────────
+function showFeedback(correct, msg) {
+  feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+  feedbackEl.textContent = msg;
+  newBtn.classList.add('visible');
+  verifyBtn.style.display = 'none';
+  if (correct) {
+    playCorrect();
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      launchConfetti();
+    }
+  } else {
+    playIncorrect();
+  }
+  newBtn.focus();
+}
+
+function resetFeedback() {
+  feedbackEl.className = 'feedback';
+  feedbackEl.textContent = '';
+  newBtn.classList.remove('visible');
+  verifyBtn.style.display = '';
+  verifyBtn.disabled = true;
+}
+
+// ── Niveau 1 — deux blocs ─────────────────────────────────────────────────────
+function setupLevel1() {
+  resetFeedback();
+  verifyBtn.style.display = 'none';
+
+  const phrase = PHRASES[randInt(0, PHRASES.length - 1)];
+  const cible  = Math.random() < 0.5 ? 'sujet' : 'predicat';
+  state = { phrase, cible, answered: false };
+
+  questionBox.textContent = cible === 'sujet'
+    ? 'Touche le sujet de cette phrase.'
+    : 'Touche le prédicat de cette phrase.';
+
+  phraseArea.innerHTML = '';
+  phraseArea.className = 'phrase-area';
+
+  const blocs = [
+    { role: 'sujet',    text: phrase.sujet },
+    { role: 'predicat', text: phrase.predicat },
+  ];
+  if (Math.random() < 0.5) blocs.reverse();
+
+  blocs.forEach(({ role, text }) => {
+    const btn = document.createElement('button');
+    btn.className = 'bloc-phrase';
+    btn.dataset.role = role;
+    btn.textContent = text;
+    btn.setAttribute('aria-label', text);
+    btn.addEventListener('click', () => handleBloc1(role, btn));
+    phraseArea.appendChild(btn);
+  });
+
+  phraseArea.querySelector('.bloc-phrase[data-focus-target]') ||
+    phraseArea.querySelector('.bloc-phrase').focus();
+}
+
+function handleBloc1(role, btn) {
+  if (state.answered) return;
+  state.answered = true;
+
+  const correct = role === state.cible;
+  phraseArea.querySelectorAll('.bloc-phrase').forEach(b => {
+    b.disabled = true;
+    if (b.dataset.role === state.cible) b.classList.add('correct');
+    if (b.dataset.role === role && !correct) b.classList.add('wrong');
+  });
+
+  if (correct) {
+    const msg = state.cible === 'sujet'
+      ? `Bravo ! « ${state.phrase.sujet} » est le sujet : il dit de qui on parle. Sans lui, la phrase ne fonctionne plus.`
+      : `Exact ! « ${state.phrase.predicat} » est le prédicat : il dit ce que fait le sujet. Sans lui, la phrase ne fonctionne plus.`;
+    showFeedback(true, msg);
+  } else {
+    const msg = state.cible === 'sujet'
+      ? `Pas tout à fait. Le sujet, c'est « ${state.phrase.sujet} ». Il dit de qui ou de quoi parle la phrase.`
+      : `Pas tout à fait. Le prédicat, c'est « ${state.phrase.predicat} ». Il dit ce que fait le sujet et contient le verbe.`;
+    showFeedback(false, msg);
+  }
+}
+
+// ── Niveau 2 — mots séparés ───────────────────────────────────────────────────
+function setupLevel2() {
+  resetFeedback();
+
+  const phrase = PHRASES[randInt(0, PHRASES.length - 1)];
+  const cible  = Math.random() < 0.5 ? 'sujet' : 'predicat';
+  const sujetMots    = phrase.sujet.split(' ');
+  const predicatMots = phrase.predicat.split(' ');
+  const tousMots = [...sujetMots, ...predicatMots];
+
+  state = { phrase, cible, sujetMots, predicatMots, tousMots, answered: false, selected: new Set() };
+
+  questionBox.textContent = cible === 'sujet'
+    ? 'Sélectionne les mots qui forment le sujet, puis appuie sur Vérifier.'
+    : 'Sélectionne les mots qui forment le prédicat, puis appuie sur Vérifier.';
+
+  phraseArea.innerHTML = '';
+  phraseArea.className = 'phrase-area';
+
+  const tokenWrap = document.createElement('div');
+  tokenWrap.className = 'phrase-tokens';
+  tokenWrap.setAttribute('role', 'group');
+  tokenWrap.setAttribute('aria-label', 'Mots de la phrase');
+
+  tousMots.forEach((mot, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'token';
+    btn.dataset.index = i;
+    btn.textContent = mot;
+    btn.setAttribute('aria-pressed', 'false');
+    btn.setAttribute('aria-label', mot);
+    btn.addEventListener('click', () => toggleToken(i, btn));
+    tokenWrap.appendChild(btn);
+  });
+
+  phraseArea.appendChild(tokenWrap);
+
+  tokenWrap.querySelector('.token').focus();
+}
+
+function toggleToken(index, btn) {
+  if (state.answered) return;
+  if (state.selected.has(index)) {
+    state.selected.delete(index);
+    btn.classList.remove('selected');
+    btn.setAttribute('aria-pressed', 'false');
+  } else {
+    state.selected.add(index);
+    btn.classList.add('selected');
+    btn.setAttribute('aria-pressed', 'true');
+  }
+  verifyBtn.disabled = state.selected.size === 0;
+}
+
+function verify() {
+  if (state.answered) return;
+  state.answered = true;
+
+  const sujetCount = state.sujetMots.length;
+  const expectedIndices = state.cible === 'sujet'
+    ? new Set(Array.from({ length: sujetCount }, (_, i) => i))
+    : new Set(Array.from({ length: state.predicatMots.length }, (_, i) => i + sujetCount));
+
+  const correct =
+    state.selected.size === expectedIndices.size &&
+    [...state.selected].every(i => expectedIndices.has(i));
+
+  phraseArea.querySelectorAll('.token').forEach(t => {
+    t.disabled = true;
+    const i = parseInt(t.dataset.index);
+    if (expectedIndices.has(i))                       t.classList.add('correct');
+    else if (state.selected.has(i))                   t.classList.add('wrong');
+  });
+
+  verifyBtn.disabled = true;
+
+  if (correct) {
+    const msg = state.cible === 'sujet'
+      ? `Bravo ! « ${state.phrase.sujet} » est le sujet : il dit de qui on parle. Sans sujet, la phrase ne fonctionne plus.`
+      : `Exact ! « ${state.phrase.predicat} » est le prédicat : il dit ce que fait le sujet. Sans lui, la phrase ne fonctionne plus.`;
+    showFeedback(true, msg);
+  } else {
+    const msg = state.cible === 'sujet'
+      ? `Pas tout à fait. Le sujet, c'est « ${state.phrase.sujet} ». Il dit de qui ou de quoi parle la phrase.`
+      : `Pas tout à fait. Le prédicat, c'est « ${state.phrase.predicat} ». Il dit ce que fait le sujet et contient le verbe.`;
+    showFeedback(false, msg);
+  }
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+document.querySelectorAll('.level-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentLevel = parseInt(btn.dataset.level);
+    document.querySelectorAll('.level-btn').forEach(b => {
+      b.classList.remove('active');
+      b.setAttribute('aria-pressed', 'false');
+    });
+    btn.classList.add('active');
+    btn.setAttribute('aria-pressed', 'true');
+    newExercise();
+  });
+});
+
+newBtn.addEventListener('click', newExercise);
+verifyBtn.addEventListener('click', verify);
+
+function newExercise() {
+  if (currentLevel === 1) setupLevel1();
+  else                    setupLevel2();
+}
+
+newExercise();
+</script>
+<script src="feedbackUtils.js"></script>
+</body>
+</html>

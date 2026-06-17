@@ -40,3 +40,4 @@ Campagne audit accessibilité v2 démarrée le 2026-06-16
 | surfaces.html | Les surfaces — Comparer des aires | ✅ | ❌ | | V1 : `role="banner"`, `aria-live`, shape-items clavier ; V2 : `prefers-reduced-motion`, feedback 18px, boutons 64px |
 | valeur-position.html | Valeur de position | ✅ | ❌ | | V1 : `role="banner"`, `aria-live` ; V2 : `prefers-reduced-motion`, choice-btn 18px/64px, feedback 18px, new-btn 64px |
 | vertical-calculation.html | Additions en colonne | ✅ | ❌ | | V1 : title case corrigé ; V2 : `prefers-reduced-motion`, message d'erreur avec référence visuelle ("cases en rouge") |
+| sujet-predicat-c2.html | Sujet et prédicat | ✅ | ❌ | | Nouveau fichier — créé depuis `_template.html` ; audit accessibilité v2 à faire |
