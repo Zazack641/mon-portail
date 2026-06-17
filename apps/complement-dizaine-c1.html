@@ -185,13 +185,22 @@
     return shuffle([...pool].slice(0, 4));
   }
 
+  // Colore chaque chiffre selon son rang (unités=bleu, dizaines=rouge, centaines=vert).
+  function coloredDigits(n) {
+    const s = String(n);
+    return s.split('').map((d, i) => {
+      const rank = s.length - 1 - i;
+      return `<span style="color:${colorForRank(rank)}">${d}</span>`;
+    }).join('');
+  }
+
   function renderEquation(a, target) {
     equationEl.innerHTML =
-      `<span class="eq-number">${a}</span>` +
+      `<span class="eq-number">${coloredDigits(a)}</span>` +
       `<span class="eq-operator">+</span>` +
       `<span class="eq-blank" id="eq-blank"> </span>` +
       `<span class="eq-operator">=</span>` +
-      `<span class="eq-number">${target}</span>`;
+      `<span class="eq-number">${coloredDigits(target)}</span>`;
   }
 
   function handleChoice(choice, btn) {
@@ -205,7 +214,7 @@
 
     const blank = document.getElementById('eq-blank');
     if (blank) {
-      blank.textContent = state.answer;
+      blank.innerHTML = coloredDigits(state.answer);
       blank.classList.add('revealed');
     }
 
@@ -235,7 +244,7 @@
     choices.forEach((choice, idx) => {
       const btn = document.createElement('button');
       btn.className = 'choice-btn';
-      btn.textContent = choice;
+      btn.innerHTML = coloredDigits(choice);
       btn.setAttribute('aria-label', `Réponse : ${choice}`);
       btn.setAttribute('tabindex', idx === 0 ? '0' : '-1');
       btn.addEventListener('click', () => handleChoice(choice, btn));
