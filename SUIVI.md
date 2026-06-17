@@ -1,7 +1,7 @@
 # Suivi des applications
 
 Audit complet — accessibilité (WCAG 2.2 AA), design portail, pédagogie PER.  
-Dernière mise à jour : 2026-06-16  
+Dernière mise à jour : 2026-06-17  
 Campagne audit accessibilité v2 démarrée le 2026-06-16
 
 ---
@@ -19,7 +19,7 @@ Campagne audit accessibilité v2 démarrée le 2026-06-16
 
 | Fichier | Titre | Fonctionne | Audité v2 | Notes d'audit v2 | Notes v1 (archivées) |
 |---------|-------|------------|-----------|------------------|----------------------|
-| balance.html | La balance | ✅ | ❌ | | V1 : `role="banner"`, level-bar ARIA, `aria-live` ; V2 : `prefers-reduced-motion`, tailles boutons 64px, font 18px, message d'erreur avec action ("Enlève des cubes…") |
+| balance.html | La balance | ✅ | ✅ | Gap level-bar 10→12px, gap ctrl-btns 8→12px ; `min-width: 64px` sur verify/new/egal-btn ; back-link min-height 44px ; `.n3-count` et `.click-hint` contraste corrigé (#94A3B8→#4A5568/#475569) et font-size 13→15px ; `.n3-side-label` contraste corrigé (#64748B→#4A5568) ; `:focus-visible` ajouté ; `tabindex="-1"` sur feedback ; focus géré après réponse (newBtn.focus / feedbackEl.focus) | V1 : `role="banner"`, level-bar ARIA, `aria-live` ; V2 : `prefers-reduced-motion`, tailles boutons 64px, font 18px, message d'erreur avec action ("Enlève des cubes…") |
 | capacites.html | Qui contient le plus ? | ✅ | ❌ | | V1 : `role="banner"`, `aria-live` ; V2 : `prefers-reduced-motion`, feedback 18px, boutons 64px |
 | comparaison-nombres-c1.html | Le comparateur de nombres (3H-4H) | ✅ | ❌ | | V1 : `role="banner"`, `aria-live` ; V2 : couvert par app-base.css |
 | comparaison-nombres.html | Comparaison de nombres | ✅ | ❌ | | V1 : `role="banner"`, `aria-live` ; V2 : `prefers-reduced-motion`, symbol-btn 64px, feedback 18px, new-btn 64px |
