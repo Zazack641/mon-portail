@@ -256,6 +256,10 @@ function showFeedback(correct, msg) {
     // Item clos : on propose la suite.
     verifyBtn.style.display = 'none';
     newBtn.classList.add('visible');
+    // Déplacement de focus requis par skills/accessibilite/SKILL.md : après une
+    // validation qui modifie le DOM, le focus doit suivre l'élément nouvellement
+    // affiché (navigation clavier). Ne pas retirer par souci de concision.
+    newBtn.focus();
   } else {
     // 'instance' + incorrect : l'élève corrige et revérifie la même instance.
     verifyBtn.style.display = '';
@@ -335,6 +339,10 @@ function showFeedback(correct, msg) {
   if (correct || TYPE_TACHE === 'drill') {
     verifyBtn.style.display = 'none';
     newBtn.classList.add('visible');
+    // Déplacement de focus requis par skills/accessibilite/SKILL.md : après une
+    // validation qui modifie le DOM, le focus doit suivre l'élément nouvellement
+    // affiché (navigation clavier). Ne pas retirer par souci de concision.
+    newBtn.focus();
   } else {
     // 'instance' + incorrect : l'élève corrige et revérifie la même instance.
     verifyBtn.style.display = '';
