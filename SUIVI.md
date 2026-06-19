@@ -1,7 +1,7 @@
 # Suivi des applications
 
 Audit complet — accessibilité (WCAG 2.2 AA), design portail, pédagogie PER.  
-Dernière mise à jour : 2026-06-19 (réinitialisation du statut pour le cycle d'audit v2 harmonisé)  
+Dernière mise à jour : 2026-06-19 (audit v2 : balance.html)  
 Campagne audit accessibilité v2 démarrée le 2026-06-16
 
 > La colonne **« Audité v2 »** suit le nouveau cycle d'audit harmonisé **PER + accessibilité** (arbitrage croisé, distinction drill / instance). Un **❌** signifie « pas encore repassé selon la nouvelle doctrine », et **non** « non conforme ». Les correctifs déjà présents dans les fichiers restent en place.
@@ -23,7 +23,7 @@ Campagne audit accessibilité v2 démarrée le 2026-06-16
 
 | Fichier | Titre | Fonctionne | Audité v2 | Notes d'audit v2 |
 |---------|-------|------------|-----------|------------------|
-| balance.html | La balance | ✅ | ❌ | |
+| balance.html | La balance | ✅ | ✅ | **Accessibilité :** focus replacé sur la consigne après « Nouvel exercice » (le bouton se masquait en gardant le focus) ; accès clavier des plateaux N1/N2 (tabindex/role/aria-label + activation Entrée/Espace, le tap reste l'option principale) ; contraste `back-link` relevé (0.85→0.92, ~4,3→~5,5:1) ; `click-hint` 15→16px. **Pédagogie :** RAS — feedbacks formatifs et retry N3 conservés intacts. **Forme :** `TYPE_TACHE` déclaré (table par niveau : N1/N2 `drill`, N3 `instance`) documentant le comportement existant. — **À VALIDER PAR ISAAC (global) :** seuil accessibilité « 22px pour les éléments interactifs » non respecté par les boutons (level-btn 15px, verify/new 18px) ; correctif global (app-base.css + toutes apps), non appliqué ici. Variables `--color-units/tens/hundreds` non déclarées : balance n'affiche pas de valeurs de position, palette jugée non applicable. |
 | capacites.html | Qui contient le plus ? | ✅ | ❌ | |
 | comparaison-nombres-c1.html | Le comparateur de nombres (3H-4H) | ✅ | ❌ | |
 | comparaison-nombres.html | Comparaison de nombres | ✅ | ❌ | |
