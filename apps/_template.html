@@ -86,6 +86,16 @@
   const verifyBtn   = document.getElementById('verify-btn');
   const newBtn      = document.getElementById('new-btn');
 
+  // ── Type de tâche ─────────────────────────────────────────────────────────
+  // 'drill'    : l'erreur clôt l'item, on passe au suivant
+  //              (calcul mental, reconnaissance rapide…).
+  // 'instance' : l'erreur est corrigeable, l'élève réessaie sur la MÊME instance
+  //              jusqu'à réussite (placer un nombre, équilibrer une balance,
+  //              identifier sujet/prédicat…).
+  // Basculer sur 'instance' si la tâche est à instance signifiante.
+  // Voir skills/pedagogie-per/SKILL.md § « Drill vs instance signifiante ».
+  const TYPE_TACHE = 'drill';
+
   // ── État ────────────────────────────────────────────────────────────────────
   let currentLevel = 1;
   let state = {};
@@ -97,13 +107,26 @@
   function showFeedback(correct, msg) {
     feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
     feedbackEl.textContent = msg;
-    newBtn.classList.add('visible');
-    newBtn.focus();
     if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+
+    if (correct || TYPE_TACHE === 'drill') {
+      // Item clos : on propose la suite.
+      verifyBtn.style.display = 'none';
+      newBtn.classList.add('visible');
+      newBtn.focus();
+    } else {
+      // 'instance' + incorrect : l'élève corrige et revérifie la même instance.
+      verifyBtn.style.display = '';
+      verifyBtn.disabled = false;
+      newBtn.classList.remove('visible');
+    }
   }
 
   function resetFeedback() {
     feedbackEl.className = 'feedback';
+    feedbackEl.textContent = '';
+    verifyBtn.style.display = '';
+    verifyBtn.disabled = true;
     newBtn.classList.remove('visible');
   }
 

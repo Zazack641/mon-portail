@@ -219,6 +219,55 @@ playIncorrect();    // descente 320->160 Hz, ~0.4s
 - Ne jamais appeler au chargement de la page
 - Pas de confettis sur mauvaise réponse
 
+### Type de tâche : drill vs instance signifiante (`TYPE_TACHE`)
+
+Le comportement de `showFeedback` après une erreur dépend du type de tâche de l'app
+(distinction pédagogique documentée dans `skills/pedagogie-per/SKILL.md` § « Drill vs
+instance signifiante »). Chaque app **doit déclarer en tête de script** une constante :
+
+```js
+// 'drill'    : l'erreur clôt l'item, on passe au suivant (calcul mental, reconnaissance rapide…)
+// 'instance' : l'erreur est corrigeable, retry sur la MÊME instance jusqu'à réussite
+//              (placer un nombre, équilibrer une balance, identifier sujet/prédicat…)
+const TYPE_TACHE = 'drill';
+```
+
+**Contrat de `showFeedback(correct, msg)` :**
+
+| Cas | Feedback | `verify-btn` | `new-btn` |
+|-----|----------|--------------|-----------|
+| `drill`, correct **ou** incorrect | affiché (persistant) | masqué | visible |
+| `instance`, correct | feedback positif persistant | masqué | visible |
+| `instance`, incorrect | feedback **formatif** persistant (quoi corriger) | **reste actif** | **reste caché** |
+
+Dans le cas `instance` + incorrect, l'élève corrige sa réponse et revérifie sur la
+même instance : on ne réinitialise pas l'exercice, on ne révèle pas « Nouvel exercice ».
+
+**Snippet `showFeedback` de référence (gère les deux types) :**
+
+```js
+function showFeedback(correct, msg) {
+  feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+  feedbackEl.textContent = msg;
+  if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+
+  if (correct || TYPE_TACHE === 'drill') {
+    // Item clos : on propose la suite.
+    verifyBtn.style.display = 'none';
+    newBtn.classList.add('visible');
+  } else {
+    // 'instance' + incorrect : l'élève corrige et revérifie la même instance.
+    verifyBtn.style.display = '';
+    verifyBtn.disabled = false;
+    newBtn.classList.remove('visible');
+  }
+}
+```
+
+Toute nouvelle app **doit déclarer `TYPE_TACHE` en tête de script**. L'app
+`balance.html` implémente déjà ce comportement de retry de façon ad hoc et peut servir
+de référence pour une tâche à instance signifiante.
+
 ### Couleurs de valeurs de position (apps maths avec chiffres)
 
 **Colorier seulement quand la valeur de position est l'objet d'apprentissage** (numération, décomposition, complément, calcul en colonne…). Si les nombres ne sont que des quantités-support d'une autre tâche (ex. choisir l'opération qui modélise une situation), **ne pas colorier** : cela concurrencerait le point d'attention unique. L'accessibilité prime sur cette convention (hiérarchie des skills).
@@ -269,6 +318,10 @@ const feedbackEl  = document.getElementById('feedback');
 const verifyBtn   = document.getElementById('verify-btn');
 const newBtn      = document.getElementById('new-btn');
 
+// Type de tâche : 'drill' (l'erreur clôt l'item) ou 'instance' (retry sur la même instance).
+// Voir « Type de tâche : drill vs instance signifiante » ci-dessus.
+const TYPE_TACHE = 'drill';
+
 // État
 let currentLevel = 1;
 let state = {};
@@ -278,8 +331,16 @@ function showFeedback(correct, msg) {
   feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
   feedbackEl.textContent = msg;
   if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
-  verifyBtn.style.display = 'none';
-  newBtn.classList.add('visible');
+
+  if (correct || TYPE_TACHE === 'drill') {
+    verifyBtn.style.display = 'none';
+    newBtn.classList.add('visible');
+  } else {
+    // 'instance' + incorrect : l'élève corrige et revérifie la même instance.
+    verifyBtn.style.display = '';
+    verifyBtn.disabled = false;
+    newBtn.classList.remove('visible');
+  }
 }
 
 // Nouvelle question (appelée au changement de niveau ET sur "Nouvel exercice")
@@ -374,7 +435,9 @@ Pas de libellés PER techniques sur les boutons (ils sont pour l'élève, pas po
 - [ ] Texte lisible : taille min 15px, contraste WCAG AA
 
 ### JS et feedback
+- [ ] `TYPE_TACHE` déclaré en tête de script (`'drill'` ou `'instance'`)
 - [ ] `showFeedback()` est le point unique d'appel de `playCorrect/Incorrect/launchConfetti`
+- [ ] Si `TYPE_TACHE === 'instance'` : une erreur garde `verify-btn` actif et `new-btn` caché (retry sur la même instance)
 - [ ] `newExercise()` remet à zéro TOUT l'état (feedback, boutons, question)
 - [ ] Le changement de niveau appelle `newExercise()`
 - [ ] Les fonctions feedbackUtils ne sont jamais appelées au chargement

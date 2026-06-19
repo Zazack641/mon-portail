@@ -132,6 +132,35 @@ Voir la règle de non-régression dans `skills/accessibilite/SKILL.md` § 5.
 
 ---
 
+## Étape 5 bis — Drill vs instance signifiante
+
+Le type de tâche d'une app découle de son objectif PER et détermine ce qui doit
+arriver après une erreur. Deux familles existent dans le portail :
+
+### Drill — l'erreur clôt l'item
+L'erreur termine l'item : pas de retry sur la même instance, on passe à l'exercice
+suivant. Sur une tâche de drill, le retry encouragerait un tâtonnement aveugle sans
+valeur pédagogique (l'élève changerait de réponse au hasard jusqu'à tomber juste).
+Exemples : calcul mental, reconnaissance rapide, restitution de faits numériques.
+
+### Instance signifiante — l'erreur est exploitable
+L'erreur est une information exploitable par l'élève. Le feedback formatif indique
+**quoi corriger**, et l'élève doit pouvoir **réessayer sur la même instance** jusqu'à
+réussite. Supprimer le retry rendrait le feedback formatif inutile : l'élève n'aurait
+pas l'occasion d'appliquer ce que le feedback lui dit de corriger.
+Exemples : placer un nombre sur une droite graduée, équilibrer une balance, identifier
+le sujet et le prédicat d'une phrase.
+
+### Règle
+Le choix entre drill et instance signifiante relève de **l'objectif PER** de l'app,
+pas d'une préférence de design. Une app **instance signifiante doit autoriser le retry
+sur la même instance après une erreur, jusqu'à réussite** — le feedback formatif et la
+possibilité de corriger sont indissociables. Le pattern technique correspondant
+(constante `TYPE_TACHE`, contrat de `showFeedback`) est documenté dans
+`skills/design-portail/SKILL.md`.
+
+---
+
 ## Étape 6 — Guider le contenu pédagogique
 
 ### Formulation des consignes
