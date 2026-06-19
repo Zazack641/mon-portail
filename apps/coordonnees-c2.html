@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<!--
+  coordonnees-c2.html — Repérage dans un quadrillage à l'aide de coordonnées.
+  Objectif PER : MSN 21 (Espace) — repérer et désigner des cases par coordonnées.
+  Cycle 2, 5H-6H. Créé à partir de apps/_template.html.
+-->
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Les coordonnées</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-base.css">
+<style>
+  /* ── Branche Mathématiques (MSN) — rouge officiel CIIP ───────────────────── */
+  :root { --app-header-bg: #C0272D; }
+
+  /* ── Quadrillage ─────────────────────────────────────────────────────────── */
+  .grid {
+    display: grid;
+    gap: 6px;
+    justify-content: center;
+    margin: 0 auto;
+  }
+  .grid-label {
+    display: flex; align-items: center; justify-content: center;
+    width: clamp(40px, 9vw, 56px);
+    height: clamp(48px, 11vw, 64px);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: clamp(16px, 4vw, 22px);
+    color: #475569;
+  }
+  .cell {
+    width: clamp(48px, 11vw, 64px);
+    height: clamp(48px, 11vw, 64px);
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid var(--app-border);
+    background: #fff;
+    border-radius: 10px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: clamp(22px, 6vw, 30px);
+    color: var(--app-text);
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+  button.cell { cursor: pointer; }
+  button.cell:hover:not(:disabled)  { background: #FFF1F1; border-color: #C0272D; }
+  button.cell:active:not(:disabled) { background: #FFE4E4; }
+  .cell:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 2px; }
+  .cell:disabled { cursor: default; }
+  .cell.cell-correct { background: var(--app-correct-bg); border-color: var(--app-correct-fg); color: var(--app-correct-fg); }
+  .cell.cell-wrong   { background: var(--app-wrong-bg);   border-color: var(--app-wrong-fg);   color: var(--app-wrong-fg); }
+  .cell.marked       { background: #FEF3E2; border-color: #B8860B; }
+
+  /* ── Boutons de coordonnées (niveau 2) ───────────────────────────────────── */
+  .choices {
+    display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; width: 100%;
+  }
+  .coord-btn {
+    min-height: 64px; min-width: 96px;
+    padding: 0 22px;
+    border: 2px solid var(--app-border);
+    background: #fff;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: clamp(18px, 4.5vw, 22px);
+    color: var(--app-text);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+  .coord-btn:hover:not(:disabled)  { background: #FFF1F1; border-color: #C0272D; }
+  .coord-btn:active:not(:disabled) { background: #FFE4E4; }
+  .coord-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 2px; }
+  .coord-btn:disabled { cursor: default; }
+  .coord-btn.coord-correct { background: var(--app-correct-bg); border-color: var(--app-correct-fg); color: var(--app-correct-fg); }
+  .coord-btn.coord-wrong   { background: var(--app-wrong-bg);   border-color: var(--app-wrong-fg);   color: var(--app-wrong-fg); }
+
+  /* ── Pastille de coordonnée dans la consigne ─────────────────────────────── */
+  .coord-pill {
+    display: inline-block;
+    background: #F1F5F9;
+    color: #1A2535;
+    border-radius: 999px;
+    padding: 2px 14px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    white-space: nowrap;
+  }
+  .question-box:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .cell      { transition: background 0.12s, border-color 0.12s; }
+    .coord-btn { transition: background 0.12s, border-color 0.12s; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────────── -->
+<header class="app-header" role="banner">
+  <a href="../index.html" class="back-link">← Retour</a>
+  <h1>🗺️ Les coordonnées</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<!-- ── Sélecteur de niveau ─────────────────────────────────────────────────── -->
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1 · trouve la case</button>
+  <button class="level-btn"        data-level="2" aria-pressed="false">Niveau 2 · nomme la case</button>
+</div>
+
+<!-- ── Contenu principal ───────────────────────────────────────────────────── -->
+<main>
+  <div class="question-box" id="question-box">Chargement…</div>
+
+  <div class="grid-wrap" id="grid-wrap"></div>
+  <div class="choices" id="choices"></div>
+
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="action-row">
+    <button class="new-btn" id="new-btn">Nouvel exercice</button>
+  </div>
+</main>
+
+<!-- ── Script de l'app ─────────────────────────────────────────────────────── -->
+<script src="appUtils.js"></script>
+<script>
+  // ── Références DOM ─────────────────────────────────────────────────────────
+  const questionBox = document.getElementById('question-box');
+  const gridWrap    = document.getElementById('grid-wrap');
+  const choicesEl   = document.getElementById('choices');
+  const feedbackEl  = document.getElementById('feedback');
+  const newBtn      = document.getElementById('new-btn');
+
+  // ── État ────────────────────────────────────────────────────────────────────
+  let currentLevel = 1;
+  let state = {};
+
+  // ── Helpers coordonnées ─────────────────────────────────────────────────────
+  // Colonnes : lettres (A, B, C…). Lignes : chiffres (1, 2, 3…), 1 en haut.
+  function colLetter(c) { return String.fromCharCode(65 + c); }
+  function coordLabel(c, r) { return '(' + colLetter(c) + ', ' + (r + 1) + ')'; }
+
+  // ── Feedback unifié ─────────────────────────────────────────────────────────
+  function showFeedback(correct, msg) {
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = (correct ? '✅ ' : '❌ ') + msg;
+    newBtn.classList.add('visible');
+    newBtn.focus();
+    if (correct) {
+      playCorrect();
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) launchConfetti();
+    } else {
+      playIncorrect();
+    }
+  }
+
+  function resetUI() {
+    feedbackEl.className = 'feedback';
+    feedbackEl.textContent = '';
+    newBtn.classList.remove('visible');
+    choicesEl.innerHTML = '';
+    gridWrap.innerHTML = '';
+  }
+
+  function focusQuestion() {
+    questionBox.setAttribute('tabindex', '-1');
+    questionBox.focus();
+  }
+
+  // ── Construction du quadrillage ─────────────────────────────────────────────
+  function plainLabel(txt) {
+    const d = document.createElement('div');
+    d.className = 'grid-label';
+    d.textContent = txt;
+    d.setAttribute('aria-hidden', 'true'); // les cases portent déjà leur coordonnée
+    return d;
+  }
+
+  // opts : { interactive: bool, markCell: {c,r}|null, onPick: fn }
+  function buildGrid(size, opts) {
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    grid.setAttribute('role', 'group');
+    grid.setAttribute('aria-label', 'Quadrillage');
+    grid.style.gridTemplateColumns = 'repeat(' + (size + 1) + ', auto)';
+
+    // Ligne d'en-tête : coin vide + lettres de colonnes
+    grid.appendChild(plainLabel(''));
+    for (let c = 0; c < size; c++) grid.appendChild(plainLabel(colLetter(c)));
+
+    // Lignes : numéro + cases
+    for (let r = 0; r < size; r++) {
+      grid.appendChild(plainLabel(String(r + 1)));
+      for (let c = 0; c < size; c++) {
+        const cell = document.createElement(opts.interactive ? 'button' : 'div');
+        cell.className = 'cell';
+        cell.dataset.c = c;
+        cell.dataset.r = r;
+
+        const isMarked = opts.markCell && opts.markCell.c === c && opts.markCell.r === r;
+        if (isMarked) {
+          cell.textContent = '🎯';
+          cell.classList.add('marked');
+          if (!opts.interactive) cell.setAttribute('role', 'img'); // div : rendre le marqueur annonçable
+          cell.setAttribute('aria-label', 'Case ' + colLetter(c) + ' ' + (r + 1) + ', trésor');
+        } else if (opts.interactive) {
+          cell.setAttribute('aria-label', 'Case ' + colLetter(c) + ' ' + (r + 1));
+        } else {
+          cell.setAttribute('aria-hidden', 'true'); // case vide décorative
+        }
+
+        if (opts.interactive) {
+          cell.type = 'button';
+          cell.addEventListener('click', () => opts.onPick(c, r, cell));
+        }
+        grid.appendChild(cell);
+      }
+    }
+    gridWrap.appendChild(grid);
+  }
+
+  // ── Niveau 1 — décoder : lire la coordonnée, taper la case ──────────────────
+  function setupLevel1() {
+    resetUI();
+    const size = 5;
+    const c = randInt(0, size - 1), r = randInt(0, size - 1);
+    state = { size: size, target: { c: c, r: r }, answered: false };
+    questionBox.innerHTML = 'Trouve la case <span class="coord-pill">' + coordLabel(c, r) +
+      '</span> et appuie dessus.';
+    buildGrid(size, { interactive: true, markCell: null, onPick: pickLevel1 });
+    focusQuestion();
+  }
+
+  function pickLevel1(c, r, cell) {
+    if (state.answered) return;
+    state.answered = true;
+    const t = state.target;
+    const correct = (c === t.c && r === t.r);
+    gridWrap.querySelectorAll('.cell').forEach(b => { b.disabled = true; });
+
+    if (correct) {
+      cell.classList.add('cell-correct');
+      cell.textContent = '✓';
+      showFeedback(true, 'Bravo ! ' + coordLabel(t.c, t.r) + ' : colonne ' + colLetter(t.c) +
+        ', ligne ' + (t.r + 1) + '. Appuie sur « Nouvel exercice ».');
+    } else {
+      cell.classList.add('cell-wrong');
+      cell.textContent = '✗';
+      const good = gridWrap.querySelector('.cell[data-c="' + t.c + '"][data-r="' + t.r + '"]');
+      good.classList.add('cell-correct');
+      good.textContent = '🎯';
+      showFeedback(false, 'Pas tout à fait. ' + coordLabel(t.c, t.r) + ' est à la colonne ' +
+        colLetter(t.c) + ' (lettre) et à la ligne ' + (t.r + 1) +
+        ' (chiffre). Appuie sur « Nouvel exercice ».');
+    }
+  }
+
+  // ── Niveau 2 — encoder : lire la case marquée, nommer sa coordonnée ─────────
+  function setupLevel2() {
+    resetUI();
+    const size = 6;
+    const c = randInt(0, size - 1), r = randInt(0, size - 1);
+    state = { size: size, target: { c: c, r: r }, answered: false };
+    questionBox.innerHTML = 'Le trésor 🎯 est sur le quadrillage.<br>Quelle est sa case ?';
+    buildGrid(size, { interactive: false, markCell: { c: c, r: r }, onPick: null });
+    buildChoices(c, r, size);
+    focusQuestion();
+  }
+
+  function buildChoices(c, r, size) {
+    const correctLbl = coordLabel(c, r);
+    const seen = new Set([correctLbl]);
+    const options = [{ c: c, r: r }];
+    let guard = 0;
+    while (options.length < 4 && guard < 80) {
+      guard++;
+      const dc = randInt(0, size - 1), dr = randInt(0, size - 1);
+      const lbl = coordLabel(dc, dr);
+      if (!seen.has(lbl)) { seen.add(lbl); options.push({ c: dc, r: dr }); }
+    }
+    choicesEl.innerHTML = '';
+    shuffle(options).forEach(o => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'coord-btn';
+      btn.dataset.label = coordLabel(o.c, o.r);
+      btn.textContent = btn.dataset.label;
+      btn.setAttribute('aria-label', 'Case colonne ' + colLetter(o.c) + ', ligne ' + (o.r + 1));
+      btn.addEventListener('click', () => pickLevel2(o, btn));
+      choicesEl.appendChild(btn);
+    });
+  }
+
+  function pickLevel2(o, btn) {
+    if (state.answered) return;
+    state.answered = true;
+    const t = state.target;
+    const correct = (o.c === t.c && o.r === t.r);
+    choicesEl.querySelectorAll('.coord-btn').forEach(b => { b.disabled = true; });
+
+    if (correct) {
+      btn.classList.add('coord-correct');
+      btn.textContent = '✓ ' + btn.dataset.label;
+      showFeedback(true, 'Exact ! Le trésor est à la colonne ' + colLetter(t.c) + ', ligne ' +
+        (t.r + 1) + ' : ' + coordLabel(t.c, t.r) + '. Appuie sur « Nouvel exercice ».');
+    } else {
+      btn.classList.add('coord-wrong');
+      btn.textContent = '✗ ' + btn.dataset.label;
+      const goodLbl = coordLabel(t.c, t.r);
+      const goodBtn = [...choicesEl.querySelectorAll('.coord-btn')]
+        .find(b => b.dataset.label === goodLbl);
+      if (goodBtn) {
+        goodBtn.classList.add('coord-correct');
+        goodBtn.textContent = '✓ ' + goodBtn.dataset.label;
+      }
+      showFeedback(false, 'Ce n\'est pas ça. On lit d\'abord la colonne (' + colLetter(t.c) +
+        '), puis la ligne (' + (t.r + 1) + ') : ' + goodLbl + '. Appuie sur « Nouvel exercice ».');
+    }
+  }
+
+  // ── Sélecteur de niveau ─────────────────────────────────────────────────────
+  // NE PAS MODIFIER ce bloc — convention partagée entre toutes les apps.
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLevel = parseInt(btn.dataset.level);
+      document.querySelectorAll('.level-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+      newExercise();
+    });
+  });
+
+  newBtn.addEventListener('click', newExercise);
+
+  function newExercise() {
+    if (currentLevel === 1) setupLevel1();
+    else                    setupLevel2();
+  }
+
+  // ── Démarrage ───────────────────────────────────────────────────────────────
+  newExercise();
+</script>
+<!-- feedbackUtils.js DOIT être chargé APRÈS le script de l'app, juste avant </body> -->
+<script src="feedbackUtils.js"></script>
+</body>
+</html>
