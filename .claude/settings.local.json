@@ -41,7 +41,8 @@
       "Bash(find /Users/isaacferretti/Documents/mon-portail/.claude -name \"*.md\" | xargs grep -l \"sauvegarder\" 2>/dev/null; find /Users/isaacferretti/.claude -name \"*.md\" | xargs grep -l \"sauvegarder\" 2>/dev/null)",
       "Read(//Users/isaacferretti/.claude/projects/**)",
       "Read(//Users/isaacferretti/.claude/**)",
-      "Bash(./save)"
+      "Bash(./save)",
+      "Bash(gh pr *)"
     ]
   }
 }
