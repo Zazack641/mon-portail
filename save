@@ -1,5 +1,19 @@
 #!/bin/bash
 MESSAGE="${1:-Sauvegarde $(date '+%Y-%m-%d %H:%M')}"
+
 git add .
-git commit -m "$MESSAGE"
-git push
+
+if git diff --cached --quiet; then
+  echo "ℹ️  Rien de nouveau à sauvegarder."
+else
+  git commit -m "$MESSAGE" || { echo "❌ Le commit a échoué."; exit 1; }
+  echo "✅ Modifications enregistrées (commit)."
+fi
+
+echo "⬆️  Envoi vers GitHub..."
+if git push; then
+  echo "✅ Sauvegarde envoyée sur GitHub."
+else
+  echo "❌ L'envoi (push) a échoué. Vérifie ta connexion."
+  exit 1
+fi
