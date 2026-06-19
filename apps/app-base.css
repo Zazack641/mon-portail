@@ -81,7 +81,7 @@ body {
   background: #F8FAFC;
   color: #4A5568;
   font-family: 'Source Sans 3', sans-serif;
-  font-size: 15px;
+  font-size: 22px;
   font-weight: 700;
   cursor: pointer;
   min-height: 48px;
@@ -155,7 +155,7 @@ main {
   border: none;
   border-radius: 12px;
   font-family: 'Nunito', sans-serif;
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 800;
   cursor: pointer;
   min-height: 64px;
@@ -173,7 +173,7 @@ main {
   border: none;
   border-radius: 12px;
   font-family: 'Nunito', sans-serif;
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 800;
   cursor: pointer;
   min-height: 64px;

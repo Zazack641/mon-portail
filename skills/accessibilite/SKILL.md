@@ -37,9 +37,20 @@ concurrent.
 - Texte courant : ratio de contraste minimum **4,5:1** (WCAG 2.2 AA)
 - Éléments critiques (consignes, feedbacks) : ratio renforcé **7:1** — exigé, pas seulement visé
 - Composants non textuels (bordures, icônes) : minimum **3:1**
-- Taille de texte minimum : **18px** pour les consignes, **22px** pour les éléments
-  interactifs
+- Taille de texte minimum :
+  - **18px** pour le texte des consignes et le contenu non interactif
+  - **22px** pour le **texte affiché à l'intérieur** des éléments interactifs
+    (boutons de réponse, boutons d'action « Vérifier » / « Nouvel exercice »,
+    boutons de choix, sélecteurs de niveau, etc.)
 - Interlignage minimum : **1.5**
+
+> **Texte interactif ≠ taille de cible tactile.** Ce seuil de **22px** porte
+> uniquement sur la **taille de la police** du libellé *à l'intérieur* d'un
+> élément interactif. Il est **distinct et cumulatif** avec la taille de cible
+> tactile définie en section 1 (64×64px pour les boutons principaux, 44×44px
+> pour les secondaires). Un même bouton doit satisfaire **les deux** exigences
+> simultanément : une cible tactile d'au moins 64px **et** un texte d'au moins
+> 22px à l'intérieur. L'une ne dispense jamais de l'autre.
 
 **Ne jamais communiquer par la couleur seule.** Toujours doubler avec une
 forme, une icône ou un texte.
