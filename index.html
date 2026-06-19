@@ -864,6 +864,32 @@
   const domainBtns = document.querySelectorAll('#domain-filters .filter-btn');
   const harmosBtns = document.querySelectorAll('#cycle-filters .filter-btn');
 
+  // ===== Tri initial des cartes (DOM réordonné une seule fois au chargement) =====
+  // 1) par domaine selon un ordre fixe ; 2) par ordre alphabétique français du titre.
+  const DOMAIN_ORDER = ['maths', 'sciences', 'francais', 'allemand', 'anglais', 'geo', 'histoire'];
+
+  function sortKeyTitle(card) {
+    let t = card.querySelector('.card-title').textContent;
+    // Retirer les mentions de cycle/parenthèses qui gênent l'ordre alphabétique
+    t = t.replace(/\([^)]*\)/g, ' ');
+    // Insensible à la casse et aux accents
+    t = t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    // Ignorer un article ou apostrophe en tête (le, la, les, l', un, une, des, du, de)
+    t = t.replace(/^\s*(l'|d'|les?|la|un|une|des|du|de)\s*/i, '');
+    return t.trim();
+  }
+
+  cards.sort((a, b) => {
+    const da = DOMAIN_ORDER.indexOf(a.dataset.domain);
+    const db = DOMAIN_ORDER.indexOf(b.dataset.domain);
+    if (da !== db) return da - db;
+    return sortKeyTitle(a).localeCompare(sortKeyTitle(b), 'fr');
+  });
+
+  const grid = document.getElementById('app-grid');
+  cards.forEach(card => grid.appendChild(card));
+  grid.appendChild(noResults); // garder le message « aucun résultat » en dernier
+
   let activeDomain = 'all';
   let activeHarmos = 'all';
   let query = '';
