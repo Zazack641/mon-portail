@@ -1,8 +1,10 @@
 # Suivi des applications
 
 Audit complet — accessibilité (WCAG 2.2 AA), design portail, pédagogie PER.  
-Dernière mise à jour : 2026-06-17 (audit capacites.html, comparaison-nombres-c1.html ; correctif global app-base.css v2)  
+Dernière mise à jour : 2026-06-19 (réinitialisation du statut pour le cycle d'audit v2 harmonisé)  
 Campagne audit accessibilité v2 démarrée le 2026-06-16
+
+> La colonne **« Audité v2 »** suit le nouveau cycle d'audit harmonisé **PER + accessibilité** (arbitrage croisé, distinction drill / instance). Un **❌** signifie « pas encore repassé selon la nouvelle doctrine », et **non** « non conforme ». Les correctifs déjà présents dans les fichiers restent en place.
 
 ---
 
@@ -18,6 +20,35 @@ Campagne audit accessibilité v2 démarrée le 2026-06-16
 ---
 
 ## État des apps
+
+| Fichier | Titre | Fonctionne | Audité v2 | Notes d'audit v2 |
+|---------|-------|------------|-----------|------------------|
+| balance.html | La balance | ✅ | ❌ | |
+| capacites.html | Qui contient le plus ? | ✅ | ❌ | |
+| comparaison-nombres-c1.html | Le comparateur de nombres (3H-4H) | ✅ | ❌ | |
+| comparaison-nombres.html | Comparaison de nombres | ✅ | ❌ | |
+| decodi-comprehension.html | Compréhension DéCoDi | ✅ | ❌ | |
+| decodi-dictee-c2.html | Dictée DéCoDi — Modules 11-15 | ✅ | ❌ | |
+| decodi-dictee.html | Dictée DéCoDi — Modules 6-10 | ✅ | ❌ | |
+| place-le-nombre-c1.html | Place le nombre (3H-4H) | ✅ | ❌ | |
+| place-le-nombre-c2.html | Place le nombre (5H-6H) | ✅ | ❌ | |
+| entrainement-ville.html | Entraînement — La ville | ✅ | ❌ | |
+| itineraires-decris.html | Itinéraires — Décris le trajet | ✅ | ❌ | |
+| itineraires.html | Itinéraires — Lis le trajet | ✅ | ❌ | |
+| longueurs.html | Les longueurs — Comparer des longueurs | ✅ | ❌ | |
+| saut-de-nombre.html | Le saut de nombre | ✅ | ❌ | |
+| soustraction-colonne.html | Soustraction en colonne | ✅ | ❌ | |
+| surfaces-c2.html | Les surfaces — Calculer des aires | ✅ | ❌ | |
+| surfaces.html | Les surfaces — Comparer des aires | ✅ | ❌ | |
+| valeur-position.html | Valeur de position | ✅ | ❌ | |
+| vertical-calculation.html | Additions en colonne | ✅ | ❌ | |
+| sujet-predicat-c2.html | Sujet et prédicat | ✅ | ❌ | |
+
+---
+
+## Archive, audit v1 (clôturé le 2026-06-19)
+
+Ancien tableau « État des apps » conservé tel quel pour mémoire. Les colonnes « Audité v2 » et « Notes d'audit v2 » y reflètent l'avancement de la campagne v1 au moment de la clôture ; elles ne sont pas reportées dans le nouveau tableau ci-dessus.
 
 | Fichier | Titre | Fonctionne | Audité v2 | Notes d'audit v2 | Notes v1 (archivées) |
 |---------|-------|------------|-----------|------------------|----------------------|
