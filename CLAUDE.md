@@ -401,6 +401,44 @@ Trois skills sont disponibles dans `skills/`. Les lire systématiquement avant d
 Les fichiers de référence PER sont dans `docs/per/`.
 Le référentiel WCAG 2.2 est dans `docs/accessibilite/wcag22-resume.md`.
 
+## Arbitrage entre skills en cas de conflit
+
+Cette procédure prolonge la hiérarchie annoncée ci-dessus. Elle existe pour les tâches de **révision et d'audit**, où des règles bien intentionnées de skills différents peuvent se contredire sur du code déjà écrit. Les skills eux-mêmes restent orientés création et ne sont pas modifiés.
+
+### Hiérarchie de priorité (du plus fort au plus faible)
+
+1. `pedagogie-per`
+2. `accessibilite`
+3. `design-portail`
+
+### Principe directeur
+
+L'accessibilité et la forme améliorent la **manière dont un élément est présenté**, jamais son **contenu pédagogique**. Un feedback formatif riche, un étayage, une convention de classe reproduite fidèlement, des niveaux de différenciation, sont des choix pédagogiques délibérés. On peut améliorer leur forme. On ne les remplace jamais par une version plus pauvre.
+
+### Règle générale (le cœur de la procédure)
+
+À chaque étape, **une couche ne peut jamais défaire ce qu'une couche plus prioritaire a établi.** Une couche n'agit que sur ce que les couches supérieures ont laissé libre. Toute tension non résoluble dans ce sens est **consignée plutôt que tranchée**.
+
+### Procédure d'arbitrage
+
+À appliquer lors de toute révision ou audit d'une app existante, en trois temps ordonnés :
+
+1. **Couche accessibilité.** Elle repère les manquements et propose des correctifs, **sans les appliquer encore**.
+
+2. **Couche pédagogie (droit de veto).** Elle relit chaque correctif proposé.
+   - Si un correctif sert l'objectif PER ou est neutre, il est **retenu et devient acquis** : il descend verrouillé jusqu'à la fin de la procédure.
+   - S'il dessert le geste pédagogique — par exemple en appauvrissant un feedback formatif, en aplatissant une notation conventionnelle de classe, ou en cassant le contrat de retry `drill` ou `instance` — la **pédagogie l'emporte** : le correctif est abandonné et la tension est consignée sous la mention **« CONFLIT À ARBITRER »** avec une phrase d'explication.
+
+3. **Couche design-portail (conformité de forme, en dernier).** Elle s'applique **uniquement** aux points qui ne sont contraints ni par un correctif d'accessibilité retenu à l'étape 1, ni par un arbitrage rendu par la pédagogie à l'étape 2. Elle **ne peut annuler ni l'un ni l'autre**. Si une convention de design entre en tension avec un correctif d'accessibilité retenu, **l'accessibilité l'emporte**, et la tension est consignée sous **« CONFLIT À ARBITRER »**.
+
+### Règle de remontée
+
+Tout point de fond pédagogique qu'une routine autonome n'est pas certaine de pouvoir trancher seule est consigné sous **« À VALIDER PAR ISAAC »** plutôt que tranché silencieusement.
+
+### Note d'usage
+
+Cette procédure vaut pour les **routines autonomes** de Claude Code. Quand Isaac travaille en dialogue dans le projet Claude.ai, c'est lui qui arbitre, et la procédure n'a pas à être déroulée.
+
 ## Hiérarchie des skills
 
 En cas de conflit entre les trois skills du projet, cet ordre de priorité s'applique :
