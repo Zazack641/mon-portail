@@ -29,15 +29,22 @@
     width: clamp(40px, 9vw, 56px);
     height: clamp(48px, 11vw, 64px);
     font-family: 'Nunito', sans-serif;
-    font-weight: 800;
-    font-size: clamp(16px, 4vw, 22px);
-    color: #475569;
+    font-weight: 900;
+    font-size: clamp(17px, 4.2vw, 23px);
+    color: #1A2535;
   }
+  /* En-têtes lettres/chiffres en pastilles contrastées */
+  .grid-label.col-head, .grid-label.row-head {
+    background: #DCE3EC;
+    border-radius: 8px;
+  }
+  /* Surbrillance croisée : lettre + numéro de la case (survol/focus ou sélection) */
+  .grid-label.hl, .grid-label.sel-hl { background: var(--app-header-bg); color: #fff; }
   .cell {
     width: clamp(48px, 11vw, 64px);
     height: clamp(48px, 11vw, 64px);
     display: flex; align-items: center; justify-content: center;
-    border: 2px solid var(--app-border);
+    border: 2px solid #64748B;            /* bordure nette, contraste ≥ 3:1 */
     background: #fff;
     border-radius: 10px;
     font-family: 'Nunito', sans-serif;
@@ -47,6 +54,9 @@
     touch-action: manipulation;
     -webkit-appearance: none;
   }
+  .cell-odd { background: #E5EAF1; }       /* damier : aide au suivi visuel */
+  /* Case choisie (1er temps), avant validation — anneau bien visible, sans layout shift */
+  .cell.selected { box-shadow: inset 0 0 0 4px var(--app-header-bg); background: #FFF1F1; }
   button.cell { cursor: pointer; }
   button.cell:hover:not(:disabled)  { background: #FFF1F1; border-color: #C0272D; }
   button.cell:active:not(:disabled) { background: #FFE4E4; }
@@ -76,6 +86,7 @@
   }
   .coord-btn:hover:not(:disabled)  { background: #FFF1F1; border-color: #C0272D; }
   .coord-btn:active:not(:disabled) { background: #FFE4E4; }
+  .coord-btn.selected { box-shadow: inset 0 0 0 4px var(--app-header-bg); background: #FFF1F1; }
   .coord-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 2px; }
   .coord-btn:disabled { cursor: default; }
   .coord-btn.coord-correct { background: var(--app-correct-bg); border-color: var(--app-correct-fg); color: var(--app-correct-fg); }
@@ -95,8 +106,9 @@
   .question-box:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; }
 
   @media (prefers-reduced-motion: no-preference) {
-    .cell      { transition: background 0.12s, border-color 0.12s; }
-    .coord-btn { transition: background 0.12s, border-color 0.12s; }
+    .cell       { transition: background 0.12s, border-color 0.12s; }
+    .coord-btn  { transition: background 0.12s, border-color 0.12s; }
+    .grid-label { transition: background 0.12s, color 0.12s; }
   }
 </style>
 </head>
@@ -125,6 +137,7 @@
   <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
 
   <div class="action-row">
+    <button class="verify-btn" id="verify-btn" disabled>Vérifier</button>
     <button class="new-btn" id="new-btn">Nouvel exercice</button>
   </div>
 </main>
@@ -137,6 +150,7 @@
   const gridWrap    = document.getElementById('grid-wrap');
   const choicesEl   = document.getElementById('choices');
   const feedbackEl  = document.getElementById('feedback');
+  const verifyBtn   = document.getElementById('verify-btn');
   const newBtn      = document.getElementById('new-btn');
 
   // ── État ────────────────────────────────────────────────────────────────────
@@ -152,6 +166,7 @@
   function showFeedback(correct, msg) {
     feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
     feedbackEl.textContent = (correct ? '✅ ' : '❌ ') + msg;
+    verifyBtn.style.display = 'none';
     newBtn.classList.add('visible');
     newBtn.focus();
     if (correct) {
@@ -165,6 +180,8 @@
   function resetUI() {
     feedbackEl.className = 'feedback';
     feedbackEl.textContent = '';
+    verifyBtn.style.display = '';
+    verifyBtn.disabled = true;        // réactivé seulement après une sélection
     newBtn.classList.remove('visible');
     choicesEl.innerHTML = '';
     gridWrap.innerHTML = '';
@@ -176,12 +193,27 @@
   }
 
   // ── Construction du quadrillage ─────────────────────────────────────────────
-  function plainLabel(txt) {
+  function headLabel(txt, kind, index) {
     const d = document.createElement('div');
-    d.className = 'grid-label';
+    d.className = 'grid-label' + (kind ? ' ' + kind : '');
+    if (kind === 'col-head') d.dataset.col = index;
+    if (kind === 'row-head') d.dataset.row = index;
     d.textContent = txt;
     d.setAttribute('aria-hidden', 'true'); // les cases portent déjà leur coordonnée
     return d;
+  }
+
+  // Allume la lettre de colonne + le numéro de ligne d'une case.
+  // cls = 'hl' : survol/focus passager. cls = 'sel-hl' : sélection persistante.
+  function setHeaderHighlight(grid, c, r, cls, on) {
+    const col = grid.querySelector('.col-head[data-col="' + c + '"]');
+    const row = grid.querySelector('.row-head[data-row="' + r + '"]');
+    if (col) col.classList.toggle(cls, on);
+    if (row) row.classList.toggle(cls, on);
+  }
+
+  function clearSelectionHighlight(grid) {
+    grid.querySelectorAll('.sel-hl').forEach(e => e.classList.remove('sel-hl'));
   }
 
   // opts : { interactive: bool, markCell: {c,r}|null, onPick: fn }
@@ -193,15 +225,15 @@
     grid.style.gridTemplateColumns = 'repeat(' + (size + 1) + ', auto)';
 
     // Ligne d'en-tête : coin vide + lettres de colonnes
-    grid.appendChild(plainLabel(''));
-    for (let c = 0; c < size; c++) grid.appendChild(plainLabel(colLetter(c)));
+    grid.appendChild(headLabel('', 'corner'));
+    for (let c = 0; c < size; c++) grid.appendChild(headLabel(colLetter(c), 'col-head', c));
 
     // Lignes : numéro + cases
     for (let r = 0; r < size; r++) {
-      grid.appendChild(plainLabel(String(r + 1)));
+      grid.appendChild(headLabel(String(r + 1), 'row-head', r));
       for (let c = 0; c < size; c++) {
         const cell = document.createElement(opts.interactive ? 'button' : 'div');
-        cell.className = 'cell';
+        cell.className = 'cell' + ((c + r) % 2 ? ' cell-odd' : ''); // damier
         cell.dataset.c = c;
         cell.dataset.r = r;
 
@@ -219,58 +251,57 @@
 
         if (opts.interactive) {
           cell.type = 'button';
+          cell.setAttribute('aria-pressed', 'false');
+          // Surbrillance croisée passagère au survol et au focus clavier.
+          cell.addEventListener('mouseenter', () => setHeaderHighlight(grid, c, r, 'hl', true));
+          cell.addEventListener('mouseleave', () => setHeaderHighlight(grid, c, r, 'hl', false));
+          cell.addEventListener('focus',      () => setHeaderHighlight(grid, c, r, 'hl', true));
+          cell.addEventListener('blur',       () => setHeaderHighlight(grid, c, r, 'hl', false));
           cell.addEventListener('click', () => opts.onPick(c, r, cell));
         }
         grid.appendChild(cell);
       }
     }
     gridWrap.appendChild(grid);
+    return grid;
   }
 
-  // ── Niveau 1 — décoder : lire la coordonnée, taper la case ──────────────────
+  // ── Niveau 1 — décoder : lire la coordonnée, choisir la case, puis vérifier ──
   function setupLevel1() {
     resetUI();
     const size = 5;
     const c = randInt(0, size - 1), r = randInt(0, size - 1);
-    state = { size: size, target: { c: c, r: r }, answered: false };
+    state = { size: size, target: { c: c, r: r }, selected: null, answered: false };
     questionBox.innerHTML = 'Trouve la case <span class="coord-pill">' + coordLabel(c, r) +
-      '</span> et appuie dessus.';
-    buildGrid(size, { interactive: true, markCell: null, onPick: pickLevel1 });
+      '</span>, appuie dessus, puis vérifie.';
+    state.grid = buildGrid(size, { interactive: true, markCell: null, onPick: selectCell });
     focusQuestion();
   }
 
-  function pickLevel1(c, r, cell) {
+  // 1er temps : sélectionner une case (sans valider).
+  function selectCell(c, r, cell) {
     if (state.answered) return;
-    state.answered = true;
-    const t = state.target;
-    const correct = (c === t.c && r === t.r);
-    gridWrap.querySelectorAll('.cell').forEach(b => { b.disabled = true; });
-
-    if (correct) {
-      cell.classList.add('cell-correct');
-      cell.textContent = '✓';
-      showFeedback(true, 'Bravo ! ' + coordLabel(t.c, t.r) + ' : colonne ' + colLetter(t.c) +
-        ', ligne ' + (t.r + 1) + '. Appuie sur « Nouvel exercice ».');
-    } else {
-      cell.classList.add('cell-wrong');
-      cell.textContent = '✗';
-      const good = gridWrap.querySelector('.cell[data-c="' + t.c + '"][data-r="' + t.r + '"]');
-      good.classList.add('cell-correct');
-      good.textContent = '🎯';
-      showFeedback(false, 'Pas tout à fait. ' + coordLabel(t.c, t.r) + ' est à la colonne ' +
-        colLetter(t.c) + ' (lettre) et à la ligne ' + (t.r + 1) +
-        ' (chiffre). Appuie sur « Nouvel exercice ».');
-    }
+    const grid = state.grid;
+    grid.querySelectorAll('.cell.selected').forEach(b => {
+      b.classList.remove('selected');
+      b.setAttribute('aria-pressed', 'false');
+    });
+    clearSelectionHighlight(grid);
+    cell.classList.add('selected');
+    cell.setAttribute('aria-pressed', 'true');
+    setHeaderHighlight(grid, c, r, 'sel-hl', true); // colonne + ligne restent allumées
+    state.selected = { c: c, r: r };
+    verifyBtn.disabled = false;
   }
 
-  // ── Niveau 2 — encoder : lire la case marquée, nommer sa coordonnée ─────────
+  // ── Niveau 2 — encoder : lire la case marquée, choisir sa coordonnée ────────
   function setupLevel2() {
     resetUI();
     const size = 6;
     const c = randInt(0, size - 1), r = randInt(0, size - 1);
-    state = { size: size, target: { c: c, r: r }, answered: false };
-    questionBox.innerHTML = 'Le trésor 🎯 est sur le quadrillage.<br>Quelle est sa case ?';
-    buildGrid(size, { interactive: false, markCell: { c: c, r: r }, onPick: null });
+    state = { size: size, target: { c: c, r: r }, selected: null, selectedBtn: null, answered: false };
+    questionBox.innerHTML = 'Le trésor 🎯 est sur le quadrillage.<br>Choisis sa case, puis vérifie.';
+    state.grid = buildGrid(size, { interactive: false, markCell: { c: c, r: r }, onPick: null });
     buildChoices(c, r, size);
     focusQuestion();
   }
@@ -294,37 +325,84 @@
       btn.dataset.label = coordLabel(o.c, o.r);
       btn.textContent = btn.dataset.label;
       btn.setAttribute('aria-label', 'Case colonne ' + colLetter(o.c) + ', ligne ' + (o.r + 1));
-      btn.addEventListener('click', () => pickLevel2(o, btn));
+      btn.setAttribute('aria-pressed', 'false');
+      btn.addEventListener('click', () => selectCoord(o, btn));
       choicesEl.appendChild(btn);
     });
   }
 
-  function pickLevel2(o, btn) {
+  // 1er temps : sélectionner une coordonnée. Sa colonne + sa ligne s'allument
+  // sur le quadrillage, pour vérifier qu'elles tombent bien sur le trésor.
+  function selectCoord(o, btn) {
     if (state.answered) return;
-    state.answered = true;
-    const t = state.target;
-    const correct = (o.c === t.c && o.r === t.r);
-    choicesEl.querySelectorAll('.coord-btn').forEach(b => { b.disabled = true; });
+    const grid = state.grid;
+    choicesEl.querySelectorAll('.coord-btn.selected').forEach(b => {
+      b.classList.remove('selected');
+      b.setAttribute('aria-pressed', 'false');
+    });
+    clearSelectionHighlight(grid);
+    btn.classList.add('selected');
+    btn.setAttribute('aria-pressed', 'true');
+    setHeaderHighlight(grid, o.c, o.r, 'sel-hl', true);
+    state.selected = { c: o.c, r: o.r };
+    state.selectedBtn = btn;
+    verifyBtn.disabled = false;
+  }
 
-    if (correct) {
-      btn.classList.add('coord-correct');
-      btn.textContent = '✓ ' + btn.dataset.label;
-      showFeedback(true, 'Exact ! Le trésor est à la colonne ' + colLetter(t.c) + ', ligne ' +
-        (t.r + 1) + ' : ' + coordLabel(t.c, t.r) + '. Appuie sur « Nouvel exercice ».');
-    } else {
-      btn.classList.add('coord-wrong');
-      btn.textContent = '✗ ' + btn.dataset.label;
-      const goodLbl = coordLabel(t.c, t.r);
-      const goodBtn = [...choicesEl.querySelectorAll('.coord-btn')]
-        .find(b => b.dataset.label === goodLbl);
-      if (goodBtn) {
-        goodBtn.classList.add('coord-correct');
-        goodBtn.textContent = '✓ ' + goodBtn.dataset.label;
+  // ── 2e temps : vérifier la sélection ────────────────────────────────────────
+  function verify() {
+    if (state.answered || !state.selected) return;
+    state.answered = true;
+    verifyBtn.disabled = true;
+    const t = state.target, s = state.selected;
+    const correct = (s.c === t.c && s.r === t.r);
+
+    if (currentLevel === 1) {
+      const grid = state.grid;
+      grid.querySelectorAll('.cell').forEach(b => { b.disabled = true; });
+      const selCell = grid.querySelector('.cell[data-c="' + s.c + '"][data-r="' + s.r + '"]');
+      selCell.classList.remove('selected');
+      if (correct) {
+        selCell.classList.add('cell-correct');
+        selCell.textContent = '✓';
+        showFeedback(true, 'Bravo ! ' + coordLabel(t.c, t.r) + ' : colonne ' + colLetter(t.c) +
+          ', ligne ' + (t.r + 1) + '. Appuie sur « Nouvel exercice ».');
+      } else {
+        selCell.classList.add('cell-wrong');
+        selCell.textContent = '✗';
+        const good = grid.querySelector('.cell[data-c="' + t.c + '"][data-r="' + t.r + '"]');
+        good.classList.add('cell-correct');
+        good.textContent = '🎯';
+        showFeedback(false, 'Pas tout à fait. ' + coordLabel(t.c, t.r) + ' est à la colonne ' +
+          colLetter(t.c) + ' (lettre) et à la ligne ' + (t.r + 1) +
+          ' (chiffre). Appuie sur « Nouvel exercice ».');
       }
-      showFeedback(false, 'Ce n\'est pas ça. On lit d\'abord la colonne (' + colLetter(t.c) +
-        '), puis la ligne (' + (t.r + 1) + ') : ' + goodLbl + '. Appuie sur « Nouvel exercice ».');
+    } else {
+      choicesEl.querySelectorAll('.coord-btn').forEach(b => { b.disabled = true; });
+      const btn = state.selectedBtn;
+      btn.classList.remove('selected');
+      if (correct) {
+        btn.classList.add('coord-correct');
+        btn.textContent = '✓ ' + btn.dataset.label;
+        showFeedback(true, 'Exact ! Le trésor est à la colonne ' + colLetter(t.c) + ', ligne ' +
+          (t.r + 1) + ' : ' + coordLabel(t.c, t.r) + '. Appuie sur « Nouvel exercice ».');
+      } else {
+        btn.classList.add('coord-wrong');
+        btn.textContent = '✗ ' + btn.dataset.label;
+        const goodLbl = coordLabel(t.c, t.r);
+        const goodBtn = [...choicesEl.querySelectorAll('.coord-btn')]
+          .find(b => b.dataset.label === goodLbl);
+        if (goodBtn) {
+          goodBtn.classList.add('coord-correct');
+          goodBtn.textContent = '✓ ' + goodBtn.dataset.label;
+        }
+        showFeedback(false, 'Ce n\'est pas ça. On lit d\'abord la colonne (' + colLetter(t.c) +
+          '), puis la ligne (' + (t.r + 1) + ') : ' + goodLbl + '. Appuie sur « Nouvel exercice ».');
+      }
     }
   }
+
+  verifyBtn.addEventListener('click', verify);
 
   // ── Sélecteur de niveau ─────────────────────────────────────────────────────
   // NE PAS MODIFIER ce bloc — convention partagée entre toutes les apps.
