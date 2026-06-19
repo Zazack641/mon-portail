@@ -189,19 +189,20 @@ Le bouton secondaire `.new-btn` (vert `#0F7860`) est une couleur neutre de navig
 **Taille de police minimum dans une app :**
 - Texte de question : `clamp(17px, 3.5vw, 21px)` (déjà dans app-base.css)
 - Texte de feedback : `clamp(16px, 3vw, 19px)` (déjà dans app-base.css)
-- Ne jamais descendre sous 15px pour du texte lu par un élève
+- Les seuils minimaux de taille de texte pour les apps sont définis dans `skills/accessibilite/SKILL.md`, qui fait foi (18px pour les consignes, 22px pour les éléments interactifs).
 
 ### Tactilité iPad (règles impératives)
 
-Tout élément interactif doit avoir :
-- `min-height: 48px` (cible tactile minimum)
+Les seuils de cible tactile, de taille de texte, de contraste et les règles de focus visible sont définis dans `skills/accessibilite/SKILL.md`, qui fait foi. Ne pas redéclarer ici de chiffre concurrent.
+
+Ce qui relève du design et s'applique à tout bouton ou zone cliquable custom :
 - `touch-action: manipulation`
 - `-webkit-appearance: none`
-- Pas de `:hover` seul comme seul indicateur d'état (utiliser aussi `:active`)
+- Cohérence visuelle avec les boutons existants
+- Les états `:hover`, `:active` **et** `:focus` doivent tous être visibles ; le détail des règles de focus fait foi dans `skills/accessibilite/SKILL.md`.
 
 Boutons d'action (verify-btn, new-btn) : déjà conformes dans app-base.css.
 Boutons de niveau (level-btn) : déjà conformes dans app-base.css.
-**Pour tout bouton ou zone cliquable custom : appliquer ces règles.**
 
 ### Feedback audio-visuel (feedbackUtils.js)
 
@@ -306,8 +307,7 @@ Ne jamais mettre les hex en dur : toujours `var(--color-units)` etc.
 | Images décoratives | `aria-hidden="true"` |
 | Zones de résultat live | `aria-live="polite"` si le contenu change dynamiquement |
 
-**Contraste minimum :** texte sur fond coloré doit respecter un ratio 4.5:1 (WCAG AA).
-Les variables `--app-correct-*` et `--app-wrong-*` sont déjà conformes.
+**Contraste :** les exigences de contraste font foi dans `skills/accessibilite/SKILL.md` — ratio 4,5:1 (WCAG AA) pour le texte courant et exigence renforcée 7:1 sur les éléments critiques (consignes, feedbacks). Les variables `--app-correct-*` et `--app-wrong-*` sont déjà conformes.
 
 ### Structure JS canonique
 
@@ -428,11 +428,11 @@ Pas de libellés PER techniques sur les boutons (ils sont pour l'élève, pas po
 - [ ] Couleur de header et boutons primaires = couleur de la branche (tableau ci-dessus)
 
 ### Tactilité et accessibilité
-- [ ] Tous les éléments interactifs custom ont `min-height: 48px`
+- [ ] Cibles tactiles, taille de texte, contraste et focus conformes à `skills/accessibilite/SKILL.md` (source unique)
 - [ ] `touch-action: manipulation` sur les éléments interactifs custom
 - [ ] `aria-pressed` mis à jour dynamiquement sur les level-btn
 - [ ] `role="group"` + `aria-label` sur la level-bar
-- [ ] Texte lisible : taille min 15px, contraste WCAG AA
+- [ ] États `:hover`, `:active` et `:focus` tous visibles
 
 ### JS et feedback
 - [ ] `TYPE_TACHE` déclaré en tête de script (`'drill'` ou `'instance'`)

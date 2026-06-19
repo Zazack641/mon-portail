@@ -29,11 +29,17 @@ tap simple doit toujours faire la même chose.
 
 ## 2. Contraste et couleur
 
-- Texte : ratio minimum 4,5:1 — viser 7:1 pour les consignes et feedbacks
-- Composants non textuels (bordures, icônes) : minimum 3:1
-- Taille de texte minimum : 18px pour les consignes, 22px pour les éléments
+Ce skill est la **source unique** pour les seuils de cible tactile, de taille de
+texte, de contraste et de focus visible. Les autres fichiers (`CLAUDE.md`,
+`skills/design-portail/SKILL.md`) renvoient ici et ne redéclarent aucun chiffre
+concurrent.
+
+- Texte courant : ratio de contraste minimum **4,5:1** (WCAG 2.2 AA)
+- Éléments critiques (consignes, feedbacks) : ratio renforcé **7:1** — exigé, pas seulement visé
+- Composants non textuels (bordures, icônes) : minimum **3:1**
+- Taille de texte minimum : **18px** pour les consignes, **22px** pour les éléments
   interactifs
-- Interlignage minimum : 1.5
+- Interlignage minimum : **1.5**
 
 **Ne jamais communiquer par la couleur seule.** Toujours doubler avec une
 forme, une icône ou un texte.

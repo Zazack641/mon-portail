@@ -193,6 +193,8 @@ Donc : **ne jamais créer une app dont l'objectif principal est MSN 15 ou MSN 25
 
 Chargées depuis Google Fonts (également en cache local dans `_files/`).
 
+Pour le design des apps pédagogiques (typographie incluse), la source est `skills/design-portail/SKILL.md` ; les seuils tactiles et de texte des apps relèvent de `skills/accessibilite/SKILL.md`.
+
 ### Palette de couleurs
 
 | Rôle | Valeur |
@@ -226,13 +228,15 @@ Chargées depuis Google Fonts (également en cache local dans `_files/`).
 
 ### Tailles tactiles minimum (iPad)
 
-| Élément | Taille min |
+**Ces valeurs concernent l'interface du portail `index.html` (filtres, recherche, bouton « Lancer » des cartes) — pas les apps pédagogiques.** Pour les apps, les seuils tactiles, de taille de texte, de contraste et de focus sont définis dans `skills/accessibilite/SKILL.md`, qui fait foi.
+
+| Élément (portail `index.html`) | Taille min |
 |---------|-----------|
 | Boutons filtres (mobile) | `min-height: 36px` |
 | Boutons filtres (≥768px) | `min-height: 40px` |
 | Bouton « Lancer » | `padding: 14px` (≥15px sur tablette) |
 
-Tous les éléments interactifs ont `touch-action: manipulation` et `-webkit-appearance: none`.
+Tous les éléments interactifs du portail ont `touch-action: manipulation` et `-webkit-appearance: none`.
 
 ### Grille responsive
 
