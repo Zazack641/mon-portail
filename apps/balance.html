@@ -27,7 +27,7 @@
     align-items: center;
     gap: 16px;
   }
-  .back-link { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 15px; font-weight: 600; white-space: nowrap; touch-action: manipulation; display: inline-flex; align-items: center; min-height: 44px; }
+  .back-link { color: rgba(255,255,255,0.92); text-decoration: none; font-size: 15px; font-weight: 600; white-space: nowrap; touch-action: manipulation; display: inline-flex; align-items: center; min-height: 44px; }
   .back-link:hover { color: #fff; }
   .app-header h1 { font-family: 'Nunito', sans-serif; font-size: clamp(18px,4vw,24px); font-weight: 900; color: #fff; flex: 1; text-align: center; }
   .header-spacer { width: 80px; }
@@ -42,7 +42,7 @@
   .question-box { background: #fff; border: 1px solid #E2E8F0; border-radius: 16px; padding: 20px 24px; text-align: center; width: 100%; font-family: 'Nunito', sans-serif; font-size: clamp(18px,3.5vw,21px); font-weight: 800; color: #1A1A2E; line-height: 1.5; }
 
   /* Hint sous la question */
-  .click-hint { font-size: 15px; color: #475569; text-align: center; font-style: italic; }
+  .click-hint { font-size: 16px; color: #475569; text-align: center; font-style: italic; }
 
   /* SVG */
   .svg-wrap { width: 100%; background: #fff; border: 1px solid #E2E8F0; border-radius: 16px; padding: 8px; }
@@ -96,6 +96,12 @@
     outline-offset: 2px;
   }
 
+  /* Focus clavier sur les zones de clic des plateaux (N1/N2) */
+  #balance-svg [tabindex]:focus-visible {
+    outline: 3px solid #3B7DD8;
+    outline-offset: 2px;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       transition-duration: 0.01ms !important;
@@ -120,7 +126,7 @@
 </div>
 
 <main>
-  <div class="question-box" id="question-box">Chargement…</div>
+  <div class="question-box" id="question-box" tabindex="-1">Chargement…</div>
   <div class="click-hint" id="click-hint"></div>
 
   <div class="svg-wrap">
@@ -162,6 +168,13 @@
 </main>
 
 <script>
+// ── Type de tâche par niveau ───────────────────────────────────────────────
+// Cette app est mixte (voir skills/pedagogie-per § « Drill vs instance signifiante ») :
+//   N1, N2 = 'drill'    → un clic désigne la réponse ; l'erreur clôt l'item.
+//   N3     = 'instance' → l'élève corrige et revérifie la MÊME balance jusqu'à
+//                          l'équilibre (retry implémenté dans verifyN3).
+const TYPE_TACHE = { 1: 'drill', 2: 'drill', 3: 'instance' };
+
 // ── Constantes géométriques ────────────────────────────────────────────────
 const SVG_NS  = 'http://www.w3.org/2000/svg';
 const CX      = 250;
@@ -254,16 +267,21 @@ function drawBalance(leftCubes, rightCubes, tiltDir, platHL={}, onLeftClick, onR
   // Zones de clic transparentes sur chaque côté (N1 / N2)
   if (onLeftClick || onRightClick) {
     [
-      { px:lpx, py:lpy, cb:onLeftClick  },
-      { px:rpx, py:rpy, cb:onRightClick },
-    ].forEach(({ px, py, cb }) => {
+      { px:lpx, py:lpy, cb:onLeftClick,  label:'Plateau gauche' },
+      { px:rpx, py:rpy, cb:onRightClick, label:'Plateau droit'  },
+    ].forEach(({ px, py, cb, label }) => {
       if (!cb) return;
       const hit = mk('rect', {
         x: px - 62, y: py - 140, width: 124, height: 160,
-        fill: 'transparent', style: 'cursor:pointer'
+        fill: 'transparent', style: 'cursor:pointer',
+        tabindex: '0', role: 'button', 'aria-label': label
       });
       hit.classList.add('plat-hover');
       hit.addEventListener('click', cb);
+      // Activation clavier (WCAG 2.1.1) : le tap reste l'option principale (iPad).
+      hit.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cb(); }
+      });
       svg.appendChild(hit);
     });
   }
@@ -575,6 +593,9 @@ function newExercise() {
   if      (level===1) setupN1();
   else if (level===2) setupN2();
   else                setupN3();
+  // Le focus est replacé sur la consigne : « Nouvel exercice » se masque après
+  // un clic (display:none) et le focus serait sinon perdu (skills/accessibilite § 6).
+  questionBox.focus();
 }
 
 newExercise();
