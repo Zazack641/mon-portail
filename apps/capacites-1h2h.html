@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Qui contient le plus ?</title>
+<title>Qui contient le plus ? (1H-2H)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
@@ -617,14 +617,16 @@
   }
 
   function setupL2() {
-    // N2 — toutes formes, 3–4 récipients : 3H-4H
-    // Vérité = fillArea × taux (surface visible d'eau).
-    // Des formes très différentes peuvent créer le piège conservation du volume :
-    // un bol à moitié plein peut contenir plus qu'un verre presque plein.
-    const count  = 3 + Math.floor(Math.random() * 2);
-    const shapes = pick(SHAPES, count);
-    const isMost = Math.random() < 0.5;
-    const fills  = generateFills(shapes, 0.12);
+    // N2 — même famille (proportions similaires), 3 récipients : 1H-2H
+    // Différenciation interne du groupe d'années : on reste en même famille,
+    // donc la comparaison porte sur le niveau d'eau visible et n'introduit
+    // jamais le piège « conservation du volume » (trop précoce à 1H-2H).
+    const familles = [...new Set(SHAPES.map(s => s.famille))];
+    const famille  = familles[Math.floor(Math.random() * familles.length)];
+    const pool     = SHAPES.filter(s => s.famille === famille);
+    const shapes   = pick(pool, 3);
+    const isMost   = Math.random() < 0.5;
+    const fills    = generateFills(shapes, 0.22);
     const items  = shapes.map((shape, i) => ({ shape, fill: fills[i] }));
     const correctIdx = correctByVisualVolume(shapes, fills, isMost);
 
