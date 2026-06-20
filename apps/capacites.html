@@ -28,7 +28,7 @@
     gap: 16px;
   }
   .back-link {
-    color: rgba(255,255,255,0.85);
+    color: rgba(255,255,255,0.92);
     text-decoration: none;
     font-size: 15px;
     font-weight: 600;
@@ -466,6 +466,12 @@
     },
   ];
 
+  // Type de tâche (voir skills/design-portail § « drill vs instance » et
+  // skills/pedagogie-per § 5 bis). Comparaison perceptive de capacités :
+  // l'erreur révèle la bonne réponse et clôt l'item (aucun tâtonnement
+  // exploitable sur la même instance) → 'drill'.
+  const TYPE_TACHE = 'drill';
+
   let currentLevel = 1;
   let state = {};
 
@@ -639,9 +645,20 @@
     feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
     feedbackEl.textContent = msg;
     if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
-    verifyBtn.style.display = 'none';
-    newBtn.classList.add('visible');
-    newBtn.focus();
+
+    if (correct || TYPE_TACHE === 'drill') {
+      // Item clos : on propose la suite. Focus déplacé sur « Nouvel exercice »
+      // (exigence de gestion du focus, skills/accessibilite § 6).
+      verifyBtn.style.display = 'none';
+      newBtn.classList.add('visible');
+      newBtn.focus();
+    } else {
+      // 'instance' + incorrect : l'élève corrigerait et revérifierait la même
+      // instance. Non emprunté ici (tâche de drill), conservé pour le contrat.
+      verifyBtn.style.display = '';
+      verifyBtn.disabled = false;
+      newBtn.classList.remove('visible');
+    }
   }
 
   verifyBtn.addEventListener('click', () => {
