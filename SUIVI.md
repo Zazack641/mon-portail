@@ -44,3 +44,4 @@ Campagne audit accessibilité v2 démarrée le 2026-06-16
 | valeur-position.html | Valeur de position | ✅ | ❌ | |
 | vertical-calculation.html | Additions en colonne | ✅ | ❌ | |
 | sujet-predicat-5h6h.html | Sujet et prédicat | ✅ | ❌ | |
+| complement-phrase-5h6h.html | Le complément de phrase | ✅ | ❌ | Nouvelle app (5H-6H, L1 26). Créée depuis `_template.html` (app-base.css + appUtils.js + feedbackUtils.js). `TYPE_TACHE='instance'` (identifier/manipuler le CP = tâche corrigeable). N1 repérer le CP · N2 enlever pour vérifier · N3 déplacer. Variables `--color-sujet/predicat/cp` propres à l'app (distinctes de la palette valeur-de-position). **Note d'arbitrage (accessibilité > design) :** le déplacement N3 est exposé au tap et au clavier (bouton réel), le glisser n'étant qu'un enrichissement — pas de drag-and-drop exclusif (skill accessibilité §1). Pas encore audité v2. |

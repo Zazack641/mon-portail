@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Le complément de phrase</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-base.css">
+<style>
+  /* Branche Français (Langues) */
+  :root {
+    --app-header-bg: #B8960C;
+    /* Couleurs des constituants — franches, contrastées (≥4,5:1 sur blanc),
+       identiques à tous les niveaux et aux étiquettes manipulées en classe.
+       Distinctes des couleurs de valeur de position (unités/dizaines/centaines). */
+    --color-sujet:    #1D4ED8; /* bleu    */
+    --color-predicat: #B45309; /* ambre   */
+    --color-cp:       #6D28D9; /* violet  */
+  }
+
+  /* Phrase à trois constituants, lue dans l'ordre naturel */
+  .phrase-area {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    align-items: stretch;
+    margin: 8px 0;
+    width: 100%;
+  }
+
+  .constituant {
+    min-height: 64px;
+    padding: 14px 20px;
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(22px, 4vw, 26px);
+    font-weight: 800;
+    border: 3px solid var(--app-border);
+    border-radius: 14px;
+    background: #fff;
+    line-height: 1.3;
+    color: var(--app-text);
+    display: inline-flex;
+    align-items: center;
+    text-align: center;
+  }
+
+  /* Couleurs visibles dès le départ (border + texte) */
+  .constituant[data-role="sujet"]    { border-color: var(--color-sujet);    color: var(--color-sujet); }
+  .constituant[data-role="predicat"] { border-color: var(--color-predicat); color: var(--color-predicat); }
+  .constituant[data-role="cp"]       { border-color: var(--color-cp);       color: var(--color-cp); }
+
+  /* Blocs cliquables (boutons) — accès tap + clavier */
+  button.constituant {
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+  button.constituant:disabled { cursor: default; }
+  button.constituant:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; }
+
+  .constituant.correct { border-color: #059669; color: var(--app-correct-fg); background: var(--app-correct-bg); }
+  .constituant.wrong   { border-color: #DC2626; color: var(--app-wrong-fg);   background: var(--app-wrong-bg); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    button.constituant { transition: border-color 0.15s, background 0.15s, transform 0.1s; }
+    button.constituant:active { transform: scale(0.97); }
+    .constituant.removed { transition: opacity 0.5s, transform 0.5s; }
+  }
+
+  /* Niveau 2 — disparition du CP */
+  .constituant.removed { opacity: 0.18; }
+
+  /* Niveau 3 — la phrase montrée à plusieurs positions */
+  .reformulation {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    width: 100%;
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(18px, 3.5vw, 22px);
+    font-weight: 800;
+    line-height: 1.4;
+  }
+  .reformulation .phrase-version {
+    padding: 12px 18px;
+    border-radius: 12px;
+    background: #fff;
+    border: 1px solid var(--app-border);
+    text-align: center;
+    width: 100%;
+  }
+
+  /* Boutons d'action propres au niveau 2 (Enlever / Remettre) */
+  .action-row .step-btn {
+    padding: 16px 30px;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    cursor: pointer;
+    min-height: 64px;
+    min-width: 64px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    color: #fff;
+    background: var(--app-header-bg);
+  }
+  .action-row .step-btn:disabled { background: #94A3B8; cursor: default; }
+  .action-row .step-btn:focus-visible { outline: 3px solid rgba(255,255,255,0.9); outline-offset: 3px; }
+  @media (prefers-reduced-motion: no-preference) {
+    .action-row .step-btn { transition: filter 0.15s; }
+    .action-row .step-btn:not(:disabled):hover { filter: brightness(0.9); }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header" role="banner">
+  <a href="../index.html" class="back-link">← Retour</a>
+  <h1>🧩 Le complément de phrase</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1 · repérer</button>
+  <button class="level-btn"        data-level="2" aria-pressed="false">Niveau 2 · enlever</button>
+  <button class="level-btn"        data-level="3" aria-pressed="false">Niveau 3 · déplacer</button>
+</div>
+
+<main>
+  <div class="question-box" id="question-box">Chargement…</div>
+
+  <div id="phrase-area" class="phrase-area" role="group" aria-label="Parties de la phrase"></div>
+
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="action-row" id="action-row">
+    <button class="new-btn" id="new-btn"><span aria-hidden="true">▶</span> Nouvel exercice</button>
+  </div>
+</main>
+
+<script src="appUtils.js"></script>
+<script>
+const questionBox = document.getElementById('question-box');
+const feedbackEl  = document.getElementById('feedback');
+const phraseArea  = document.getElementById('phrase-area');
+const actionRow   = document.getElementById('action-row');
+const newBtn      = document.getElementById('new-btn');
+
+// Identifier et manipuler le complément de phrase est une tâche à instance
+// signifiante : l'erreur est exploitable, l'élève corrige sur la même phrase.
+const TYPE_TACHE = 'instance';
+
+let currentLevel = 1;
+let state = {};
+
+// Banque de phrases : sujet + prédicat + complément de phrase (facultatif).
+const PHRASES = [
+  { sujet: 'La fillette',    predicat: 'promène son chien',      cp: 'le matin' },
+  { sujet: 'Un poisson',     predicat: 'nage lentement',         cp: 'au fond de l’océan' },
+  { sujet: 'Le lièvre',      predicat: 'prend la fuite',         cp: 'au moindre bruit' },
+  { sujet: 'Le renard',      predicat: 'vole une poule',         cp: 'pendant la nuit' },
+  { sujet: 'Les baleines',   predicat: 'se nourrissent de plancton', cp: 'dans la mer' },
+  { sujet: 'Le jardinier',   predicat: 'arrose ses fleurs',      cp: 'chaque soir' },
+  { sujet: 'Les enfants',    predicat: 'jouent au ballon',       cp: 'dans la cour' },
+  { sujet: 'La maîtresse',   predicat: 'lit une histoire',       cp: 'après la récréation' },
+  { sujet: 'Le boulanger',   predicat: 'prépare le pain',        cp: 'très tôt' },
+  { sujet: 'Les hirondelles',predicat: 'reviennent',             cp: 'au printemps' },
+  { sujet: 'Mon grand-père', predicat: 'fait la sieste',         cp: 'l’après-midi' },
+  { sujet: 'La rivière',     predicat: 'déborde',                cp: 'après l’orage' },
+  { sujet: 'Le chat',        predicat: 'guette les souris',      cp: 'derrière le mur' },
+  { sujet: 'Les randonneurs',predicat: 'montent au sommet',      cp: 'avant midi' },
+  { sujet: 'La famille',     predicat: 'pique-nique',            cp: 'au bord du lac' },
+  { sujet: 'Le facteur',     predicat: 'distribue le courrier',  cp: 'chaque matin' },
+  { sujet: 'Les abeilles',   predicat: 'butinent les fleurs',    cp: 'tout l’été' },
+  { sujet: 'Le capitaine',   predicat: 'rentre au port',         cp: 'avant la tempête' },
+];
+
+let lastIndex = -1;
+function pickPhrase() {
+  let i;
+  do { i = randInt(0, PHRASES.length - 1); } while (i === lastIndex && PHRASES.length > 1);
+  lastIndex = i;
+  return PHRASES[i];
+}
+
+// ── Feedback ──────────────────────────────────────────────────────────────────
+// Une seule consigne visible à la fois ; le message reste affiché jusqu'à une
+// action explicite de l'élève. playCorrect/playIncorrect/launchConfetti ne sont
+// appelés que d'ici.
+function playFeedbackSound(correct) {
+  if (correct) {
+    playCorrect();
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) launchConfetti();
+  } else {
+    playIncorrect();
+  }
+}
+
+function revealNew() {
+  newBtn.classList.add('visible');
+  newBtn.focus();
+}
+
+function setFeedback(correct, msg) {
+  feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+  feedbackEl.textContent = msg;
+}
+
+function resetUI() {
+  feedbackEl.className = 'feedback';
+  feedbackEl.textContent = '';
+  newBtn.classList.remove('visible');
+  // Retirer les boutons d'étape propres au niveau 2.
+  actionRow.querySelectorAll('.step-btn').forEach(b => b.remove());
+  phraseArea.innerHTML = '';
+  phraseArea.className = 'phrase-area';
+}
+
+// Construit un bloc constituant (button cliquable ou span figé).
+function makeBloc(role, text, { clickable, handler } = {}) {
+  const el = document.createElement(clickable ? 'button' : 'span');
+  el.className = 'constituant';
+  el.dataset.role = role;
+  el.textContent = text;
+  el.setAttribute('aria-label', text);
+  if (clickable && handler) el.addEventListener('click', handler);
+  return el;
+}
+
+// Casse de la 1re lettre.
+function lower1(s) { return s.charAt(0).toLowerCase() + s.slice(1); }
+function upper1(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+// Ordre d'affichage des trois constituants pour une position du complément de
+// phrase ('debut' ou 'fin'), avec la casse correcte. Le CP n'est donc PAS
+// toujours en fin de phrase : c'est justement sa mobilité qu'on travaille.
+function buildOrder(phrase, pos) {
+  if (pos === 'debut') {
+    return [
+      { role: 'cp',       display: upper1(phrase.cp) + ',' },
+      { role: 'sujet',    display: lower1(phrase.sujet) },
+      { role: 'predicat', display: phrase.predicat },
+    ];
+  }
+  return [
+    { role: 'sujet',    display: phrase.sujet },
+    { role: 'predicat', display: phrase.predicat },
+    { role: 'cp',       display: phrase.cp },
+  ];
+}
+
+function randPos() { return Math.random() < 0.5 ? 'debut' : 'fin'; }
+
+// Construit les trois blocs cliquables d'une phrase et place le focus.
+function renderBlocs(phrase, pos, handler) {
+  buildOrder(phrase, pos).forEach((part, idx) => {
+    const bloc = makeBloc(part.role, part.display, {
+      clickable: true,
+      handler: () => handler(part.role, bloc),
+    });
+    bloc.setAttribute('aria-label', part.display);
+    if (idx === 0) bloc.setAttribute('data-focus-target', '');
+    phraseArea.appendChild(bloc);
+  });
+  phraseArea.querySelector('[data-focus-target]').focus();
+}
+
+// ── Niveau 1 — Repérer le complément de phrase ─────────────────────────────────
+function setupLevel1() {
+  resetUI();
+  const phrase = pickPhrase();
+  state = { phrase, pos: randPos(), answered: false };
+  questionBox.textContent = 'Touche le complément de phrase.';
+  renderBlocs(phrase, state.pos, handleLevel1);
+}
+
+function handleLevel1(role, bloc) {
+  if (state.answered) return;
+  const correct = role === 'cp';
+
+  if (correct) {
+    state.answered = true;
+    phraseArea.querySelectorAll('.constituant').forEach(b => { b.disabled = true; });
+    bloc.classList.add('correct');
+    setFeedback(true, `Bravo ! « ${state.phrase.cp} » est le complément de phrase : il dit où, quand ou pourquoi. On peut l'enlever ou le déplacer.`);
+    playFeedbackSound(true);
+    revealNew();
+  } else {
+    // Instance signifiante : on n'enferme pas l'item, l'élève réessaie.
+    bloc.classList.add('wrong');
+    bloc.disabled = true;
+    const nom = role === 'sujet' ? 'sujet' : 'prédicat';
+    setFeedback(false, `Ce bloc est le ${nom} : on ne peut pas l'enlever ni le déplacer, la phrase ne fonctionnerait plus. Cherche le complément de phrase.`);
+    playFeedbackSound(false);
+    // Replacer le focus sur un bloc encore actif.
+    const next = phraseArea.querySelector('button.constituant:not(:disabled)');
+    if (next) next.focus();
+  }
+}
+
+// ── Niveau 2 — Supprimer pour vérifier ─────────────────────────────────────────
+function setupLevel2() {
+  resetUI();
+  const phrase = pickPhrase();
+  state = { phrase, picked: null, removed: false };
+
+  state.pos = randPos();
+  questionBox.textContent = 'Touche le complément de phrase, puis appuie sur « Enlever ».';
+
+  renderBlocs(phrase, state.pos, pickLevel2);
+
+  // Bouton « Enlever » (désactivé tant qu'aucun bloc n'est choisi).
+  const removeBtn = document.createElement('button');
+  removeBtn.className = 'step-btn';
+  removeBtn.id = 'remove-btn';
+  removeBtn.textContent = 'Enlever';
+  removeBtn.disabled = true;
+  removeBtn.addEventListener('click', removeLevel2);
+  actionRow.insertBefore(removeBtn, newBtn);
+
+  phraseArea.querySelector('[data-focus-target]').focus();
+}
+
+function pickLevel2(role, bloc) {
+  if (state.removed) return;
+  state.picked = { role, bloc };
+  phraseArea.querySelectorAll('.constituant').forEach(b => {
+    b.classList.remove('correct', 'wrong');
+  });
+  bloc.classList.add('correct'); // surbrillance de sélection (verte, neutre)
+  document.getElementById('remove-btn').disabled = false;
+}
+
+function removeLevel2() {
+  if (!state.picked || state.removed) return;
+  const { role, bloc } = state.picked;
+  document.getElementById('remove-btn').disabled = true;
+
+  if (role === 'cp') {
+    state.removed = true;
+    bloc.classList.remove('correct');
+    bloc.classList.add('removed');
+    phraseArea.querySelectorAll('button.constituant').forEach(b => { b.disabled = true; });
+    setFeedback(true, `La phrase fonctionne encore : « ${state.phrase.sujet} ${state.phrase.predicat} » se comprend très bien. C'était donc un complément de phrase, on pouvait l'enlever.`);
+    playFeedbackSound(true);
+    revealNew();
+  } else {
+    // Sujet ou prédicat : on ne valide pas la suppression, l'élève recommence.
+    bloc.classList.remove('correct');
+    bloc.classList.add('wrong');
+    const nom = role === 'sujet' ? 'sujet' : 'prédicat';
+    setFeedback(false, `Sans le ${nom}, la phrase ne fonctionne plus. Le ${nom} est obligatoire : ce n'est pas le complément de phrase. Touche un autre bloc, puis appuie sur « Enlever ».`);
+    playFeedbackSound(false);
+    state.picked = null;
+    // Réactiver les blocs pour permettre un nouveau choix.
+    phraseArea.querySelectorAll('button.constituant').forEach(b => {
+      b.disabled = false;
+      b.classList.remove('correct');
+    });
+    const next = phraseArea.querySelector('button.constituant');
+    if (next) next.focus();
+  }
+}
+
+// ── Niveau 3 — Identifier le CP et découvrir sa mobilité ───────────────────────
+function setupLevel3() {
+  resetUI();
+  const phrase = pickPhrase();
+  state = { phrase, pos: randPos(), done: false };
+  // Pas de bloc pré-désigné : l'élève doit d'abord trouver le complément de phrase.
+  questionBox.textContent = 'Touche le complément de phrase pour voir où il peut se placer.';
+  renderBlocs(phrase, state.pos, handleLevel3);
+}
+
+// Fragment coloré pour le CP dans les reformulations.
+function cpSpan(text) {
+  const s = document.createElement('span');
+  s.style.color = 'var(--color-cp)';
+  s.textContent = text;
+  return s;
+}
+
+function handleLevel3(role, bloc) {
+  if (state.done) return;
+
+  if (role !== 'cp') {
+    // Instance signifiante : on n'enferme pas l'item, l'élève réessaie.
+    bloc.classList.add('wrong');
+    bloc.disabled = true;
+    const nom = role === 'sujet' ? 'sujet' : 'prédicat';
+    setFeedback(false, `Ce bloc est le ${nom} : il ne peut pas changer de place dans la phrase. Cherche le complément de phrase, c'est lui qui est mobile.`);
+    playFeedbackSound(false);
+    const next = phraseArea.querySelector('button.constituant:not(:disabled)');
+    if (next) next.focus();
+    return;
+  }
+
+  state.done = true;
+  const { sujet, predicat, cp } = state.phrase;
+  phraseArea.querySelectorAll('button.constituant').forEach(b => { b.disabled = true; });
+
+  // La même phrase, le complément placé au début, au milieu et à la fin.
+  const reform = document.createElement('div');
+  reform.className = 'reformulation';
+  reform.setAttribute('role', 'group');
+  reform.setAttribute('aria-label', 'Le complément de phrase à trois endroits');
+
+  const versions = [
+    [cpSpan(upper1(cp)), `, ${lower1(sujet)} ${predicat}.`],          // début
+    [`${sujet}, `, cpSpan(cp), `, ${predicat}.`],                     // milieu
+    [`${sujet} ${predicat} `, cpSpan(cp), '.'],                       // fin
+  ];
+  versions.forEach(parts => {
+    const v = document.createElement('div');
+    v.className = 'phrase-version';
+    parts.forEach(p => v.append(p));
+    reform.appendChild(v);
+  });
+
+  phraseArea.innerHTML = '';
+  phraseArea.className = 'phrase-area';
+  phraseArea.appendChild(reform);
+
+  setFeedback(true, `« ${cp} » peut se placer au début, au milieu ou à la fin : la phrase veut toujours dire la même chose. C'est ça, un complément de phrase : il est mobile.`);
+  playFeedbackSound(true);
+  revealNew();
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+document.querySelectorAll('.level-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentLevel = parseInt(btn.dataset.level);
+    document.querySelectorAll('.level-btn').forEach(b => {
+      b.classList.remove('active');
+      b.setAttribute('aria-pressed', 'false');
+    });
+    btn.classList.add('active');
+    btn.setAttribute('aria-pressed', 'true');
+    newExercise();
+  });
+});
+
+newBtn.addEventListener('click', newExercise);
+
+function newExercise() {
+  if (currentLevel === 1)      setupLevel1();
+  else if (currentLevel === 2) setupLevel2();
+  else                         setupLevel3();
+}
+
+newExercise();
+</script>
+<script src="feedbackUtils.js"></script>
+</body>
+</html>
