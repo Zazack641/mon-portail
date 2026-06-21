@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Le dénombrement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-base.css">
+<style>
+  :root {
+    --app-header-bg: #C0272D;
+  }
+
+  /* Zone d'affichage des objets */
+  .objects-area {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    align-content: center;
+    min-height: 150px;
+    padding: 20px 16px;
+    background: #fff;
+    border-radius: 16px;
+    border: 2px solid var(--app-border);
+    width: 100%;
+  }
+
+  .object-item {
+    font-size: 44px;
+    line-height: 1;
+    user-select: none;
+  }
+
+  /* Grille des 4 boutons de réponse */
+  .answers-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .answer-btn {
+    min-height: 72px;
+    font-size: 32px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    border: 2px solid transparent;
+    border-radius: 14px;
+    background: #EBF3FC;
+    color: #1A3A5C;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+
+  .answer-btn:hover        { background: #d4e8f8; }
+  .answer-btn:focus-visible { outline: 3px solid #C0272D; outline-offset: 2px; }
+  .answer-btn:disabled     { opacity: 0.75; cursor: default; }
+  .answer-btn.correct      { background: var(--app-correct-bg); color: var(--app-correct-fg); border-color: #065F46; }
+  .answer-btn.wrong        { background: var(--app-wrong-bg);   color: var(--app-wrong-fg);   border-color: #991B1B; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .answer-btn { transition: background 0.15s; }
+    .answer-btn:active { transform: scale(0.97); }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header" role="banner">
+  <a href="../index.html" class="back-link">← Retour</a>
+  <h1>🔢 Le dénombrement</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1</button>
+  <button class="level-btn"        data-level="2" aria-pressed="false">Niveau 2</button>
+  <button class="level-btn"        data-level="3" aria-pressed="false">Niveau 3</button>
+</div>
+
+<main>
+  <div class="question-box" id="question-box">Chargement…</div>
+
+  <div class="objects-area" id="objects-area"
+       role="img" aria-label="objets à compter"></div>
+
+  <div class="answers-grid" id="answers-grid"
+       role="group" aria-label="Choisir le nombre"></div>
+
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="action-row">
+    <button class="new-btn" id="new-btn">Nouvel exercice</button>
+  </div>
+</main>
+
+<script src="appUtils.js"></script>
+<script>
+  // 'drill' : chaque question est une instance indépendante.
+  // Une erreur clôt la question — le bon nombre est affiché et on passe à la suite.
+  // Retry sur la même instance n'aurait pas de valeur : l'élève devinerait parmi
+  // les 3 boutons restants plutôt que de vraiment recompter.
+  const TYPE_TACHE = 'drill';
+
+  const questionBox = document.getElementById('question-box');
+  const feedbackEl  = document.getElementById('feedback');
+  const newBtn      = document.getElementById('new-btn');
+  const objectsArea = document.getElementById('objects-area');
+  const answersGrid = document.getElementById('answers-grid');
+
+  // Plages de comptage par niveau (min et max inclus)
+  const RANGES = {
+    1: [2, 5],    // Niveau 1 · 2 à 5 objets
+    2: [4, 9],    // Niveau 2 · 4 à 9 objets
+    3: [7, 12],   // Niveau 3 · 7 à 12 objets
+  };
+
+  const OBJECT_TYPES = [
+    { emoji: '⭐', name: 'étoiles' },
+    { emoji: '🍎', name: 'pommes' },
+    { emoji: '🌸', name: 'fleurs' },
+    { emoji: '🐟', name: 'poissons' },
+    { emoji: '🦋', name: 'papillons' },
+    { emoji: '🌙', name: 'lunes' },
+    { emoji: '🔵', name: 'ronds' },
+    { emoji: '🍓', name: 'fraises' },
+  ];
+
+  let currentLevel = 1;
+  let state = {};
+
+  function showFeedback(correct, msg) {
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = msg;
+    if (correct) {
+      playCorrect();
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        launchConfetti();
+      }
+    } else {
+      playIncorrect();
+    }
+    newBtn.classList.add('visible');
+    newBtn.focus();
+  }
+
+  function resetFeedback() {
+    feedbackEl.className = 'feedback';
+    feedbackEl.textContent = '';
+    newBtn.classList.remove('visible');
+  }
+
+  // Génère 4 choix de réponse distincts (bonne réponse + 3 distracteurs proches)
+  function generateAnswers(correct, minRange, maxRange) {
+    const pool = [];
+    for (let v = Math.max(1, minRange - 1); v <= Math.min(12, maxRange + 1); v++) {
+      if (v !== correct) pool.push(v);
+    }
+    return shuffle([correct, ...shuffle(pool).slice(0, 3)]);
+  }
+
+  function setupExercise() {
+    const [minRange, maxRange] = RANGES[currentLevel];
+    const count   = randInt(minRange, maxRange);
+    const objType = pick(OBJECT_TYPES, 1)[0];
+    state = { correct: count, objType, answered: false };
+
+    questionBox.textContent = `Combien y a-t-il de ${objType.name} ?`;
+
+    // Affichage des objets
+    objectsArea.innerHTML = '';
+    objectsArea.setAttribute('aria-label', `${count} ${objType.name}`);
+    for (let i = 0; i < count; i++) {
+      const span = document.createElement('span');
+      span.className = 'object-item';
+      span.setAttribute('aria-hidden', 'true');
+      span.textContent = objType.emoji;
+      objectsArea.appendChild(span);
+    }
+
+    // Boutons de réponse
+    answersGrid.innerHTML = '';
+    const answers = generateAnswers(count, minRange, maxRange);
+    answers.forEach((num, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'answer-btn';
+      btn.textContent = num;
+      btn.setAttribute('aria-label', String(num));
+      if (idx === 0) btn.setAttribute('data-focus-target', '');
+      btn.addEventListener('click', () => handleAnswer(num, btn));
+      answersGrid.appendChild(btn);
+    });
+
+    // Focus sur le premier bouton de réponse (navigation clavier)
+    const firstBtn = answersGrid.querySelector('[data-focus-target]');
+    if (firstBtn) firstBtn.focus();
+  }
+
+  function handleAnswer(num, clickedBtn) {
+    if (state.answered) return;
+    state.answered = true;
+
+    const correct = (num === state.correct);
+
+    // Désactiver tous les boutons et révéler la bonne réponse
+    document.querySelectorAll('.answer-btn').forEach(b => {
+      b.disabled = true;
+      if (Number(b.textContent) === state.correct) b.classList.add('correct');
+    });
+    if (!correct) clickedBtn.classList.add('wrong');
+
+    const msg = correct
+      ? `Bravo ! Il y a bien ${state.correct} ${state.objType.name}.`
+      : `Pas tout à fait. Il y avait ${state.correct} ${state.objType.name}. Appuie sur « Nouvel exercice » pour continuer.`;
+    showFeedback(correct, msg);
+  }
+
+  function newExercise() {
+    resetFeedback();
+    setupExercise();
+  }
+
+  // Sélecteur de niveau — NE PAS MODIFIER ce bloc
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLevel = parseInt(btn.dataset.level);
+      document.querySelectorAll('.level-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+      newExercise();
+    });
+  });
+
+  newBtn.addEventListener('click', newExercise);
+  newExercise();
+</script>
+<script src="feedbackUtils.js"></script>
+</body>
+</html>
