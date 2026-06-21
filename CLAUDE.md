@@ -98,7 +98,7 @@ Le template référence automatiquement trois fichiers partagés :
 | Fichier | Rôle |
 |---------|------|
 | [`apps/app-base.css`](apps/app-base.css) | Reset, header, level-bar, question-box, feedback, boutons d'action, variables CSS couleurs |
-| [`apps/appUtils.js`](apps/appUtils.js) | `randInt`, `randBetween`, `shuffle`, `pick`, `colorForRank` |
+| [`apps/appUtils.js`](apps/appUtils.js) | `randInt`, `randBetween`, `shuffle`, `pick`, `colorForRank` + boucle de tabulation Tab/Shift+Tab automatique, voir `skills/accessibilite/SKILL.md` |
 | [`apps/feedbackUtils.js`](apps/feedbackUtils.js) | `playCorrect`, `playIncorrect`, `launchConfetti` |
 
 **Ces fichiers ne doivent pas être ajoutés aux apps existantes** (elles embarquent leurs propres styles et utilitaires inline).  

@@ -199,7 +199,7 @@ Le bouton secondaire `.new-btn` (vert `#0F7860`) est une couleur neutre de navig
 </html>
 ```
 
-### Migration vers `app-base.css` (étape systématique de l'audit v2)
+### Migration vers les fichiers partagés du template (étape systématique de l'audit v2)
 
 Certaines apps antérieures au template embarquent l'intégralité de leurs styles inline et **n'incluent pas** `<link rel="stylesheet" href="app-base.css">` dans leur `<head>`.
 
@@ -216,6 +216,8 @@ Procédure de migration :
 Le **survol des boutons primaires dérive automatiquement de la couleur de branche** : `app-base.css` applique `filter: brightness(0.85)` au survol de `.verify-btn`, ce qui assombrit la couleur courante (`--app-header-bg`) quelle que soit la branche. **Ne pas redéclarer de couleur de survol par app** — supprimer toute règle inline du type `.verify-btn:hover { background: … }` lors de la migration.
 
 Cette migration aligne automatiquement l'app sur le seuil de taille du texte interactif (les boutons d'`app-base.css` sont déjà conformes). **Le seuil lui-même — 22px pour le texte interactif — fait foi dans `skills/accessibilite/SKILL.md` ; ne pas le redéclarer ici.**
+
+4. **Migrer vers `appUtils.js`** : si l'app redéfinit en inline des fonctions déjà fournies par `appUtils.js` (`randInt`, `randBetween`, `shuffle`, `pick`, `colorForRank`…), retirer ces définitions inline et ajouter `<script src="appUtils.js"></script>` **avant** le script de l'app, comme dans `_template.html`. Bénéfice secondaire : la boucle de tabulation Tab/Shift+Tab fournie par `appUtils.js` s'applique alors automatiquement (voir `skills/accessibilite/SKILL.md`).
 
 ### Typographie
 
