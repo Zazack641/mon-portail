@@ -7,48 +7,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-base.css">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { -webkit-text-size-adjust: 100%; }
-  body {
-    font-family: 'Source Sans 3', sans-serif;
-    background: #F7F8FA;
-    color: #1A1A2E;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  /* ── Header ── */
-  .app-header {
-    background: #1A6B4A;
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  .back-link {
-    color: rgba(255,255,255,0.85);
-    text-decoration: none;
-    font-size: 15px;
-    font-weight: 600;
-    white-space: nowrap;
-    touch-action: manipulation;
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-  }
-  .back-link:hover { color: #fff; }
-  .app-header h1 {
-    font-family: 'Nunito', sans-serif;
-    font-size: clamp(18px, 4vw, 24px);
-    font-weight: 900;
-    color: #fff;
-    flex: 1;
-    text-align: center;
-  }
-  .header-spacer { width: 80px; }
+  /* Couleur de branche (Géographie) — app-base.css l'utilise pour le header
+     et le bouton primaire (.verify-btn). Reset, body et header fournis par
+     app-base.css. */
+  :root { --app-header-bg: #1A6B4A; }
 
   /* ── Phases ── */
   .phase { display: none; }
@@ -179,23 +143,9 @@
   }
 
   /* ── Boutons ── */
-  .primary-btn {
-    padding: 14px 24px;
-    background: #1A6B4A;
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    font-family: 'Nunito', sans-serif;
-    font-size: 16px;
-    font-weight: 800;
-    cursor: pointer;
-    min-height: 52px;
-    touch-action: manipulation;
-    -webkit-appearance: none;
-    transition: all 0.15s;
-  }
-  .primary-btn:hover { background: #115C3A; }
-  .primary-btn:active { transform: scale(0.97); }
+  /* Bouton primaire « Vérifier » : .verify-btn fourni par app-base.css
+     (vert via --app-header-bg). .next-btn et .home-btn ci-dessous sont
+     propres à la navigation multi-phases de ce module. */
 
   .next-btn {
     padding: 14px 28px;
@@ -508,7 +458,7 @@
       </div>
       <div class="feedback" id="fb-sort" role="status" aria-live="polite"></div>
       <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
-        <button class="primary-btn" id="check-sort-btn">Vérifier mes réponses</button>
+        <button class="verify-btn" id="check-sort-btn">Vérifier mes réponses</button>
         <button class="next-btn" id="next-sort-btn">Voir mon résultat →</button>
       </div>
     </div>
@@ -568,7 +518,7 @@
       <div id="gap-sentences" style="display:flex;flex-direction:column;gap:12px;"></div>
       <div class="feedback" id="fb-gap" role="status" aria-live="polite"></div>
       <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
-        <button class="primary-btn" id="check-gap-btn">Vérifier</button>
+        <button class="verify-btn" id="check-gap-btn">Vérifier</button>
         <button class="next-btn" id="next-gap-btn">Voir mon résultat →</button>
       </div>
     </div>
@@ -589,6 +539,7 @@
   </div>
 </div>
 
+<script src="appUtils.js"></script>
 <script>
   /* ── Données ── */
   const SORT_ITEMS = [
