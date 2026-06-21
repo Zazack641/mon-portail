@@ -157,6 +157,7 @@
   <button class="new-btn" id="new-btn">Nouvel exercice</button>
 </main>
 
+<script src="appUtils.js"></script>
 <script>
 // ── Type de tâche par niveau ───────────────────────────────────────────────
 // Cette app est mixte (voir skills/pedagogie-per § « Drill vs instance signifiante ») :
@@ -186,9 +187,7 @@ function mk(tag, attrs) {
   Object.entries(attrs).forEach(([k,v]) => el.setAttribute(k, v));
   return el;
 }
-function randInt(a, b)  { return a + Math.floor(Math.random()*(b-a+1)); }
-function shuffle(arr)   { return [...arr].sort(()=>Math.random()-.5); }
-function pick(arr, n)   { return shuffle(arr).slice(0,n); }
+// randInt, shuffle, pick : fournis par appUtils.js (chargé avant ce script).
 
 // ── Géométrie des bras ────────────────────────────────────────────────────
 // Retourne les positions des extrémités du fléau et des centres de plateaux.
