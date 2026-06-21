@@ -7,55 +7,17 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app-base.css">
   <style>
     :root {
-      --color-units:    #3B7DD8;
-      --color-tens:     #D64045;
-      --color-hundreds: #3A9E6F;
-      --bg:        #F0F4F8;
+      /* Couleur de branche (Mathématiques) — app-base.css l'utilise pour le
+         header, les boutons primaires et le niveau actif. */
+      --app-header-bg: #C0272D;
+      /* Variables propres au rendu de la grille de calcul (conservées). */
       --white:     #ffffff;
       --text:      #1A2535;
       --muted:     #64748B;
       --border:    #E2E8F0;
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { -webkit-text-size-adjust: 100%; }
-    body {
-      font-family: 'Source Sans 3', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    /* ── Header ── */
-    .app-header {
-      background: #C0272D;
-      padding: 14px 20px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-    .back-btn {
-      color: rgba(255,255,255,0.85);
-      text-decoration: none;
-      font-size: 15px;
-      font-weight: 600;
-      padding: 9px 16px;
-      border-radius: 10px;
-      background: rgba(255,255,255,0.12);
-      border: 1px solid rgba(255,255,255,0.2);
-      transition: background 0.15s;
-      touch-action: manipulation;
-      white-space: nowrap;
-    }
-    .back-btn:hover { background: rgba(255,255,255,0.22); }
-    .app-header h1 {
-      font-family: 'Nunito', sans-serif;
-      font-size: clamp(18px, 4vw, 26px);
-      font-weight: 900;
-      color: #fff;
     }
 
     /* ── Layout ── */
@@ -65,60 +27,7 @@
       padding: 22px 18px 56px;
     }
 
-    /* ── Panel ── */
-    .panel {
-      background: var(--white);
-      border-radius: 18px;
-      padding: 20px;
-      border: 1px solid var(--border);
-      margin-bottom: 16px;
-    }
-    .panel-label {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.9px;
-      color: var(--muted);
-      margin-bottom: 12px;
-    }
-
-    /* ── Level buttons ── */
-    .level-row {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-    }
-    .level-btn {
-      padding: 10px 6px 12px;
-      border-radius: 14px;
-      border: 2px solid var(--border);
-      background: #F8FAFC;
-      color: var(--muted);
-      font-family: 'Nunito', sans-serif;
-      font-weight: 800;
-      font-size: 15px;
-      cursor: pointer;
-      transition: all 0.15s;
-      text-align: center;
-      min-height: 52px;
-      touch-action: manipulation;
-      -webkit-appearance: none;
-      line-height: 1.2;
-    }
-    .level-btn small {
-      display: block;
-      font-family: 'Source Sans 3', sans-serif;
-      font-size: 10px;
-      font-weight: 600;
-      opacity: 0.75;
-      margin-top: 3px;
-    }
-    .level-btn:hover { background: #EEF2F7; border-color: #CBD5E0; }
-    .level-btn.active {
-      background: var(--color-units);
-      color: #fff;
-      border-color: var(--color-units);
-    }
+    /* Le sélecteur de niveau utilise .level-bar / .level-btn d'app-base.css. */
 
     /* ── Exercise card ── */
     .exercise-card {
@@ -274,61 +183,11 @@
     .result-inp.ok  { border-color: #3A9E6F; background: #E6F5F0; color: #0A6048; }
     .result-inp.bad { border-color: #D64045; background: #FEE8E8; color: #C0282C; }
 
-    /* ── Feedback ── */
-    .feedback {
-      text-align: center;
-      border-radius: 12px;
-      font-family: 'Nunito', sans-serif;
-      font-weight: 800;
-      font-size: 18px;
-      padding: 14px;
-      margin-bottom: 16px;
-      display: none;
-    }
-    .feedback.ok  { display: block; background: #E6F5F0; color: #0A6048; }
-    .feedback.bad { display: block; background: #FEE8E8; color: #C0282C; }
-
-    /* ── Action buttons ── */
-    .btn-row { display: flex; gap: 10px; }
-    .btn-check {
-      flex: 2;
-      padding: 16px;
-      background: #C0272D;
-      color: #fff;
-      border: none;
-      border-radius: 12px;
-      font-family: 'Nunito', sans-serif;
-      font-weight: 800;
-      font-size: 17px;
-      cursor: pointer;
-      touch-action: manipulation;
-      -webkit-appearance: none;
-      min-height: 54px;
-      transition: background 0.15s, transform 0.1s;
-    }
-    .btn-check:hover  { background: #A01F23; }
-    .btn-check:active { transform: scale(0.98); }
-    .btn-next {
-      flex: 1;
-      padding: 16px;
-      background: #F0F4F8;
-      color: #1A3A5C;
-      border: 2px solid #CBD5E0;
-      border-radius: 12px;
-      font-family: 'Nunito', sans-serif;
-      font-weight: 800;
-      font-size: 15px;
-      cursor: pointer;
-      touch-action: manipulation;
-      -webkit-appearance: none;
-      min-height: 54px;
-      transition: background 0.15s;
-    }
-    .btn-next:hover { background: #E2E8F0; }
+    /* Feedback et boutons d'action : .feedback / .action-row / .verify-btn /
+       .new-btn fournis par app-base.css. */
 
     /* ── Responsive ── */
     @media (max-width: 400px) {
-      .level-row { grid-template-columns: repeat(2, 1fr); }
       .digit-orig, .td-sign { font-size: 36px; }
       .result-inp { width: 52px; height: 60px; font-size: 34px; }
     }
@@ -344,43 +203,34 @@
 <body>
 
 <header class="app-header" role="banner">
-  <a href="../index.html" class="back-btn">← Retour au portail</a>
+  <a href="../index.html" class="back-link">← Retour</a>
   <h1>Soustraction en colonne</h1>
+  <div class="header-spacer"></div>
 </header>
 
-<main class="app-main">
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1 · 2 chiffres</button>
+  <button class="level-btn" data-level="2" aria-pressed="false">Niveau 2 · 3 chiffres</button>
+  <button class="level-btn" data-level="3" aria-pressed="false">Niveau 3 · 1 emprunt</button>
+  <button class="level-btn" data-level="4" aria-pressed="false">Niveau 4 · 2 emprunts</button>
+</div>
 
-  <div class="panel">
-    <div class="panel-label">Niveau</div>
-    <div class="level-row" role="group" aria-label="Choisir le niveau">
-      <button class="level-btn active" data-level="1" aria-pressed="true">
-        N·1<small>2 chiffres sans emprunt</small>
-      </button>
-      <button class="level-btn" data-level="2" aria-pressed="false">
-        N·2<small>3 chiffres sans emprunt</small>
-      </button>
-      <button class="level-btn" data-level="3" aria-pressed="false">
-        N·3<small>1 emprunt</small>
-      </button>
-      <button class="level-btn" data-level="4" aria-pressed="false">
-        N·4<small>2 emprunts</small>
-      </button>
-    </div>
-  </div>
+<main class="app-main">
 
   <div class="exercise-card">
     <div class="calc-wrap">
       <table class="calc-table" id="calc-table" aria-label="Grille de soustraction en colonne"></table>
     </div>
     <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
-    <div class="btn-row">
-      <button class="btn-check" id="btn-check">Vérifier ✓</button>
-      <button class="btn-next" id="btn-next">Nouvel exercice</button>
+    <div class="action-row">
+      <button class="verify-btn" id="btn-check">Vérifier ✓</button>
+      <button class="new-btn visible" id="btn-next">Nouvel exercice</button>
     </div>
   </div>
 
 </main>
 
+<script src="appUtils.js"></script>
 <script>
   // ── State ──────────────────────────────────────────────────────────────────
   let level = 1;
@@ -392,7 +242,7 @@
   let gives = [];
 
   // ── Helpers ────────────────────────────────────────────────────────────────
-  const ri = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+  const ri = randInt; // randInt (entier inclusif [a,b]) fourni par appUtils.js
 
   function toDigits(n, c) {
     const arr = String(n).split('').map(Number);
@@ -629,12 +479,12 @@
     const fb = document.getElementById('feedback');
     if (allOk) {
       fb.textContent = 'Bravo ! C\'est correct !';
-      fb.className = 'feedback ok';
+      fb.className = 'feedback correct';
       playCorrect();
       launchConfetti();
     } else {
       fb.textContent = `Pas tout à fait. Vérifie les ${wrongCols.join(', ')}.`;
-      fb.className = 'feedback bad';
+      fb.className = 'feedback wrong';
       playIncorrect();
     }
   }
