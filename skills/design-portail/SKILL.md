@@ -74,6 +74,17 @@ Ne jamais copier une app existante comme base.
 
 **Règle : une app = un seul groupe d'années (un seul badge HarmoS).** Si les niveaux internes d'une app couvrent deux groupes d'années différents (ex. Niveau 1 en 3H-4H et Niveau 2 en 5H-6H), l'app doit être **scindée** en deux apps séparées, chacune avec sa propre carte dans `index.html`.
 
+**Nommage des fichiers scindés — le suffixe encode le GROUPE D'ANNÉES, jamais le cycle.**
+
+Quand une app est déclinée par groupe d'années, le suffixe du nom de fichier reprend le **groupe d'années réel** en minuscules sans tiret interne : `-1h2h`, `-3h4h`, `-5h6h`, `-7h8h`. **Ne jamais utiliser `-c1`/`-c2` comme suffixe de fichier** (le cycle reste, lui, la valeur de `data-harmos` et le critère du filtre du portail).
+
+La raison : **deux apps peuvent partager le même cycle HarmoS tout en ciblant des groupes d'années différents.** Cas rencontré avec `capacites-1h2h.html` et `capacites-3h4h.html` — toutes deux en **Cycle 1**, donc un suffixe `-c1` ne pourrait pas les distinguer et un `-c2` serait faux (il annoncerait le Cycle 2). Le suffixe par groupe d'années lève l'ambiguïté et reste cohérent avec le badge visuel de la carte.
+
+Exemples corrects : `place-le-nombre-3h4h.html` (3H-4H), `place-le-nombre-5h6h.html` (5H-6H), `surfaces-5h6h.html`.
+Exemple incorrect : `place-le-nombre-c1.html` (suffixe de cycle, ambigu).
+
+**Cette règle s'applique à toute future scission d'app.** Le groupe d'années à inscrire dans le nom est celui que porte le badge de la carte (`.badge-1h2h`, `.badge-3h4h`, `.badge-5h6h`, `.badge-7h8h`), pas la valeur `data-harmos`.
+
 **data-per — code objectif PER**
 
 Attribut facultatif. Exemples : `"MSN 14"`, `"MSN 22"`, `"L1 16"`, `"SHS 11"`.

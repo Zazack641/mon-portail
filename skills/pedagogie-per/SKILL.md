@@ -57,9 +57,11 @@ co-visé. C'est ce double ancrage qui doit figurer dans `data-per` (deux codes) 
 |-----|--------------------|-------|
 | balance.html | MSN 14 – Grandeurs et mesures (masse) | C1 |
 | longueurs.html | MSN 14 – Grandeurs et mesures (longueur) | C1 |
-| capacites.html | MSN 14 – Grandeurs et mesures (capacité) | C1 |
-| surfaces.html | MSN 14 – Grandeurs et mesures (aire) | C1 |
-| place-le-nombre-c2.html | MSN 22 – Nombres (représentation) | C2 |
+| capacites-1h2h.html | MSN 14 – Grandeurs et mesures (capacité) | C1 |
+| capacites-3h4h.html | MSN 14 – Grandeurs et mesures (capacité) | C1 |
+| surfaces.html | MSN 14 – Grandeurs et mesures (aire, comparaison) | C1 |
+| surfaces-5h6h.html | MSN 24 – Grandeurs et mesures (aire, calcul) | C2 |
+| place-le-nombre-5h6h.html | MSN 22 – Nombres (représentation) | C2 |
 
 ---
 

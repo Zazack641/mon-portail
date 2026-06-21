@@ -16,15 +16,16 @@ Ces règles s'appliquent à chaque tâche, sans exception.
 
 Tout nouveau fichier app doit respecter ces règles :
 
-- Nom en français, kebab-case, sans accents : `comparaison-nombres-c1.html`
-- Suffixe de cycle obligatoire quand l'app cible un groupe d'années précis :
-  - `-c1.html` pour le Cycle 1 (1H–4H)
-  - `-c2.html` pour le Cycle 2 (5H–8H)
+- Nom en français, kebab-case, sans accents : `comparaison-nombres-3h4h.html`
+- Suffixe de **groupe d'années** obligatoire quand l'app cible un groupe précis — il encode le groupe d'années, **jamais le cycle** :
+  - `-1h2h.html` / `-3h4h.html` pour le Cycle 1 (1H–4H)
+  - `-5h6h.html` / `-7h8h.html` pour le Cycle 2 (5H–8H)
+- Ne jamais utiliser `-c1`/`-c2` comme suffixe de fichier : deux apps peuvent partager le même cycle tout en ciblant des groupes d'années différents (ex. `capacites-1h2h.html` et `capacites-3h4h.html`, toutes deux Cycle 1), qu'un suffixe de cycle ne pourrait pas distinguer. Le cycle reste porté par `data-harmos` (`c1`/`c2`), le critère du filtre du portail.
 - Pas de suffixe uniquement si l'app couvre les deux cycles
 - Un fichier par objectif PER par groupe d'années — jamais un seul fichier pour deux objectifs différents
 
-Exemples corrects : `comparaison-nombres-c1.html`, `decodi-dictee-c2.html`, `balance-c1.html`
-Exemples incorrects : `comparaison-nombres.html` (cycle ambigu), `mathApp.html` (anglais, camelCase)
+Exemples corrects : `comparaison-nombres-3h4h.html`, `decodi-dictee-5h6h.html`, `surfaces-5h6h.html`
+Exemples incorrects : `comparaison-nombres-c1.html` (suffixe de cycle, ambigu), `comparaison-nombres.html` (groupe ambigu), `mathApp.html` (anglais, camelCase)
 
 ---
 
