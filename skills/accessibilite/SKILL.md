@@ -148,3 +148,17 @@ feedbackEl.focus();
 1. Bouton d'action suivante visible → focus sur ce bouton
 2. Sinon → focus sur le feedback
 3. Jamais sur un élément désactivé ou invisible
+
+### Boucle de tabulation (focus trap) — déjà fournie par `appUtils.js`
+
+Toute app qui charge `appUtils.js` bénéficie automatiquement d'une boucle de
+tabulation globale : un écouteur `keydown` sur `document` recalcule à chaque
+pression de Tab la liste des éléments focusables réellement visibles, puis
+ramène le focus du dernier élément au premier (Tab) ou du premier au dernier
+(Shift+Tab). La liste étant recalculée à chaque frappe, elle reflète toujours le
+DOM courant — un changement de niveau ou un « Nouvel exercice » ne casse pas la
+boucle.
+
+**Ne pas réimplémenter ce comportement app par app.** C'est un correctif global ;
+les apps n'ont qu'à conserver un balisage focusable correct (boutons non
+désactivés, `tabindex` cohérent).
