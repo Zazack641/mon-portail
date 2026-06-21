@@ -84,7 +84,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 15px;
+    font-size: 18px;
     font-weight: 600;
     color: #64748B;
   }
@@ -134,6 +134,13 @@
 <script src="appUtils.js"></script>
 <script>
   function classForRank(rank) { return ['units', 'tens', 'hundreds'][rank] || 'units'; }
+
+  // 'drill' : le choix est binaire (« < » ou « > »), un retry sur la même instance
+  // reviendrait à toggler l'autre symbole au hasard (tâtonnement aveugle sans valeur
+  // pédagogique). L'erreur clôt donc l'item ; le feedback formatif explique le « pourquoi »
+  // et l'élève passe à un nouvel exercice. La réponse est saisie directement par le tap
+  // d'un bouton-symbole (pas de bouton « Vérifier »).
+  const TYPE_TACHE = 'drill';
 
   let currentLevel = 1;
   let state = {};
