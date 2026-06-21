@@ -163,7 +163,7 @@ main {
   touch-action: manipulation;
   -webkit-appearance: none;
 }
-.verify-btn:hover    { background: #253F63; }
+.verify-btn:hover    { filter: brightness(0.85); }
 .verify-btn:disabled { background: #94A3B8; cursor: default; }
 .verify-btn:focus-visible { outline: 3px solid rgba(255,255,255,0.9); outline-offset: 3px; }
 .new-btn {

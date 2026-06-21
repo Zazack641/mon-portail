@@ -36,7 +36,7 @@ Ne jamais copier une app existante comme base.
 ```html
 <article class="app-card"
   data-domain="[francais|allemand|anglais|maths|sciences|geo|histoire]"
-  data-harmos="[1H-2H|3H-4H|5H-6H|7H-8H]"
+  data-harmos="[c1|c2]"
   data-per="[code objectif PER, ex. MSN 14]"
   data-keywords="[mots-clés minuscules séparés par des espaces]"
   style="animation-delay: NNNms;">
@@ -54,16 +54,25 @@ Ne jamais copier une app existante comme base.
 | `geo`         | Géographie            | SHS         | `#1A6B4A`       | `#E6F2ED`  | `#0D4A30`   | `.launch-btn.geo`      | `.badge-geo`      | `.icon-geo`      |
 | `histoire`    | Histoire              | SHS         | `#1A5C5C`       | `#E0EEEE`  | `#0D3D3D`   | `.launch-btn.histoire` | `.badge-histoire` | `.icon-histoire` |
 
-**data-harmos — années HarmoS**
+**data-harmos — cycle filtré par le portail**
 
-| Valeur      | Badge CSS      | Couleurs badge           | Correspond à |
-|-------------|----------------|--------------------------|--------------|
-| `"1H-2H"`   | `.badge-1h2h`  | bg `#FEF3E2`, txt `#8A4E00` | Cycle 1 (début) |
-| `"3H-4H"`   | `.badge-3h4h`  | bg `#FEF3E2`, txt `#8A4E00` | Cycle 1 (fin)   |
-| `"5H-6H"`   | `.badge-5h6h`  | bg `#F0EAFF`, txt `#5B2D9E` | Cycle 2 (début) |
-| `"7H-8H"`   | `.badge-7h8h`  | bg `#F0EAFF`, txt `#5B2D9E` | Cycle 2 (fin)   |
+`data-harmos` ne porte que le **cycle**, car c'est la seule valeur réellement testée par le filtre du portail (`card.dataset.harmos === activeHarmos`, où les boutons valent `c1` ou `c2`).
 
-**Règle : une app = un seul `data-harmos`.** Si les niveaux internes d'une app couvrent deux groupes d'années différents (ex. Niveau 1 en 3H-4H et Niveau 2 en 5H-6H), l'app doit être **scindée** en deux apps séparées, chacune avec sa propre carte dans `index.html`.
+| Valeur  | Correspond à |
+|---------|--------------|
+| `"c1"`  | Cycle 1 (1H–4H) |
+| `"c2"`  | Cycle 2 (5H–8H) |
+
+**Note : le groupe d'années précis (1H-2H, 3H-4H, 5H-6H, 7H-8H) n'est jamais porté par `data-harmos`.** Il est exprimé uniquement par le **badge visuel** de la carte (`.badge-1h2h`, `.badge-3h4h`, `.badge-5h6h`, `.badge-7h8h`) :
+
+| Badge CSS     | Couleurs badge              | Groupe d'années |
+|---------------|-----------------------------|-----------------|
+| `.badge-1h2h` | bg `#FEF3E2`, txt `#8A4E00` | Cycle 1 (début) |
+| `.badge-3h4h` | bg `#FEF3E2`, txt `#8A4E00` | Cycle 1 (fin)   |
+| `.badge-5h6h` | bg `#F0EAFF`, txt `#5B2D9E` | Cycle 2 (début) |
+| `.badge-7h8h` | bg `#F0EAFF`, txt `#5B2D9E` | Cycle 2 (fin)   |
+
+**Règle : une app = un seul groupe d'années (un seul badge HarmoS).** Si les niveaux internes d'une app couvrent deux groupes d'années différents (ex. Niveau 1 en 3H-4H et Niveau 2 en 5H-6H), l'app doit être **scindée** en deux apps séparées, chacune avec sa propre carte dans `index.html`.
 
 **data-per — code objectif PER**
 
@@ -91,7 +100,7 @@ Ce badge est destiné à l'enseignant — pas à l'élève.
 ```html
 <article class="app-card"
   data-domain="maths"
-  data-harmos="3H-4H"
+  data-harmos="c1"
   data-per="MSN 14"
   data-keywords="aire surface formes grandeurs mesures"
   style="animation-delay: NNNms;">
@@ -166,7 +175,7 @@ Le bouton secondaire `.new-btn` (vert `#0F7860`) est une couleur neutre de navig
   <div class="feedback" id="feedback"></div>
   <div class="action-row">
     <button class="verify-btn" id="verify-btn" disabled>Vérifier</button>
-    <button class="new-btn" id="new-btn">Nouvel exercice</button>
+    <button class="new-btn" id="new-btn"><span aria-hidden="true">▶</span> Nouvel exercice</button>
   </div>
 </main>
 
@@ -178,6 +187,24 @@ Le bouton secondaire `.new-btn` (vert `#0F7860`) est une couleur neutre de navig
 </body>
 </html>
 ```
+
+### Migration vers `app-base.css` (étape systématique de l'audit v2)
+
+Certaines apps antérieures au template embarquent l'intégralité de leurs styles inline et **n'incluent pas** `<link rel="stylesheet" href="app-base.css">` dans leur `<head>`.
+
+**Règle : toute app dont le `<head>` ne contient pas ce lien doit être migrée vers `app-base.css` au moment de son audit v2.** Ce n'est pas une décision au cas par cas : c'est une **étape obligatoire et systématique** de l'audit, appliquée à chaque app concernée, au même titre que les autres points de la checklist.
+
+Procédure de migration :
+
+1. **Ajouter le lien** dans le `<head>` : `<link rel="stylesheet" href="app-base.css">`.
+2. **Retirer du `<style>` inline** les classes déjà couvertes par `app-base.css` — ne pas les laisser en double :
+   `.level-bar`, `.level-btn`, `.action-row`, `.verify-btn`, `.new-btn`, `.question-box`, `.feedback`.
+   Ne conserver inline que les styles **spécifiques à l'activité** (zone de contenu propre à l'app).
+3. **Déclarer la couleur de branche** dans `:root` : `:root { --app-header-bg: [couleur de branche du tableau]; }` — `app-base.css` s'en sert pour le header et les boutons primaires.
+
+Le **survol des boutons primaires dérive automatiquement de la couleur de branche** : `app-base.css` applique `filter: brightness(0.85)` au survol de `.verify-btn`, ce qui assombrit la couleur courante (`--app-header-bg`) quelle que soit la branche. **Ne pas redéclarer de couleur de survol par app** — supprimer toute règle inline du type `.verify-btn:hover { background: … }` lors de la migration.
+
+Cette migration aligne automatiquement l'app sur le seuil de taille du texte interactif (les boutons d'`app-base.css` sont déjà conformes). **Le seuil lui-même — 22px pour le texte interactif — fait foi dans `skills/accessibilite/SKILL.md` ; ne pas le redéclarer ici.**
 
 ### Typographie
 
@@ -203,6 +230,18 @@ Ce qui relève du design et s'applique à tout bouton ou zone cliquable custom :
 
 Boutons d'action (verify-btn, new-btn) : déjà conformes dans app-base.css.
 Boutons de niveau (level-btn) : déjà conformes dans app-base.css.
+
+### Icône du bouton « Nouvel exercice »
+
+Le bouton `.new-btn` porte une icône ▶ avant le texte « Nouvel exercice » :
+
+```html
+<button class="new-btn" id="new-btn"><span aria-hidden="true">▶</span> Nouvel exercice</button>
+```
+
+- L'icône est purement visuelle : elle porte `aria-hidden="true"` et **ne remplace jamais** le texte, qui reste lu par les lecteurs d'écran. Aucun changement de comportement.
+- **Obligatoire** pour les apps **1H-2H** (repère visuel de relance pour les non-lecteurs).
+- **Recommandée** pour les autres cycles, par cohérence visuelle.
 
 ### Feedback audio-visuel (feedbackUtils.js)
 
@@ -414,7 +453,7 @@ Pas de libellés PER techniques sur les boutons (ils sont pour l'élève, pas po
 
 ### Carte dans index.html
 - [ ] `data-domain` valide (l'une des 7 valeurs : `francais`, `allemand`, `anglais`, `maths`, `sciences`, `geo`, `histoire`)
-- [ ] `data-harmos` valide (`1H-2H`, `3H-4H`, `5H-6H` ou `7H-8H`)
+- [ ] `data-harmos` valide (`c1` ou `c2` — seule valeur testée par le filtre)
 - [ ] `data-per` présent si le code objectif PER est connu (ex. `"MSN 14"`)
 - [ ] `data-keywords` renseignés (mots-clés utiles à la recherche)
 - [ ] Classe du bouton correcte (`.launch-btn.[branche]` selon le tableau)
