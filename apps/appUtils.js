@@ -79,7 +79,12 @@ function colorForRank(rank) {
   function getFocusableElements() {
     return Array.from(document.querySelectorAll(FOCUSABLE_SELECTOR))
       // offsetParent === null => élément masqué (display:none, parent caché…).
-      .filter((el) => el.offsetParent !== null);
+      .filter((el) => el.offsetParent !== null)
+      // el.tabIndex < 0 => hors de l'ordre de tabulation. Indispensable : le
+      // sélecteur ci-dessus capture tout <button>/<a> même porteur de
+      // tabindex="-1" (ex. roving tabindex d'une liste de choix), qui ne doit
+      // PAS compter comme premier/dernier élément de la boucle.
+      .filter((el) => el.tabIndex >= 0);
   }
 
   document.addEventListener('keydown', function (e) {
