@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Le comparateur de nombres (7H-8H)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-base.css">
+<style>
+  :root {
+    --app-header-bg: #C0272D; /* Mathématiques */
+  }
+
+  /* Comparison display */
+  .comparison-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(12px, 3vw, 24px);
+    flex-wrap: nowrap;
+    width: 100%;
+  }
+
+  .number-display {
+    background: #fff;
+    border: 2px solid var(--app-border);
+    border-radius: 16px;
+    padding: 16px 20px;
+    display: flex;
+    gap: 3px;
+    align-items: baseline;
+    justify-content: center;
+    min-width: 110px;
+    flex: 1;
+    max-width: 260px;
+  }
+
+  .digit {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(28px, 6vw, 48px);
+    font-weight: 900;
+    line-height: 1;
+  }
+  .digit.units          { color: var(--color-units); }
+  .digit.tens           { color: var(--color-tens); }
+  .digit.hundreds       { color: var(--color-hundreds); }
+  .digit.thousands      { color: var(--color-units); }
+  .digit.ten-thousands  { color: var(--color-tens); }
+
+  /* Symbol buttons */
+  .symbol-zone {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+  }
+  .symbol-btn {
+    width: clamp(64px, 12vw, 80px);
+    height: clamp(64px, 12vw, 80px);
+    border-radius: 14px;
+    border: 2.5px solid var(--app-border);
+    background: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(22px, 5vw, 30px);
+    font-weight: 900;
+    color: var(--app-text);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .symbol-btn:hover         { background: #EEF2F7; border-color: var(--color-units); }
+  .symbol-btn:focus-visible { outline: 3px solid var(--color-units); outline-offset: 3px; }
+  .symbol-btn.correct       { background: var(--app-correct-bg); color: var(--app-correct-fg); border-color: #10B981; }
+  .symbol-btn.wrong         { background: var(--app-wrong-bg);   color: var(--app-wrong-fg);   border-color: #EF4444; }
+  .symbol-btn:disabled      { cursor: default; }
+
+  /* Digit legend */
+  .legend {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #64748B;
+  }
+  .legend-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .symbol-btn { transition: all 0.15s; }
+    .symbol-btn:active { transform: scale(0.95); }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header" role="banner">
+  <a href="../index.html" class="back-link">← Retour</a>
+  <h1>🔢 Le comparateur de nombres</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1 · jusqu'à 9999</button>
+  <button class="level-btn" data-level="2" aria-pressed="false">Niveau 2 · jusqu'à 99999</button>
+</div>
+
+<main>
+  <div class="question-box" id="question-box">Place le bon symbole entre les deux nombres.</div>
+
+  <div class="comparison-row" id="comparison-row">
+    <div class="number-display" id="num-left"></div>
+    <div class="symbol-zone" id="symbol-zone"></div>
+    <div class="number-display" id="num-right"></div>
+  </div>
+
+  <div class="legend" id="legend"></div>
+
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="action-row">
+    <button class="new-btn" id="new-btn">Nouvel exercice</button>
+  </div>
+</main>
+
+<script src="appUtils.js"></script>
+<script>
+  // classForRank étendu jusqu'au rang 4 (dizaines de milliers) ; colorForRank fourni par appUtils.js.
+  function classForRank(rank) {
+    return ['units', 'tens', 'hundreds', 'thousands', 'ten-thousands'][rank] || 'units';
+  }
+
+  // 'drill' : choix binaire « < »/« > », le retry serait un tâtonnement aveugle.
+  const TYPE_TACHE = 'drill';
+
+  let currentLevel = 1;
+  let state = {};
+
+  const numLeft    = document.getElementById('num-left');
+  const numRight   = document.getElementById('num-right');
+  const symbolZone = document.getElementById('symbol-zone');
+  const feedbackEl = document.getElementById('feedback');
+  const newBtn     = document.getElementById('new-btn');
+  const legend     = document.getElementById('legend');
+
+  function renderNumber(container, n) {
+    container.innerHTML = '';
+    const digits = String(n).split('');
+    const len = digits.length;
+    digits.forEach((d, i) => {
+      const rank = len - 1 - i;
+      const span = document.createElement('span');
+      span.className = 'digit ' + classForRank(rank);
+      span.style.color = colorForRank(rank);
+      span.textContent = d;
+      container.appendChild(span);
+    });
+  }
+
+  function renderLegend(maxDigits) {
+    legend.innerHTML = '';
+    const allRanks = [
+      { label: 'Dizaines de milliers', rank: 4 },
+      { label: 'Milliers',             rank: 3 },
+      { label: 'Centaines',            rank: 2 },
+      { label: 'Dizaines',             rank: 1 },
+      { label: 'Unités',               rank: 0 }
+    ];
+    allRanks.filter(r => r.rank < maxDigits).forEach(({ label, rank }) => {
+      const item = document.createElement('div');
+      item.className = 'legend-item';
+      const dot = document.createElement('div');
+      dot.className = 'legend-dot';
+      dot.style.background = colorForRank(rank);
+      item.appendChild(dot);
+      item.appendChild(document.createTextNode(label));
+      legend.appendChild(item);
+    });
+  }
+
+  function showFeedback(correct, msg) {
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = msg;
+    if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+    newBtn.classList.add('visible');
+    newBtn.focus();
+  }
+
+  // Construit le message de feedback en expliquant le rang décisif, du plus élevé au plus bas.
+  // sym = le symbole correct ('<' ou '>').
+  function buildMsg(correct, a, b, sym) {
+    const rankNames = ['unités', 'dizaines', 'centaines', 'milliers', 'dizaines de milliers'];
+    const maxLen = Math.max(String(a).length, String(b).length);
+    for (let r = maxLen - 1; r >= 0; r--) {
+      const da = Math.floor(a / Math.pow(10, r)) % 10;
+      const db = Math.floor(b / Math.pow(10, r)) % 10;
+      if (da !== db) {
+        const sameLines = [];
+        for (let sr = maxLen - 1; sr > r; sr--) {
+          const ds = Math.floor(a / Math.pow(10, sr)) % 10;
+          sameLines.push(`Les ${rankNames[sr]} sont identiques (${ds}).`);
+        }
+        const prefix = sameLines.length ? sameLines.join(' ') + ' ' : '';
+        const cmp = da < db ? 'est plus petit que' : 'est plus grand que';
+        if (correct) {
+          return `Bravo ! ${a} ${sym} ${b}. `
+            + `${prefix}Le chiffre des ${rankNames[r]} de ${a} est ${da} et celui de ${b} est ${db} : `
+            + `${da} ${cmp} ${db}.`;
+        } else {
+          return `Pas tout à fait. `
+            + `${prefix}Regarde le chiffre des ${rankNames[r]} : `
+            + `${a} a ${da} et ${b} a ${db}. `
+            + `Comme ${da} ${cmp} ${db}, on a ${a} ${sym} ${b}. `
+            + `Appuie sur « Nouvel exercice » pour continuer.`;
+        }
+      }
+    }
+    return correct
+      ? `Bravo ! ${a} ${sym} ${b}, c'est juste.`
+      : `Pas tout à fait. Il fallait « ${sym} ». Appuie sur « Nouvel exercice » pour continuer.`;
+  }
+
+  function newExercise() {
+    let a, b;
+    const max = currentLevel === 1 ? 9999 : 99999;
+    const min = currentLevel === 1 ? 1000 : 10000;
+    do {
+      a = randInt(min, max);
+      b = randInt(min, max);
+    } while (a === b);
+
+    const correct = a < b ? '<' : '>';
+    state = { a, b, correct, answered: false };
+
+    renderNumber(numLeft, a);
+    renderNumber(numRight, b);
+    renderLegend(String(max).length);
+
+    symbolZone.innerHTML = '';
+    ['<', '>'].forEach(sym => {
+      const btn = document.createElement('button');
+      btn.className = 'symbol-btn';
+      btn.textContent = sym;
+      btn.addEventListener('click', () => answer(sym, btn));
+      symbolZone.appendChild(btn);
+    });
+    const firstSymBtn = symbolZone.querySelector('.symbol-btn');
+    if (firstSymBtn) firstSymBtn.focus();
+
+    feedbackEl.className = 'feedback';
+    newBtn.classList.remove('visible');
+  }
+
+  function answer(sym, btn) {
+    if (state.answered) return;
+    state.answered = true;
+    const correct = sym === state.correct;
+
+    document.querySelectorAll('.symbol-btn').forEach(b => {
+      b.disabled = true;
+      if (b.textContent === state.correct) {
+        b.classList.add('correct');
+        b.textContent = b.textContent + ' ✓';
+      } else if (b === btn) {
+        b.classList.add('wrong');
+        b.textContent = b.textContent + ' ✗';
+      }
+    });
+
+    showFeedback(correct, buildMsg(correct, state.a, state.b, state.correct));
+  }
+
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLevel = parseInt(btn.dataset.level);
+      document.querySelectorAll('.level-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+      newExercise();
+    });
+  });
+
+  newBtn.addEventListener('click', newExercise);
+  newExercise();
+</script>
+<script src="feedbackUtils.js"></script>
+</body>
+</html>
