@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Mes additions (1H-2H)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-base.css">
+<style>
+  :root {
+    --app-header-bg: #C0272D;
+  }
+
+  /* Zone de l'exercice : groupes d'objets + grille de réponses */
+  .exercise-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    padding: 8px 16px 0;
+  }
+
+  /* Ligne visuelle : [groupe A] + [groupe B] = ? */
+  .group-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  /* Boîte contenant les objets d'un groupe */
+  .object-group {
+    background: #fff;
+    border: 2px solid var(--app-border);
+    border-radius: 16px;
+    padding: 14px;
+    min-width: 96px;
+    min-height: 96px;
+    max-width: 200px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .object-dot {
+    font-size: 36px;
+    line-height: 1;
+    display: block;
+  }
+
+  /* Symboles + = entre les groupes */
+  .math-symbol {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 44px;
+    color: var(--app-text);
+    line-height: 1;
+    flex-shrink: 0;
+    user-select: none;
+  }
+
+  /* Bulle "?" représentant le total inconnu */
+  .question-bubble {
+    width: 72px;
+    height: 72px;
+    background: #EBF3FC;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 44px;
+    color: #1A3A5C;
+    flex-shrink: 0;
+    user-select: none;
+  }
+
+  /* Grille des 4 boutons de réponse */
+  .answer-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    width: 100%;
+    max-width: 360px;
+  }
+
+  .answer-btn {
+    min-height: 72px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 34px;
+    border: 2px solid var(--app-border);
+    border-radius: 16px;
+    background: #fff;
+    color: var(--app-text);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .answer-btn { transition: background 0.12s, border-color 0.12s; }
+  }
+
+  .answer-btn:hover  { background: #EBF3FC; border-color: #1A3A5C; }
+  .answer-btn:focus  { outline: 3px solid #1A3A5C; outline-offset: 2px; }
+  .answer-btn:active { background: #C0272D; color: #fff; border-color: #C0272D; }
+  .answer-btn:disabled { opacity: 0.45; cursor: default; pointer-events: none; }
+
+  @media (min-width: 480px) {
+    .object-dot  { font-size: 40px; }
+    .answer-btn  { font-size: 38px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header" role="banner">
+  <a href="../index.html" class="back-link">← Retour</a>
+  <h1>➕ Mes additions</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1</button>
+  <button class="level-btn"        data-level="2" aria-pressed="false">Niveau 2</button>
+  <button class="level-btn"        data-level="3" aria-pressed="false">Niveau 3</button>
+</div>
+
+<main>
+  <div class="question-box" id="question-box">Chargement…</div>
+
+  <div class="exercise-area" id="exercise-area">
+    <!-- Affichage des deux groupes d'objets -->
+    <div class="group-display">
+      <div class="object-group" id="group-a" role="img" aria-label=""></div>
+      <div class="math-symbol" aria-hidden="true">+</div>
+      <div class="object-group" id="group-b" role="img" aria-label=""></div>
+      <div class="math-symbol" aria-hidden="true">=</div>
+      <div class="question-bubble" aria-hidden="true">?</div>
+    </div>
+
+    <!-- Grille de réponses -->
+    <div class="answer-grid" id="answer-grid" role="group" aria-label="Choisir ta réponse"></div>
+  </div>
+
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="action-row">
+    <!-- Pas de verify-btn : la réponse est immédiate (clic sur un bouton de réponse) -->
+    <button class="new-btn" id="new-btn"><span aria-hidden="true">▶</span> Nouvel exercice</button>
+  </div>
+</main>
+
+<script src="appUtils.js"></script>
+<script>
+  // 'drill' : l'erreur clôt l'item — retrying would be blind guessing on a multiple-choice fact.
+  const TYPE_TACHE = 'drill';
+
+  const OBJECTS = [
+    { emoji: '⭐', name: 'étoiles',     article: "d'" },
+    { emoji: '🍎', name: 'pommes',      article: 'de ' },
+    { emoji: '🌸', name: 'fleurs',      article: 'de ' },
+    { emoji: '🐟', name: 'poissons',    article: 'de ' },
+    { emoji: '🍬', name: 'bonbons',     article: 'de ' },
+    { emoji: '🐞', name: 'coccinelles', article: 'de ' },
+    { emoji: '🏀', name: 'ballons',     article: 'de ' },
+    { emoji: '🦋', name: 'papillons',   article: 'de ' }
+  ];
+
+  const questionBox = document.getElementById('question-box');
+  const feedbackEl  = document.getElementById('feedback');
+  const newBtn      = document.getElementById('new-btn');
+  const groupA      = document.getElementById('group-a');
+  const groupB      = document.getElementById('group-b');
+  const answerGrid  = document.getElementById('answer-grid');
+
+  let currentLevel = 1;
+  let state = {};
+
+  function showFeedback(correct, msg) {
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = msg;
+    if (correct) {
+      playCorrect();
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        launchConfetti();
+      }
+    } else {
+      playIncorrect();
+    }
+    newBtn.classList.add('visible');
+    newBtn.focus();
+  }
+
+  function resetFeedback() {
+    feedbackEl.className = 'feedback';
+    feedbackEl.textContent = '';
+    newBtn.classList.remove('visible');
+  }
+
+  // Paramètres de difficulté par niveau : valeurs respectant la progression PER 1H-2H.
+  function getLimits() {
+    if (currentLevel === 1) return { maxA: 3, maxB: 3, maxSum: 6  };
+    if (currentLevel === 2) return { maxA: 5, maxB: 4, maxSum: 9  };
+    return                         { maxA: 8, maxB: 4, maxSum: 12 };
+  }
+
+  // Quatre choix distincts dont la bonne réponse, avec distracteurs proches.
+  function generateChoices(answer, maxSum) {
+    const choices = new Set([answer]);
+    let tries = 0;
+    while (choices.size < 4 && tries < 100) {
+      const delta     = randInt(1, 3) * (Math.random() < 0.5 ? 1 : -1);
+      const candidate = answer + delta;
+      if (candidate >= 1 && candidate <= maxSum + 2) choices.add(candidate);
+      tries++;
+    }
+    // Garantit 4 choix même dans les cas extrêmes.
+    for (let off = 1; choices.size < 4; off++) {
+      if (!choices.has(answer + off))               choices.add(answer + off);
+      if (choices.size < 4 && answer - off >= 1)    choices.add(answer - off);
+    }
+    return shuffle([...choices]);
+  }
+
+  // Affiche `count` emojis dans le conteneur et met à jour l'aria-label pour les lecteurs d'écran.
+  function renderObjects(container, count, obj) {
+    container.innerHTML = '';
+    container.setAttribute('aria-label', `${count} ${obj.name}`);
+    for (let i = 0; i < count; i++) {
+      const span = document.createElement('span');
+      span.className = 'object-dot';
+      span.setAttribute('aria-hidden', 'true');
+      span.textContent = obj.emoji;
+      container.appendChild(span);
+    }
+  }
+
+  function handleAnswer(choice) {
+    const { a, b, answer, obj } = state;
+    answerGrid.querySelectorAll('.answer-btn').forEach(btn => { btn.disabled = true; });
+    if (choice === answer) {
+      showFeedback(true,
+        `Bravo ! ${a} + ${b} = ${answer}. Il y a bien ${answer} ${obj.name} !`);
+    } else {
+      showFeedback(false,
+        `Pas tout à fait. ${a} + ${b} = ${answer}. Il y a ${answer} ${obj.name}. Appuie sur « Nouvel exercice » pour continuer.`);
+    }
+  }
+
+  function newExercise() {
+    resetFeedback();
+    const { maxA, maxB, maxSum } = getLimits();
+
+    // Tire a et b en garantissant que la somme ne dépasse pas maxSum.
+    let a, b;
+    do {
+      a = randInt(1, maxA);
+      b = randInt(1, maxB);
+    } while (a + b > maxSum);
+
+    const answer = a + b;
+    const obj    = pick(OBJECTS, 1)[0];
+    state        = { a, b, answer, obj };
+
+    // Consigne textuelle (lue par les lecteurs d'écran et visible à l'écran).
+    questionBox.textContent =
+      `Combien y a-t-il ${obj.article}${obj.name} au total ?`;
+
+    // Affichage visuel des deux groupes.
+    renderObjects(groupA, a, obj);
+    renderObjects(groupB, b, obj);
+
+    // Génération et rendu des boutons de réponse.
+    const choices = generateChoices(answer, maxSum);
+    answerGrid.innerHTML = '';
+    choices.forEach((choice, idx) => {
+      const btn = document.createElement('button');
+      btn.className    = 'answer-btn';
+      btn.textContent  = choice;
+      if (idx === 0) btn.setAttribute('data-focus-target', '');
+      btn.addEventListener('click', () => handleAnswer(choice));
+      answerGrid.appendChild(btn);
+    });
+
+    // Focus sur le premier bouton de réponse après réécriture du DOM.
+    const firstBtn = answerGrid.querySelector('[data-focus-target]');
+    if (firstBtn) firstBtn.focus();
+  }
+
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLevel = parseInt(btn.dataset.level);
+      document.querySelectorAll('.level-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+      newExercise();
+    });
+  });
+
+  newBtn.addEventListener('click', newExercise);
+
+  newExercise();
+</script>
+<script src="feedbackUtils.js"></script>
+</body>
+</html>
