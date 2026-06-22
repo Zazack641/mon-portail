@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Le comparateur de nombres</title>
+<title>Le comparateur de nombres (5H-6H)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
@@ -115,7 +115,7 @@
 
 <div class="level-bar" role="group" aria-label="Choisir le niveau">
   <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1 · jusqu'à 999</button>
-  <button class="level-btn" data-level="2" aria-pressed="false">Niveau 2 · jusqu'à 9999</button>
+  <button class="level-btn" data-level="2" aria-pressed="false">Niveau 2 · jusqu'à 1000</button>
 </div>
 
 <main>
@@ -206,8 +206,8 @@
 
   function newExercise() {
     let a, b;
-    const max = currentLevel === 1 ? 999 : 9999;
-    const min = currentLevel === 1 ? 100 : 1000;
+    const max = currentLevel === 1 ? 999 : 1000;
+    const min = 100;
     do {
       a = randInt(min, max);
       b = randInt(min, max);
@@ -235,6 +235,40 @@
     newBtn.classList.remove('visible');
   }
 
+  // Construit le message de feedback en expliquant le rang décisif (centaines → dizaines → unités,
+  // ou milliers si l'un des nombres est 1000). sym = le symbole correct ('<' ou '>').
+  function buildMsg(correct, a, b, sym) {
+    const rankNames = ['unités', 'dizaines', 'centaines', 'milliers'];
+    const maxLen = Math.max(String(a).length, String(b).length);
+    for (let r = maxLen - 1; r >= 0; r--) {
+      const da = Math.floor(a / Math.pow(10, r)) % 10;
+      const db = Math.floor(b / Math.pow(10, r)) % 10;
+      if (da !== db) {
+        const sameLines = [];
+        for (let sr = maxLen - 1; sr > r; sr--) {
+          const ds = Math.floor(a / Math.pow(10, sr)) % 10;
+          sameLines.push(`Les ${rankNames[sr]} sont identiques (${ds}).`);
+        }
+        const prefix = sameLines.length ? sameLines.join(' ') + ' ' : '';
+        const cmp = da < db ? 'est plus petit que' : 'est plus grand que';
+        if (correct) {
+          return `Bravo ! ${a} ${sym} ${b}. `
+            + `${prefix}Le chiffre des ${rankNames[r]} de ${a} est ${da} et celui de ${b} est ${db} : `
+            + `${da} ${cmp} ${db}.`;
+        } else {
+          return `Pas tout à fait. `
+            + `${prefix}Regarde le chiffre des ${rankNames[r]} : `
+            + `${a} a ${da} et ${b} a ${db}. `
+            + `Comme ${da} ${cmp} ${db}, on a ${a} ${sym} ${b}. `
+            + `Appuie sur « Nouvel exercice » pour continuer.`;
+        }
+      }
+    }
+    return correct
+      ? `Bravo ! ${a} ${sym} ${b}, c'est juste.`
+      : `Pas tout à fait. Il fallait « ${sym} ». Appuie sur « Nouvel exercice » pour continuer.`;
+  }
+
   function answer(sym, btn) {
     if (state.answered) return;
     state.answered = true;
@@ -251,12 +285,7 @@
       }
     });
 
-    const symLabel = state.correct === '<' ? 'est plus petit que' : 'est plus grand que';
-    showFeedback(correct,
-      correct
-        ? `Bravo ! ${state.a} ${state.correct} ${state.b}, c'est juste.`
-        : `Pas tout à fait. Il fallait « ${state.correct} » car ${state.a} ${symLabel} ${state.b}. Appuie sur « Nouvel exercice » pour continuer.`
-    );
+    showFeedback(correct, buildMsg(correct, state.a, state.b, state.correct));
   }
 
   document.querySelectorAll('.level-btn').forEach(btn => {
