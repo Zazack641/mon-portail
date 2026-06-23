@@ -113,7 +113,9 @@ sans toucher au contenu formatif existant.
 ```html
 <!-- Le feedback ne se cache pas automatiquement -->
 <!-- Il disparaît uniquement quand l'élève clique sur "Nouvel exercice" -->
-<div class="feedback" id="feedback" role="status" aria-live="polite"></div>
+<!-- aria-atomic="true" : le lecteur d'écran annonce le message en entier,
+     pas en fragments, même quand il remplace un texte existant -->
+<div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
 ```
 
 ---
@@ -127,11 +129,13 @@ repositionner le focus explicitement. Ne jamais laisser le focus se perdre.
 
 ```js
 container.innerHTML = '...';
-container.querySelector('[data-focus-target]').focus();
+const target = container.querySelector('[data-focus-target]');
+if (target) target.focus();
 ```
 
 Marquer l'élément qui doit recevoir le focus avec `data-focus-target`
-lors de la construction du HTML.
+lors de la construction du HTML. Le null-check prévient un crash si le DOM
+est dans un état inattendu (race condition de rendu, niveau vide).
 
 ### Après validation d'une réponse
 

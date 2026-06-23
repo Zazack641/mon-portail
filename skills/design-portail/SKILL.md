@@ -285,6 +285,17 @@ instance signifiante »). Chaque app **doit déclarer en tête de script** une c
 const TYPE_TACHE = 'drill';
 ```
 
+**Apps mixtes** (type varie selon le niveau) : utiliser un objet indexé par niveau
+plutôt qu'un scalaire. La garde dans `showFeedback` s'adapte en conséquence.
+
+```js
+// Ex. balance.html : N1/N2 = drill, N3 = instance signifiante (retry jusqu'à l'équilibre)
+const TYPE_TACHE = { 1: 'drill', 2: 'drill', 3: 'instance' };
+
+// Garde dans showFeedback :
+if (correct || TYPE_TACHE[level] === 'drill') { … } else { … }
+```
+
 **Contrat de `showFeedback(correct, msg)` :**
 
 | Cas | Feedback | `verify-btn` | `new-btn` |
@@ -314,6 +325,8 @@ function showFeedback(correct, msg) {
     newBtn.focus();
   } else {
     // 'instance' + incorrect : l'élève corrige et revérifie la même instance.
+    // Dans une app drill, cette branche est morte — la conserver telle quelle
+    // pour que showFeedback reste portable vers une future app instance.
     verifyBtn.style.display = '';
     verifyBtn.disabled = false;
     newBtn.classList.remove('visible');
@@ -397,6 +410,8 @@ function showFeedback(correct, msg) {
     newBtn.focus();
   } else {
     // 'instance' + incorrect : l'élève corrige et revérifie la même instance.
+    // Dans une app drill, cette branche est morte — la conserver telle quelle
+    // pour que showFeedback reste portable vers une future app instance.
     verifyBtn.style.display = '';
     verifyBtn.disabled = false;
     newBtn.classList.remove('visible');
