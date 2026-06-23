@@ -1,7 +1,7 @@
 # Suivi des applications
 
 Audit complet — accessibilité (WCAG 2.2 AA), design portail, pédagogie PER.  
-Dernière mise à jour : 2026-06-23 — correctif contraste feedback wrong (app-base.css)  
+Dernière mise à jour : 2026-06-23 — corrections rapport cohérence structurelle (badges PER, mots-clés, titres, renommages)  
 Campagne audit accessibilité v2 démarrée le 2026-06-16
 
 > La colonne **« Audité v2 »** suit le nouveau cycle d'audit harmonisé **PER + accessibilité** (arbitrage croisé, distinction drill / instance). Un **❌** signifie « pas encore repassé selon la nouvelle doctrine », et **non** « non conforme ». Les correctifs déjà présents dans les fichiers restent en place.
@@ -32,19 +32,24 @@ Campagne audit accessibilité v2 démarrée le 2026-06-16
 | comparaison-nombres-5h6h.html | Le comparateur de nombres (5H-6H) | ✅ | ✅ | **Audit v2 (routine) :** accessibilité (✓/✗, focus, légende 18px, header inline retiré, indication d'action additive), migration app-base.css/appUtils.js, `TYPE_TACHE='drill'`. **Décisions Isaac (2026-06-22) :** (1) N2 plafonné à 1000 (min=100, max=1000 — inclut la frontière mille, plage PER 5H-6H respectée) ; (2) fichier renommé `comparaison-nombres.html` → `comparaison-nombres-5h6h.html` + href mis à jour dans index.html ; (3) feedback enrichi avec raisonnement par valeur de position — `buildMsg` compare centaines → dizaines → unités (ou milliers si un nombre est 1000), messages corrects et erronés généralisés pour tous les rangs. Nouvelle app 7H-8H créée en parallèle. |
 | comparaison-nombres-7h8h.html | Le comparateur de nombres (7H-8H) | ✅ | ✅ | Nouvelle app (7H-8H, MSN 22). Issue de la décision de scission. N1 = 1000–9999 (4 chiffres) · N2 = 10000–99999 (5 chiffres). **Audit v2 (routine) :** **Accessibilité :** RAS — cibles tactiles (symbol-btn ≥64px + texte ≥22px), légende 18px + contraste #64748B/blanc ≈4,76:1, jamais de couleur seule (✓/✗ ajoutés au libellé + feedback textuel), animations sous `prefers-reduced-motion`, focus géré (newBtn après réponse, premier symbole sur nouvel exercice), feedback `role="status"` persistant avec indication d'action, `aria-pressed`/`role="group"` conformes. **Pédagogie :** RAS — `buildMsg` formatif (raisonnement rang par rang, du plus élevé au plus bas), coloriage valeur-de-position (objet d'apprentissage de la comparaison), plages 1000–99999 dans le PER 7H-8H ; `TYPE_TACHE='drill'` cohérent (choix binaire `<`/`>`, le retry serait un tâtonnement aveugle). **Forme :** RAS — carte index.html conforme (data-domain/harmos/per, badge 7H–8H, icône, aria-label), migration app-base.css + appUtils.js déjà effectuée, structure canonique. `data-harmos="c2"` conservé (valeur testée par le filtre cycle ; le groupe d'années est porté par le badge `7H–8H`). |
 | decodi-comprehension.html | Compréhension DéCoDi | ✅ | ❌ | |
-| decodi-dictee-5h6h.html | Dictée DéCoDi — Modules 11-15 | ✅ | ❌ | |
-| decodi-dictee.html | Dictée DéCoDi — Modules 6-10 | ✅ | ❌ | |
+| decodi-dictee-5h6h.html | Dictée DéCoDi (5H-6H) | ✅ | ❌ | |
+| decodi-dictee-3h4h.html | Dictée DéCoDi (3H-4H) | ✅ | ❌ | |
 | place-le-nombre-3h4h.html | Place le nombre (3H-4H) | ✅ | ❌ | |
 | place-le-nombre-5h6h.html | Place le nombre (5H-6H) | ✅ | ❌ | |
 | entrainement-ville.html | Entraînement — La ville | ✅ | ❌ | |
-| itineraires-decris.html | Itinéraires — Décris le trajet | ✅ | ❌ | |
-| itineraires.html | Itinéraires — Lis le trajet | ✅ | ❌ | |
-| longueurs.html | Les longueurs — Comparer des longueurs | ✅ | ❌ | |
+| itineraires-decris.html | Décris le trajet (3H-4H) | ✅ | ❌ | |
+| itineraires.html | Lis le trajet (3H-4H) | ✅ | ❌ | |
+| longueurs.html | Les longueurs | ✅ | ❌ | |
 | saut-de-nombre.html | Le saut de nombre | ✅ | ❌ | |
 | soustraction-colonne.html | Soustraction en colonne | ✅ | ❌ | |
-| surfaces-5h6h.html | Les surfaces — Calculer des aires | ✅ | ❌ | |
-| surfaces.html | Les surfaces — Comparer des aires | ✅ | ❌ | |
-| valeur-position.html | Valeur de position | ✅ | ❌ | |
+| surfaces-5h6h.html | Les surfaces (5H-6H) | ✅ | ❌ | |
+| surfaces-3h4h.html | Les surfaces (3H-4H) | ✅ | ❌ | |
+| valeur-position.html | L'extracteur | ✅ | ❌ | |
 | vertical-calculation.html | Additions en colonne | ✅ | ❌ | |
 | sujet-predicat-5h6h.html | Sujet et prédicat | ✅ | ❌ | |
+| complement-dizaine-3h4h.html | Le complément à 10 (3H-4H) | ✅ | ❌ | |
+| bonne-operation-3h4h.html | La bonne opération (3H-4H) | ✅ | ❌ | |
+| coordonnees-5h6h.html | Les coordonnées | ✅ | ❌ | |
+| doubles-moities-3h4h.html | Doubles et moitiés | ✅ | ❌ | |
+| denombrement-1h2h.html | Le dénombrement (1H-2H) | ✅ | ❌ | |
 | complement-phrase-5h6h.html | Le complément de phrase | ✅ | ❌ | Nouvelle app (5H-6H, L1 26). Créée depuis `_template.html` (app-base.css + appUtils.js + feedbackUtils.js). `TYPE_TACHE='instance'` (identifier/manipuler le CP = tâche corrigeable). N1 repérer le CP · N2 enlever pour vérifier · N3 déplacer. Variables `--color-sujet/predicat/cp` propres à l'app (distinctes de la palette valeur-de-position). **Note d'arbitrage (accessibilité > design) :** le déplacement N3 est exposé au tap et au clavier (bouton réel), le glisser n'étant qu'un enrichissement — pas de drag-and-drop exclusif (skill accessibilité §1). Pas encore audité v2. |

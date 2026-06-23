@@ -130,11 +130,13 @@ Chaque branche appartient à un domaine PER parent.
 
 ### Domaine LANGUES — jaune-ocre
 
-| Branche  | Header / bouton | Fond badge | Texte badge |
-|----------|-----------------|------------|-------------|
-| Français | `#B8960C`       | `#FBF5D6`  | `#7A6200`   |
-| Allemand | `#A08510`       | `#F5F0D0`  | `#6B5800`   |
-| Anglais  | `#8C7515`       | `#F0ECC8`  | `#5C4D00`   |
+| Branche  | Header / bouton | Fond badge | Texte badge | Point filtre |
+|----------|-----------------|------------|-------------|--------------|
+| Français | `#7A6200`       | `#FBF5D6`  | `#7A6200`   | `#B8960C`    |
+| Allemand | `#6B5800`       | `#F5F0D0`  | `#6B5800`   | `#A08510`    |
+| Anglais  | `#5C4D00`       | `#F0ECC8`  | `#5C4D00`   | `#8C7515`    |
+
+> **Note contraste :** les couleurs "Header / bouton" sont choisies pour garantir un rapport ≥ 4,5:1 avec le texte blanc (WCAG AA). Les nuances plus claires (colonne "Point filtre") ne conviennent qu'aux éléments décoratifs (dot 8px) sur fond blanc — elles ne peuvent pas servir de fond à du texte blanc.
 
 ### Domaine MSN — rouge
 
