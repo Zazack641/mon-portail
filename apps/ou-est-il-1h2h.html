@@ -170,26 +170,26 @@
 
   // Niveau 1 — gauche / droite (2 choix)
   const POS_N1 = [
-    { id: 'gauche', label: 'à gauche', row: 1, col: 0 },
-    { id: 'droite', label: 'à droite', row: 1, col: 2 },
+    { id: 'gauche', label: 'à gauche', needsPrep: true, row: 1, col: 0 },
+    { id: 'droite', label: 'à droite', needsPrep: true, row: 1, col: 2 },
   ];
 
   // Niveau 2 — 4 directions (4 choix)
   const POS_N2 = [
-    { id: 'gauche', label: 'à gauche', row: 1, col: 0 },
-    { id: 'droite', label: 'à droite', row: 1, col: 2 },
-    { id: 'haut',   label: 'en haut',  row: 0, col: 1 },
-    { id: 'bas',    label: 'en bas',   row: 2, col: 1 },
+    { id: 'gauche', label: 'à gauche', needsPrep: true, row: 1, col: 0 },
+    { id: 'droite', label: 'à droite', needsPrep: true, row: 1, col: 2 },
+    { id: 'haut',   label: 'en haut',  needsPrep: true, row: 0, col: 1 },
+    { id: 'bas',    label: 'en bas',   needsPrep: true, row: 2, col: 1 },
   ];
 
   // Niveau 3 — prépositions de lieu avec conteneur (4 choix)
   // 'dans'   : la cible est affichée à l'intérieur de la cellule du conteneur.
   // 'a-cote' : col = null ici, résolu aléatoirement (0 ou 2) à la génération.
   const POS_N3 = [
-    { id: 'sur',    label: 'sur',    row: 0, col: 1    },
-    { id: 'sous',   label: 'sous',   row: 2, col: 1    },
-    { id: 'dans',   label: 'dans',   row: 1, col: 1    },
-    { id: 'a-cote', label: 'à côté', row: 1, col: null },
+    { id: 'sur',    label: 'sur',    needsPrep: false, row: 0, col: 1    },
+    { id: 'sous',   label: 'sous',   needsPrep: false, row: 2, col: 1    },
+    { id: 'dans',   label: 'dans',   needsPrep: false, row: 1, col: 1    },
+    { id: 'a-cote', label: 'à côté', needsPrep: true,  row: 1, col: null },
   ];
 
   const CONTENEURS = [
@@ -250,6 +250,15 @@
   });
 
   newBtn.addEventListener('click', newExercise);
+
+  // ── Contraction de "de" + article défini ─────────────────────────────────
+  // "le chien" → "du chien" ; "la boîte" → "de la boîte" ; "l'ours" → "de l'ours"
+  function deContracted(noun) {
+    if (noun.startsWith('le '))  return 'du '    + noun.slice(3);
+    if (noun.startsWith('la '))  return 'de la ' + noun.slice(3);
+    if (noun.startsWith("l'"))   return "de l'"  + noun.slice(2);
+    return 'de ' + noun;
+  }
 
   // ── Construction de la scène ──────────────────────────────────────────────
 
@@ -314,10 +323,11 @@
     const nomCap = nom.charAt(0).toUpperCase() + nom.slice(1);
     const label  = correctPos.label;
     const ref    = conteneur ? conteneur.name : paire.refName;
+    const refPhrase = correctPos.needsPrep ? deContracted(ref) : ref;
 
     state = {
       correctId:          correctPos.id,
-      correctFeedbackMsg: `${nomCap} est ${label} ${ref}.`,
+      correctFeedbackMsg: `${nomCap} est ${label} ${refPhrase}.`,
       answered:           false,
     };
 
