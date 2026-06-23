@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Où est-il ?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-base.css">
+<style>
+  :root {
+    --app-header-bg: #C0272D;  /* Mathématiques */
+    --color-units:    #3B7DD8; /* déclarées pour conformité ; non utilisées (MSN 11 = Espace) */
+    --color-tens:     #D64045;
+    --color-hundreds: #3A9E6F;
+  }
+
+  /* ── Scène visuelle ────────────────────────────────────────────────────── */
+  .scene {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 400px;
+    min-height: 240px;
+    background: #fff;
+    border: 2px solid var(--app-border);
+    border-radius: 16px;
+    padding: 16px;
+    margin: 0 auto;
+  }
+
+  .spatial-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 88px);
+    grid-template-rows: repeat(3, 88px);
+    gap: 8px;
+  }
+
+  .grid-cell {
+    width: 88px;
+    height: 88px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 56px;
+    line-height: 1;
+    border-radius: 12px;
+  }
+
+  /* Cellule de référence (animaux, astres…) */
+  .grid-cell.ref-cell {
+    background: rgba(0, 0, 0, 0.05);
+  }
+
+  /* Cellule du conteneur (niveau 3) */
+  .grid-cell.container-cell {
+    background: #FFF8E0;
+    border: 2px solid #D4A010;
+    font-size: 44px;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  /* ── Boutons de réponse ────────────────────────────────────────────────── */
+  .answer-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .answer-btn {
+    min-width: 120px;
+    min-height: 64px;
+    font-size: 22px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    border-radius: 12px;
+    border: 2px solid var(--app-border);
+    background: #fff;
+    color: var(--app-text);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    padding: 8px 20px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .answer-btn { transition: background 0.15s, border-color 0.15s; }
+  }
+
+  .answer-btn:hover  { background: #EBF3FC; border-color: #3B7DD8; }
+  .answer-btn:focus-visible {
+    outline: 3px solid #3B7DD8;
+    outline-offset: 2px;
+    background: #EBF3FC;
+    border-color: #3B7DD8;
+  }
+  .answer-btn:active { background: #d0e6f7; }
+  .answer-btn:disabled { cursor: default; opacity: 0.55; }
+</style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────── -->
+<header class="app-header" role="banner">
+  <a href="../index.html" class="back-link">← Retour</a>
+  <h1>📍 Où est-il ?</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<!-- ── Sélecteur de niveau ─────────────────────────────────────────────── -->
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1</button>
+  <button class="level-btn"        data-level="2" aria-pressed="false">Niveau 2</button>
+  <button class="level-btn"        data-level="3" aria-pressed="false">Niveau 3</button>
+</div>
+
+<!-- ── Contenu principal ───────────────────────────────────────────────── -->
+<main>
+  <div class="question-box" id="question-box">Chargement…</div>
+
+  <!-- Scène visuelle générée dynamiquement -->
+  <div id="scene-wrap"></div>
+
+  <!-- Boutons de réponse générés dynamiquement -->
+  <div class="answer-grid" id="answer-grid"
+       role="group" aria-label="Choix de position"></div>
+
+  <div class="feedback" id="feedback"
+       role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="action-row">
+    <button class="new-btn" id="new-btn">
+      <span aria-hidden="true">▶</span> Nouvel exercice
+    </button>
+  </div>
+</main>
+
+<!-- ── Scripts ─────────────────────────────────────────────────────────── -->
+<script src="appUtils.js"></script>
+<script>
+  const questionBox = document.getElementById('question-box');
+  const feedbackEl  = document.getElementById('feedback');
+  const newBtn      = document.getElementById('new-btn');
+  const sceneWrap   = document.getElementById('scene-wrap');
+  const answerGrid  = document.getElementById('answer-grid');
+
+  // 'instance' : le repérage spatial est un concept en construction ;
+  // le feedback indique la bonne position et l'élève réessaie sur la même scène.
+  const TYPE_TACHE = 'instance';
+
+  let currentLevel = 1;
+  let state = {};
+
+  // ── Données ───────────────────────────────────────────────────────────────
+
+  const PAIRES = [
+    { target: '🐱', targetName: 'le chat',     ref: '🐶', refName: 'le chien'   },
+    { target: '🐰', targetName: 'le lapin',    ref: '🐻', refName: "l'ours"     },
+    { target: '⭐', targetName: "l'étoile",    ref: '🌙', refName: 'la lune'    },
+    { target: '🍎', targetName: 'la pomme',    ref: '🍋', refName: 'le citron'  },
+    { target: '🚂', targetName: 'le train',    ref: '🚗', refName: 'la voiture' },
+    { target: '🦋', targetName: 'le papillon', ref: '🌸', refName: 'la fleur'   },
+  ];
+
+  // Niveau 1 — gauche / droite (2 choix)
+  const POS_N1 = [
+    { id: 'gauche', label: 'à gauche', row: 1, col: 0 },
+    { id: 'droite', label: 'à droite', row: 1, col: 2 },
+  ];
+
+  // Niveau 2 — 4 directions (4 choix)
+  const POS_N2 = [
+    { id: 'gauche', label: 'à gauche', row: 1, col: 0 },
+    { id: 'droite', label: 'à droite', row: 1, col: 2 },
+    { id: 'haut',   label: 'en haut',  row: 0, col: 1 },
+    { id: 'bas',    label: 'en bas',   row: 2, col: 1 },
+  ];
+
+  // Niveau 3 — prépositions de lieu avec conteneur (4 choix)
+  // 'dans'   : la cible est affichée à l'intérieur de la cellule du conteneur.
+  // 'a-cote' : col = null ici, résolu aléatoirement (0 ou 2) à la génération.
+  const POS_N3 = [
+    { id: 'sur',    label: 'sur',    row: 0, col: 1    },
+    { id: 'sous',   label: 'sous',   row: 2, col: 1    },
+    { id: 'dans',   label: 'dans',   row: 1, col: 1    },
+    { id: 'a-cote', label: 'à côté', row: 1, col: null },
+  ];
+
+  const CONTENEURS = [
+    { emoji: '📦', name: 'la boîte'  },
+    { emoji: '🧺', name: 'le panier' },
+  ];
+
+  // ── Feedback ──────────────────────────────────────────────────────────────
+
+  function showFeedback(correct, msg) {
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = msg;
+    if (correct) {
+      playCorrect();
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        launchConfetti();
+      }
+    } else {
+      playIncorrect();
+    }
+
+    if (correct || TYPE_TACHE === 'drill') {
+      newBtn.classList.add('visible');
+      newBtn.focus();
+    } else {
+      // 'instance' + incorrect : réactiver les boutons pour un nouvel essai
+      state.answered = false;
+      newBtn.classList.remove('visible');
+      answerGrid.querySelectorAll('.answer-btn').forEach(b => {
+        b.disabled = false;
+        b.classList.remove('selected');
+      });
+      feedbackEl.setAttribute('tabindex', '-1');
+      feedbackEl.focus();
+    }
+  }
+
+  function resetFeedback() {
+    feedbackEl.className = 'feedback';
+    feedbackEl.textContent = '';
+    feedbackEl.removeAttribute('tabindex');
+    newBtn.classList.remove('visible');
+  }
+
+  // ── Sélecteur de niveau ───────────────────────────────────────────────────
+
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLevel = parseInt(btn.dataset.level);
+      document.querySelectorAll('.level-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+      newExercise();
+    });
+  });
+
+  newBtn.addEventListener('click', newExercise);
+
+  // ── Construction de la scène ──────────────────────────────────────────────
+
+  // Grille 3×3 : la référence (ou le conteneur) occupe la cellule centrale (r=1, c=1).
+  // La cible est placée à la position correctPos dans la grille.
+  // Pour 'dans' (niveau 3), la cible est affichée à l'intérieur du conteneur central.
+  function buildScene(paire, correctPos, conteneur) {
+    const scene = document.createElement('div');
+    scene.className = 'scene';
+    scene.setAttribute('aria-hidden', 'true');
+
+    const grid = document.createElement('div');
+    grid.className = 'spatial-grid';
+
+    for (let r = 0; r < 3; r++) {
+      for (let c = 0; c < 3; c++) {
+        const cell = document.createElement('div');
+        cell.className = 'grid-cell';
+
+        if (r === 1 && c === 1) {
+          if (conteneur) {
+            cell.classList.add('container-cell');
+            cell.textContent = (correctPos.id === 'dans')
+              ? conteneur.emoji + ' ' + paire.target
+              : conteneur.emoji;
+          } else {
+            cell.classList.add('ref-cell');
+            cell.textContent = paire.ref;
+          }
+        } else if (r === correctPos.row && c === correctPos.col && correctPos.id !== 'dans') {
+          cell.textContent = paire.target;
+        }
+
+        grid.appendChild(cell);
+      }
+    }
+
+    scene.appendChild(grid);
+    return scene;
+  }
+
+  // ── Exercices ─────────────────────────────────────────────────────────────
+
+  function newExercise() {
+    resetFeedback();
+    sceneWrap.innerHTML = '';
+    answerGrid.innerHTML = '';
+
+    const paire    = pick(PAIRES, 1)[0];
+    const conteneur = (currentLevel === 3) ? pick(CONTENEURS, 1)[0] : null;
+    const positions = currentLevel === 1 ? POS_N1 : currentLevel === 2 ? POS_N2 : POS_N3;
+
+    // Choisir la position correcte ; résoudre col=null ('à côté') aléatoirement
+    const basePick = pick(positions, 1)[0];
+    const correctPos = {
+      ...basePick,
+      col: basePick.col !== null ? basePick.col : (randInt(0, 1) === 0 ? 0 : 2),
+    };
+
+    // Texte de feedback mémorisé (contenu pédagogique protégé)
+    const nom    = paire.targetName;
+    const nomCap = nom.charAt(0).toUpperCase() + nom.slice(1);
+    const label  = correctPos.label;
+    const ref    = conteneur ? conteneur.name : paire.refName;
+
+    state = {
+      correctId:          correctPos.id,
+      correctFeedbackMsg: `${nomCap} est ${label} ${ref}.`,
+      answered:           false,
+    };
+
+    // Consigne (≤ 10 mots, adapté 1H-2H)
+    questionBox.textContent = `Où est ${nom} ?`;
+
+    // Scène et boutons
+    sceneWrap.appendChild(buildScene(paire, correctPos, conteneur));
+
+    shuffle(positions).forEach(pos => {
+      const btn = document.createElement('button');
+      btn.className = 'answer-btn';
+      btn.textContent = pos.label;
+      btn.dataset.posId = pos.id;
+      btn.addEventListener('click', () => onAnswer(pos));
+      answerGrid.appendChild(btn);
+    });
+
+    // Focus initial : premier bouton de réponse
+    const firstBtn = answerGrid.querySelector('.answer-btn');
+    if (firstBtn) firstBtn.focus();
+  }
+
+  function onAnswer(pos) {
+    if (state.answered) return;
+    state.answered = true;
+
+    answerGrid.querySelectorAll('.answer-btn').forEach(b => {
+      b.disabled = true;
+      if (b.dataset.posId === pos.id) b.classList.add('selected');
+    });
+
+    if (pos.id === state.correctId) {
+      showFeedback(true, `Bravo ! ${state.correctFeedbackMsg} Tu as trouvé !`);
+    } else {
+      showFeedback(false, `Pas tout à fait. ${state.correctFeedbackMsg} Essaie encore !`);
+    }
+  }
+
+  // ── Démarrage ─────────────────────────────────────────────────────────────
+  newExercise();
+</script>
+<script src="feedbackUtils.js"></script>
+</body>
+</html>
