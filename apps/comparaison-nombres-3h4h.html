@@ -127,7 +127,7 @@
   <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
 
   <div class="action-row">
-    <button class="new-btn" id="new-btn">Nouvel exercice</button>
+    <button class="new-btn" id="new-btn"><span aria-hidden="true">▶</span> Nouvel exercice</button>
   </div>
 </main>
 
@@ -185,8 +185,14 @@
     feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
     feedbackEl.textContent = msg;
     if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
-    newBtn.classList.add('visible');
-    newBtn.focus();
+    if (correct || TYPE_TACHE === 'drill') {
+      newBtn.classList.add('visible');
+      newBtn.focus();
+    } else {
+      // 'instance' + incorrect : l'élève corrigerait et revérifierait la même
+      // instance. Non applicable ici (tâche drill sans bouton Vérifier), conservé pour le contrat.
+      newBtn.classList.remove('visible');
+    }
   }
 
   function newExercise() {
@@ -206,14 +212,15 @@
     renderLegend(String(max).length);
 
     symbolZone.innerHTML = '';
-    ['<', '>'].forEach(sym => {
+    ['<', '>'].forEach((sym, i) => {
       const btn = document.createElement('button');
       btn.className = 'symbol-btn';
       btn.textContent = sym;
+      if (i === 0) btn.setAttribute('data-focus-target', '');
       btn.addEventListener('click', () => answer(sym, btn));
       symbolZone.appendChild(btn);
     });
-    const firstSymBtn = symbolZone.querySelector('.symbol-btn');
+    const firstSymBtn = symbolZone.querySelector('[data-focus-target]');
     if (firstSymBtn) firstSymBtn.focus();
 
     feedbackEl.className = 'feedback';

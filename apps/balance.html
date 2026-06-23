@@ -154,7 +154,7 @@
   </div>
 
   <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true" tabindex="-1"></div>
-  <button class="new-btn" id="new-btn">Nouvel exercice</button>
+  <button class="new-btn" id="new-btn"><span aria-hidden="true">▶</span> Nouvel exercice</button>
 </main>
 
 <script src="appUtils.js"></script>
@@ -302,8 +302,14 @@ function showUI(id) {
 function showFeedback(correct, msg) {
   feedbackEl.className = 'feedback '+(correct?'correct':'wrong');
   feedbackEl.textContent = msg;
-  newBtn.classList.add('visible');
   if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+  if (correct || TYPE_TACHE[level] === 'drill') {
+    newBtn.classList.add('visible');
+    newBtn.focus();
+  } else {
+    newBtn.classList.remove('visible');
+    feedbackEl.focus();
+  }
 }
 function resetUI() {
   feedbackEl.className = 'feedback';
@@ -365,7 +371,6 @@ function answerN1(side) {
       ? `✅ Bravo ! Le plateau ${basCote} est plus bas → il est plus lourd.`
       : `❌ Le plateau ${basCote} est plus bas → il est plus ${state.askHeavy?'lourd':'léger'}.`
   );
-  newBtn.focus();
 }
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -455,7 +460,6 @@ function answerN2(answer) {
       ? `✅ Bravo ! ${regle}`
       : `❌ ${regle} La bonne réponse était « ${names[state.correct]} ».`
   );
-  newBtn.focus();
 }
 
 function verifyN2() { answerN2('equal'); }
@@ -555,8 +559,6 @@ function verifyN3() {
     document.getElementById('btn-remove-l').disabled = addedL <= 0;
     document.getElementById('btn-remove-r').disabled = addedR <= 0;
     document.getElementById('btn-verify').disabled = false;
-    newBtn.classList.remove('visible');
-    feedbackEl.focus();
   }
 }
 document.getElementById('btn-verify').addEventListener('click', verifyN3);
