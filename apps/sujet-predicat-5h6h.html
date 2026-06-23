@@ -9,19 +9,21 @@
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app-base.css">
 <style>
-  :root { --app-header-bg: #B8960C; }
+  :root { --app-header-bg: #7A6200; }
 
+  /* ── Niveau 1 — deux blocs côte à côte, taille au contenu ─────────────── */
   .phrase-area {
     display: flex;
-    flex-direction: column;
-    gap: 16px;
-    margin: 20px 0;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    width: 100%;
   }
 
-  /* Niveau 1 — deux blocs cliquables */
   .bloc-phrase {
-    min-height: 80px;
-    padding: 18px 24px;
+    min-height: 64px;
+    padding: 14px 24px;
     font-family: 'Nunito', sans-serif;
     font-size: clamp(18px, 3.8vw, 24px);
     font-weight: 800;
@@ -36,23 +38,23 @@
     color: var(--app-text);
   }
 
-  @media (prefers-reduced-motion: no-preference) {
-    .bloc-phrase { transition: border-color 0.15s, background 0.15s, transform 0.1s; }
-    .bloc-phrase:active { transform: scale(0.97); }
-  }
-
   .bloc-phrase.correct { border-color: #059669; background: var(--app-correct-bg); color: var(--app-correct-fg); }
   .bloc-phrase.wrong   { border-color: #DC2626; background: var(--app-wrong-bg);   color: var(--app-wrong-fg); }
   .bloc-phrase:disabled { cursor: default; }
-  .bloc-phrase:focus-visible { outline: 3px solid #B8960C; outline-offset: 3px; }
+  .bloc-phrase:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; }
 
-  /* Niveau 2 — mots séparés */
+  @media (prefers-reduced-motion: no-preference) {
+    .bloc-phrase { transition: border-color 0.15s, background 0.15s, transform 0.1s; }
+    .bloc-phrase:active:not(:disabled) { transform: scale(0.97); }
+  }
+
+  /* ── Niveaux 2 & 3 — mots séparés ──────────────────────────────────────── */
   .phrase-tokens {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
     justify-content: center;
-    margin: 20px 0;
+    width: 100%;
   }
 
   .token {
@@ -71,16 +73,16 @@
     color: var(--app-text);
   }
 
-  @media (prefers-reduced-motion: no-preference) {
-    .token { transition: border-color 0.15s, background 0.15s, transform 0.1s; }
-    .token:active { transform: scale(0.95); }
-  }
-
-  .token.selected { border-color: #B8960C; background: #FBF5D6; }
+  .token.selected { border-color: var(--app-header-bg); background: #FBF5D6; }
   .token.correct  { border-color: #059669; background: var(--app-correct-bg); color: var(--app-correct-fg); }
   .token.wrong    { border-color: #DC2626; background: var(--app-wrong-bg);   color: var(--app-wrong-fg); }
   .token:disabled { cursor: default; }
-  .token:focus-visible { outline: 3px solid #B8960C; outline-offset: 3px; }
+  .token:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .token { transition: border-color 0.15s, background 0.15s, transform 0.1s; }
+    .token:active:not(:disabled) { transform: scale(0.95); }
+  }
 </style>
 </head>
 <body>
@@ -94,6 +96,7 @@
 <div class="level-bar" role="group" aria-label="Choisir le niveau">
   <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1 · deux blocs</button>
   <button class="level-btn"        data-level="2" aria-pressed="false">Niveau 2 · mots séparés</button>
+  <button class="level-btn"        data-level="3" aria-pressed="false">Niveau 3 · sujets complexes</button>
 </div>
 
 <main>
@@ -105,7 +108,7 @@
 
   <div class="action-row">
     <button class="verify-btn" id="verify-btn" disabled>Vérifier</button>
-    <button class="new-btn"    id="new-btn">Nouvel exercice</button>
+    <button class="new-btn"    id="new-btn"><span aria-hidden="true">▶</span> Nouvel exercice</button>
   </div>
 </main>
 
@@ -117,9 +120,16 @@ const phraseArea  = document.getElementById('phrase-area');
 const verifyBtn   = document.getElementById('verify-btn');
 const newBtn      = document.getElementById('new-btn');
 
+// Identifier le sujet ou le prédicat est une instance signifiante : l'erreur
+// indique ce qu'il faut corriger, et l'élève réessaie sur la même phrase.
+const TYPE_TACHE = 'instance';
+
 let currentLevel = 1;
 let state = {};
 
+// ── Banques de phrases ─────────────────────────────────────────────────────────
+
+// Niveaux 1 & 2 — phrases courtes, sujet en tête
 const PHRASES = [
   { sujet: 'Les enfants',  predicat: 'jouent dans la cour' },
   { sujet: 'Le chien',     predicat: 'court dans le jardin' },
@@ -142,23 +152,32 @@ const PHRASES = [
   { sujet: 'Les lapins',   predicat: 'mangent des carottes' },
 ];
 
-// ── Feedback unifié ───────────────────────────────────────────────────────────
-function showFeedback(correct, msg) {
-  feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
-  feedbackEl.textContent = msg;
-  newBtn.classList.add('visible');
-  verifyBtn.style.display = 'none';
-  if (correct) {
-    playCorrect();
-    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      launchConfetti();
-    }
-  } else {
-    playIncorrect();
-  }
-  newBtn.focus();
+// Niveau 3 — sujets complexes (groupe nominal long ou sujet composé)
+const PHRASES_3 = [
+  { sujet: 'Les enfants du quartier',           predicat: 'jouent au foot tous les soirs' },
+  { sujet: 'Le chat de la voisine',             predicat: 'dort sur le toit de la maison' },
+  { sujet: 'Les fleurs du jardin',              predicat: 'ont besoin d\'eau chaque jour' },
+  { sujet: 'La classe de madame Dupont',        predicat: 'visite le musée demain matin' },
+  { sujet: 'Mon grand-père et ma grand-mère',   predicat: 'habitent à la montagne' },
+  { sujet: 'Les élèves de cinquième',           predicat: 'préparent une pièce de théâtre' },
+  { sujet: 'Le chien du voisin',                predicat: 'a creusé un trou dans la pelouse' },
+  { sujet: 'Les oiseaux migrateurs',            predicat: 'reviennent chaque printemps' },
+  { sujet: 'Mon petit frère et ma grande sœur', predicat: 'lisent ensemble le soir' },
+  { sujet: 'La fille aux longs cheveux',        predicat: 'chante très bien' },
+  { sujet: 'Les arbres du parc',                predicat: 'perdent leurs feuilles en automne' },
+  { sujet: 'Le professeur de sport',            predicat: 'siffle la fin de la partie' },
+];
+
+let lastPhraseIdx = -1;
+
+function pickPhrase(bank) {
+  let i;
+  do { i = randInt(0, bank.length - 1); } while (i === lastPhraseIdx && bank.length > 1);
+  lastPhraseIdx = i;
+  return bank[i];
 }
 
+// ── Helpers UI ─────────────────────────────────────────────────────────────────
 function resetFeedback() {
   feedbackEl.className = 'feedback';
   feedbackEl.textContent = '';
@@ -167,12 +186,45 @@ function resetFeedback() {
   verifyBtn.disabled = true;
 }
 
-// ── Niveau 1 — deux blocs ─────────────────────────────────────────────────────
+// Feedback pour les niveaux 2 & 3 — respecte TYPE_TACHE = 'instance'
+function showFeedback(correct, msg) {
+  feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+  feedbackEl.textContent = msg;
+  if (correct) {
+    playCorrect();
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) launchConfetti();
+    verifyBtn.style.display = 'none';
+    newBtn.classList.add('visible');
+    newBtn.focus();
+  } else {
+    playIncorrect();
+    // Instance : verifyBtn reste actif, l'élève corrige et revérifie.
+    verifyBtn.disabled = false;
+    newBtn.classList.remove('visible');
+  }
+}
+
+// Feedback pour le niveau 1 (réponse directe, pas de verify-btn)
+function setFeedback1(correct, msg) {
+  feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+  feedbackEl.textContent = msg;
+  if (correct) {
+    playCorrect();
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) launchConfetti();
+    newBtn.classList.add('visible');
+    newBtn.focus();
+  } else {
+    playIncorrect();
+    // Instance : newBtn reste caché, l'élève corrige sur la même phrase.
+  }
+}
+
+// ── Niveau 1 — deux blocs cliquables ──────────────────────────────────────────
 function setupLevel1() {
   resetFeedback();
   verifyBtn.style.display = 'none';
 
-  const phrase = PHRASES[randInt(0, PHRASES.length - 1)];
+  const phrase = pickPhrase(PHRASES);
   const cible  = Math.random() < 0.5 ? 'sujet' : 'predicat';
   state = { phrase, cible, answered: false };
 
@@ -183,61 +235,69 @@ function setupLevel1() {
   phraseArea.innerHTML = '';
   phraseArea.className = 'phrase-area';
 
+  // Ordre toujours naturel (sujet puis prédicat) : la phrase reste grammaticalement
+  // correcte. La variété vient de la question posée (sujet ou prédicat), pas de
+  // l'ordre d'affichage.
   const blocs = [
     { role: 'sujet',    text: phrase.sujet },
-    { role: 'predicat', text: phrase.predicat },
+    { role: 'predicat', text: phrase.predicat + '.' },
   ];
-  if (Math.random() < 0.5) blocs.reverse();
 
-  blocs.forEach(({ role, text }) => {
+  blocs.forEach(({ role, text }, i) => {
     const btn = document.createElement('button');
     btn.className = 'bloc-phrase';
     btn.dataset.role = role;
     btn.textContent = text;
     btn.setAttribute('aria-label', text);
+    if (i === 0) btn.setAttribute('data-focus-target', '');
     btn.addEventListener('click', () => handleBloc1(role, btn));
     phraseArea.appendChild(btn);
   });
 
-  phraseArea.querySelector('.bloc-phrase[data-focus-target]') ||
-    phraseArea.querySelector('.bloc-phrase').focus();
+  phraseArea.querySelector('[data-focus-target]').focus();
 }
 
 function handleBloc1(role, btn) {
   if (state.answered) return;
-  state.answered = true;
 
   const correct = role === state.cible;
-  phraseArea.querySelectorAll('.bloc-phrase').forEach(b => {
-    b.disabled = true;
-    if (b.dataset.role === state.cible) b.classList.add('correct');
-    if (b.dataset.role === role && !correct) b.classList.add('wrong');
-  });
 
   if (correct) {
+    state.answered = true;
+    phraseArea.querySelectorAll('.bloc-phrase').forEach(b => { b.disabled = true; });
+    btn.classList.add('correct');
+
     const msg = state.cible === 'sujet'
       ? `Bravo ! « ${state.phrase.sujet} » est le sujet : il dit de qui on parle. Sans lui, la phrase ne fonctionne plus.`
       : `Exact ! « ${state.phrase.predicat} » est le prédicat : il dit ce que fait le sujet. Sans lui, la phrase ne fonctionne plus.`;
-    showFeedback(true, msg);
+    setFeedback1(true, msg);
   } else {
+    // Instance signifiante : on désactive le bloc erroné, les autres restent actifs.
+    btn.disabled = true;
+    btn.classList.add('wrong');
+
+    const nom = role === 'sujet' ? 'sujet' : 'prédicat';
     const msg = state.cible === 'sujet'
-      ? `Pas tout à fait. Le sujet, c'est « ${state.phrase.sujet} ». Il dit de qui ou de quoi parle la phrase.`
-      : `Pas tout à fait. Le prédicat, c'est « ${state.phrase.predicat} ». Il dit ce que fait le sujet et contient le verbe.`;
-    showFeedback(false, msg);
+      ? `Ce bloc est le ${nom}. Le sujet dit de qui ou de quoi parle la phrase : cherche l'autre bloc.`
+      : `Ce bloc est le ${nom}. Le prédicat dit ce que fait le sujet et contient le verbe : cherche l'autre bloc.`;
+    setFeedback1(false, msg);
+
+    const next = phraseArea.querySelector('.bloc-phrase:not(:disabled)');
+    if (next) next.focus();
   }
 }
 
-// ── Niveau 2 — mots séparés ───────────────────────────────────────────────────
-function setupLevel2() {
+// ── Niveaux 2 & 3 — mots séparés ──────────────────────────────────────────────
+function setupTokenLevel(bank) {
   resetFeedback();
 
-  const phrase = PHRASES[randInt(0, PHRASES.length - 1)];
-  const cible  = Math.random() < 0.5 ? 'sujet' : 'predicat';
+  const phrase  = pickPhrase(bank);
+  const cible   = Math.random() < 0.5 ? 'sujet' : 'predicat';
   const sujetMots    = phrase.sujet.split(' ');
   const predicatMots = phrase.predicat.split(' ');
   const tousMots = [...sujetMots, ...predicatMots];
 
-  state = { phrase, cible, sujetMots, predicatMots, tousMots, answered: false, selected: new Set() };
+  state = { phrase, cible, sujetMots, predicatMots, tousMots, selected: new Set() };
 
   questionBox.textContent = cible === 'sujet'
     ? 'Sélectionne les mots qui forment le sujet, puis appuie sur Vérifier.'
@@ -255,26 +315,29 @@ function setupLevel2() {
     const btn = document.createElement('button');
     btn.className = 'token';
     btn.dataset.index = i;
-    btn.textContent = mot;
+    // Le dernier mot (fin du prédicat) porte le point final.
+    const display = i === tousMots.length - 1 ? mot + '.' : mot;
+    btn.textContent = display;
     btn.setAttribute('aria-pressed', 'false');
-    btn.setAttribute('aria-label', mot);
+    btn.setAttribute('aria-label', display);
+    if (i === 0) btn.setAttribute('data-focus-target', '');
     btn.addEventListener('click', () => toggleToken(i, btn));
     tokenWrap.appendChild(btn);
   });
 
   phraseArea.appendChild(tokenWrap);
-
-  tokenWrap.querySelector('.token').focus();
+  phraseArea.querySelector('[data-focus-target]').focus();
 }
 
 function toggleToken(index, btn) {
-  if (state.answered) return;
+  if (state.selected === null) return; // item clos
   if (state.selected.has(index)) {
     state.selected.delete(index);
-    btn.classList.remove('selected');
+    btn.classList.remove('selected', 'wrong', 'correct');
     btn.setAttribute('aria-pressed', 'false');
   } else {
     state.selected.add(index);
+    btn.classList.remove('wrong', 'correct');
     btn.classList.add('selected');
     btn.setAttribute('aria-pressed', 'true');
   }
@@ -282,9 +345,6 @@ function toggleToken(index, btn) {
 }
 
 function verify() {
-  if (state.answered) return;
-  state.answered = true;
-
   const sujetCount = state.sujetMots.length;
   const expectedIndices = state.cible === 'sujet'
     ? new Set(Array.from({ length: sujetCount }, (_, i) => i))
@@ -294,29 +354,40 @@ function verify() {
     state.selected.size === expectedIndices.size &&
     [...state.selected].every(i => expectedIndices.has(i));
 
+  // Colorer les tokens : correct en vert, faux positif en rouge.
   phraseArea.querySelectorAll('.token').forEach(t => {
-    t.disabled = true;
     const i = parseInt(t.dataset.index);
-    if (expectedIndices.has(i))                       t.classList.add('correct');
-    else if (state.selected.has(i))                   t.classList.add('wrong');
+    t.classList.remove('selected', 'correct', 'wrong');
+    if (expectedIndices.has(i) && state.selected.has(i))  t.classList.add('correct');
+    else if (!expectedIndices.has(i) && state.selected.has(i)) t.classList.add('wrong');
   });
 
   verifyBtn.disabled = true;
 
   if (correct) {
+    phraseArea.querySelectorAll('.token').forEach(t => { t.disabled = true; });
+    state.selected = null; // item clos
+
     const msg = state.cible === 'sujet'
       ? `Bravo ! « ${state.phrase.sujet} » est le sujet : il dit de qui on parle. Sans sujet, la phrase ne fonctionne plus.`
       : `Exact ! « ${state.phrase.predicat} » est le prédicat : il dit ce que fait le sujet. Sans lui, la phrase ne fonctionne plus.`;
     showFeedback(true, msg);
   } else {
-    const msg = state.cible === 'sujet'
-      ? `Pas tout à fait. Le sujet, c'est « ${state.phrase.sujet} ». Il dit de qui ou de quoi parle la phrase.`
-      : `Pas tout à fait. Le prédicat, c'est « ${state.phrase.predicat} ». Il dit ce que fait le sujet et contient le verbe.`;
+    // Instance : les tokens restent actifs, l'élève corrige.
+    // Les tokens incorrectement sélectionnés sont en rouge ; les attendus et non sélectionnés
+    // restent neutres (on ne révèle pas la réponse, on signale seulement les erreurs).
+    const nbErreurs = [...state.selected].filter(i => !expectedIndices.has(i)).length;
+    const nbOublis  = [...expectedIndices].filter(i => !state.selected.has(i)).length;
+
+    let msg = state.cible === 'sujet'
+      ? `Pas tout à fait. Le sujet de cette phrase, c'est « ${state.phrase.sujet} ».`
+      : `Pas tout à fait. Le prédicat de cette phrase, c'est « ${state.phrase.predicat} ».`;
+    msg += ' Corrige ta sélection et réessaie.';
     showFeedback(false, msg);
   }
 }
 
-// ── Navigation ────────────────────────────────────────────────────────────────
+// ── Navigation ─────────────────────────────────────────────────────────────────
 document.querySelectorAll('.level-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     currentLevel = parseInt(btn.dataset.level);
@@ -335,7 +406,8 @@ verifyBtn.addEventListener('click', verify);
 
 function newExercise() {
   if (currentLevel === 1) setupLevel1();
-  else                    setupLevel2();
+  else if (currentLevel === 2) setupTokenLevel(PHRASES);
+  else                         setupTokenLevel(PHRASES_3);
 }
 
 newExercise();

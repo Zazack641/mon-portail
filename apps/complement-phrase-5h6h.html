@@ -33,9 +33,9 @@
 
   .constituant {
     min-height: 64px;
-    padding: 14px 20px;
+    padding: 12px 14px;
     font-family: 'Nunito', sans-serif;
-    font-size: clamp(22px, 4vw, 26px);
+    font-size: clamp(22px, 3.5vw, 23px);
     font-weight: 800;
     border: 3px solid var(--app-border);
     border-radius: 14px;
@@ -242,16 +242,18 @@ function upper1(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 // toujours en fin de phrase : c'est justement sa mobilité qu'on travaille.
 function buildOrder(phrase, pos) {
   if (pos === 'debut') {
+    // CP en tête : "Le matin, la fillette promène son chien."
     return [
       { role: 'cp',       display: upper1(phrase.cp) + ',' },
       { role: 'sujet',    display: lower1(phrase.sujet) },
-      { role: 'predicat', display: phrase.predicat },
+      { role: 'predicat', display: phrase.predicat + '.' },
     ];
   }
+  // CP en fin : "La fillette promène son chien le matin."
   return [
     { role: 'sujet',    display: phrase.sujet },
     { role: 'predicat', display: phrase.predicat },
-    { role: 'cp',       display: phrase.cp },
+    { role: 'cp',       display: phrase.cp + '.' },
   ];
 }
 

@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Le champ lexical</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-base.css">
+<style>
+  :root { --app-header-bg: #7A6200; }
+
+  /* ── Mot mis en avant (N1 et N2) ──────────────────────────────────────── */
+  .mot-vedette {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(24px, 5vw, 34px);
+    font-weight: 900;
+    color: var(--app-text);
+    background: #fff;
+    border: 2px solid var(--app-border);
+    border-radius: 14px;
+    padding: 18px 28px;
+    text-align: center;
+    width: 100%;
+    line-height: 1.3;
+  }
+
+  /* ── Niveau 1 — boutons Oui / Non ─────────────────────────────────────── */
+  .oui-non-row {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    width: 100%;
+  }
+  .oui-non-btn {
+    flex: 1;
+    max-width: 200px;
+    min-height: 64px;
+    padding: 14px 20px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    border: 3px solid var(--app-border);
+    border-radius: 14px;
+    background: #fff;
+    color: var(--app-text);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    line-height: 1.3;
+  }
+  .oui-non-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; }
+  .oui-non-btn:disabled { cursor: default; opacity: 0.55; }
+  .oui-non-btn.correct { background: var(--app-correct-bg); color: var(--app-correct-fg); border-color: #059669; }
+  .oui-non-btn.wrong   { background: var(--app-wrong-bg);   color: var(--app-wrong-fg);   border-color: #DC2626; }
+  @media (prefers-reduced-motion: no-preference) {
+    .oui-non-btn { transition: border-color 0.15s, background 0.15s, transform 0.1s; }
+    .oui-non-btn:active:not(:disabled) { transform: scale(0.96); }
+  }
+
+  /* ── Niveau 2 — paniers ────────────────────────────────────────────────── */
+  .paniers-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+  }
+  .panier-btn {
+    min-height: 120px;
+    padding: 14px 12px;
+    font-family: 'Nunito', sans-serif;
+    border: 3px solid var(--app-header-bg);
+    border-radius: 14px;
+    background: #FBF5D6;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+  }
+  .panier-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; }
+  .panier-btn:disabled { cursor: default; }
+  .panier-btn.panier-statique { cursor: default; }
+  @media (prefers-reduced-motion: no-preference) {
+    .panier-btn:not(.panier-statique) { transition: border-color 0.15s, background 0.15s, transform 0.1s; }
+    .panier-btn:not(.panier-statique):active:not(:disabled) { transform: scale(0.98); }
+  }
+  .panier-nom {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--app-header-bg);
+  }
+  .panier-mots {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+    width: 100%;
+  }
+  .panier-mot {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--app-correct-fg);
+    background: var(--app-correct-bg);
+    border-radius: 8px;
+    padding: 3px 10px;
+    width: 100%;
+    text-align: center;
+  }
+
+  /* ── Niveau 3 — grille de mots ─────────────────────────────────────────── */
+  .mots-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    width: 100%;
+  }
+  .mot-btn {
+    min-height: 64px;
+    padding: 14px 22px;
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(20px, 4vw, 24px);
+    font-weight: 800;
+    border: 3px solid var(--app-border);
+    border-radius: 14px;
+    background: #fff;
+    color: var(--app-text);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    line-height: 1.3;
+  }
+  .mot-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; }
+  .mot-btn:disabled { cursor: default; }
+  .mot-btn.correct { background: var(--app-correct-bg); color: var(--app-correct-fg); border-color: #059669; }
+  .mot-btn.wrong   { background: var(--app-wrong-bg);   color: var(--app-wrong-fg);   border-color: #DC2626; }
+  @media (prefers-reduced-motion: no-preference) {
+    .mot-btn { transition: border-color 0.15s, background 0.15s, transform 0.1s; }
+    .mot-btn:active:not(:disabled) { transform: scale(0.96); }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header" role="banner">
+  <a href="../index.html" class="back-link">← Retour</a>
+  <h1>📚 Le champ lexical</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1 · reconnaître</button>
+  <button class="level-btn"        data-level="2" aria-pressed="false">Niveau 2 · trier</button>
+  <button class="level-btn"        data-level="3" aria-pressed="false">Niveau 3 · l'intrus</button>
+</div>
+
+<main>
+  <div class="question-box" id="question-box">Chargement…</div>
+
+  <div id="content-area"></div>
+
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="action-row">
+    <button class="new-btn" id="new-btn"><span aria-hidden="true">▶</span> Nouvel exercice</button>
+  </div>
+</main>
+
+<script src="appUtils.js"></script>
+<script>
+const questionBox = document.getElementById('question-box');
+const feedbackEl  = document.getElementById('feedback');
+const contentArea = document.getElementById('content-area');
+const newBtn      = document.getElementById('new-btn');
+
+// Toutes les tâches sont à instance signifiante : l'erreur est exploitable,
+// l'élève identifie et corrige sur la même question jusqu'à réussite.
+const TYPE_TACHE = 'instance';
+
+let currentLevel = 1;
+let state = {};
+
+// ── Banque de thèmes ───────────────────────────────────────────────────────────
+// Six thèmes, au moins 10 mots chacun. Un mot n'appartient qu'à un seul thème.
+const BANQUE = [
+  { theme: 'école',   mots: ['trousse', 'maîtresse', 'pupitre', 'crayon', 'cahier', 'tableau', 'règle', 'gomme', 'cartable', 'récréation'] },
+  { theme: 'forêt',   mots: ['chêne', 'écureuil', 'champignon', 'renard', 'fougère', 'biche', 'gland', 'sentier', 'hêtre', 'mousse'] },
+  { theme: 'mer',     mots: ['vague', 'sable', 'coquillage', 'phare', 'bateau', 'plage', 'algue', 'crabe', 'marée', 'dune'] },
+  { theme: 'cuisine', mots: ['casserole', 'farine', 'four', 'spatule', 'recette', 'couteau', 'marmite', 'tablier', 'épice', 'louche'] },
+  { theme: 'sport',   mots: ['ballon', 'terrain', 'arbitre', 'podium', 'entraîneur', 'maillot', 'filet', 'stade', 'médaille', 'chrono'] },
+  { theme: 'ville',   mots: ['trottoir', 'immeuble', 'tramway', 'vitrine', 'carrefour', 'piéton', 'panneau', 'fontaine', 'kiosque', 'avenue'] },
+];
+
+let lastThemeIdx = -1;
+
+// Tire un index de thème en évitant les exclusions et la répétition immédiate.
+function pickThemeIdx(exclude = []) {
+  let candidates = BANQUE.map((_, i) => i).filter(i => !exclude.includes(i) && i !== lastThemeIdx);
+  if (candidates.length === 0) candidates = BANQUE.map((_, i) => i).filter(i => !exclude.includes(i));
+  const idx = shuffle(candidates)[0];
+  lastThemeIdx = idx;
+  return idx;
+}
+
+// ── Helpers UI ─────────────────────────────────────────────────────────────────
+function resetUI() {
+  feedbackEl.className = 'feedback';
+  feedbackEl.textContent = '';
+  newBtn.classList.remove('visible');
+  contentArea.innerHTML = '';
+}
+
+function setFeedback(correct, msg) {
+  feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+  feedbackEl.textContent = msg;
+}
+
+function playSound(correct) {
+  if (correct) {
+    playCorrect();
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) launchConfetti();
+  } else {
+    playIncorrect();
+  }
+}
+
+function revealNew() {
+  newBtn.classList.add('visible');
+  newBtn.focus();
+}
+
+// ── Niveau 1 — Reconnaître un mot d'un champ lexical ──────────────────────────
+function setupLevel1() {
+  resetUI();
+
+  const themeIdx = pickThemeIdx();
+  const theme = BANQUE[themeIdx];
+
+  // 60 % : mot du thème (bonne réponse = Oui) ; 40 % : mot d'un autre thème (= Non).
+  const memeTheme = Math.random() < 0.6;
+  let mot, reponseCible;
+  if (memeTheme) {
+    mot = shuffle(theme.mots)[0];
+    reponseCible = 'oui';
+  } else {
+    const autreIdx = pickThemeIdx([themeIdx]);
+    mot = shuffle(BANQUE[autreIdx].mots)[0];
+    reponseCible = 'non';
+  }
+
+  state = { themeIdx, theme, mot, memeTheme, reponseCible, answered: false };
+
+  questionBox.innerHTML = `Est-ce que ce mot va avec le thème <strong>« ${theme.theme} »</strong> ?`;
+
+  const motEl = document.createElement('div');
+  motEl.className = 'mot-vedette';
+  motEl.textContent = mot;
+  contentArea.appendChild(motEl);
+
+  const row = document.createElement('div');
+  row.className = 'oui-non-row';
+
+  ['oui', 'non'].forEach((val, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'oui-non-btn';
+    btn.dataset.val = val;
+    btn.textContent = val === 'oui' ? 'Oui ✓' : 'Non ✗';
+    btn.setAttribute('aria-label', val === 'oui' ? 'Oui' : 'Non');
+    if (i === 0) btn.setAttribute('data-focus-target', '');
+    btn.addEventListener('click', () => handleLevel1(val, btn, row));
+    row.appendChild(btn);
+  });
+
+  contentArea.appendChild(row);
+  row.querySelector('[data-focus-target]').focus();
+}
+
+function handleLevel1(val, btn, row) {
+  if (state.answered) return;
+  const correct = val === state.reponseCible;
+
+  if (correct) {
+    state.answered = true;
+    row.querySelectorAll('.oui-non-btn').forEach(b => { b.disabled = true; });
+    btn.classList.add('correct');
+    const msg = state.memeTheme
+      ? `Oui ! « ${state.mot} » appartient bien au champ lexical de ${state.theme.theme}.`
+      : `Exact ! « ${state.mot} » n'appartient pas au champ lexical de ${state.theme.theme}.`;
+    setFeedback(true, msg);
+    playSound(true);
+    revealNew();
+  } else {
+    btn.disabled = true;
+    btn.classList.add('wrong');
+    const msg = state.memeTheme
+      ? `Non, « ${state.mot} » fait bien partie du thème ${state.theme.theme}. Appuie sur « Oui ».`
+      : `Non, « ${state.mot} » n'appartient pas au thème ${state.theme.theme}. Appuie sur « Non ».`;
+    setFeedback(false, msg);
+    playSound(false);
+    const next = row.querySelector('.oui-non-btn:not(:disabled)');
+    if (next) next.focus();
+  }
+}
+
+// ── Niveau 2 — Trier une série de mots entre deux thèmes ──────────────────────
+function setupLevel2() {
+  resetUI();
+
+  const idx1 = pickThemeIdx();
+  const idx2 = pickThemeIdx([idx1]);
+
+  // 3 mots de chaque thème, mélangés → série de 6 mots.
+  const serie = shuffle([
+    ...shuffle(BANQUE[idx1].mots).slice(0, 3).map(m => ({ mot: m, themeIdx: idx1 })),
+    ...shuffle(BANQUE[idx2].mots).slice(0, 3).map(m => ({ mot: m, themeIdx: idx2 })),
+  ]);
+
+  state = {
+    idx1, idx2,
+    theme1: BANQUE[idx1], theme2: BANQUE[idx2],
+    serie, cursor: 0,
+    placed: { [idx1]: [], [idx2]: [] },
+  };
+
+  questionBox.textContent = 'Touche le bon panier pour chaque mot.';
+  renderLevel2();
+}
+
+function renderLevel2() {
+  contentArea.innerHTML = '';
+  const { theme1, theme2, idx1, idx2, serie, cursor, placed } = state;
+  const serieTerminee = cursor >= serie.length;
+
+  const paniersWrap = document.createElement('div');
+  paniersWrap.className = 'paniers-wrap';
+
+  [{ t: theme1, idx: idx1 }, { t: theme2, idx: idx2 }].forEach(({ t, idx }, i) => {
+    const el = document.createElement(serieTerminee ? 'div' : 'button');
+    el.className = 'panier-btn' + (serieTerminee ? ' panier-statique' : '');
+    el.setAttribute('aria-label', `Panier ${t.theme}`);
+    if (!serieTerminee) {
+      if (i === 0) el.setAttribute('data-focus-target', '');
+      el.addEventListener('click', () => handleLevel2(idx));
+    }
+
+    const nom = document.createElement('div');
+    nom.className = 'panier-nom';
+    nom.textContent = t.theme;
+    el.appendChild(nom);
+
+    if (placed[idx].length > 0) {
+      const motsEl = document.createElement('div');
+      motsEl.className = 'panier-mots';
+      placed[idx].forEach(m => {
+        const motEl = document.createElement('div');
+        motEl.className = 'panier-mot';
+        motEl.textContent = m;
+        motsEl.appendChild(motEl);
+      });
+      el.appendChild(motsEl);
+    }
+
+    paniersWrap.appendChild(el);
+  });
+
+  contentArea.appendChild(paniersWrap);
+
+  if (!serieTerminee) {
+    const motEl = document.createElement('div');
+    motEl.className = 'mot-vedette';
+    motEl.textContent = serie[cursor].mot;
+    contentArea.appendChild(motEl);
+
+    const target = contentArea.querySelector('[data-focus-target]');
+    if (target) target.focus();
+  }
+}
+
+function handleLevel2(themeIdx) {
+  const { serie, cursor } = state;
+  if (cursor >= serie.length) return;
+
+  const motCourant = serie[cursor];
+  const correct = themeIdx === motCourant.themeIdx;
+
+  if (correct) {
+    state.placed[themeIdx].push(motCourant.mot);
+    state.cursor++;
+
+    if (state.cursor >= serie.length) {
+      renderLevel2();
+      setFeedback(true, 'Bravo ! Tu as classé tous les mots dans le bon champ lexical.');
+      playSound(true);
+      revealNew();
+    } else {
+      setFeedback(true, `« ${motCourant.mot} » : c'est dans le bon panier !`);
+      playCorrect();
+      renderLevel2();
+    }
+  } else {
+    const bonTheme = BANQUE[motCourant.themeIdx].theme;
+    setFeedback(false, `« ${motCourant.mot} » appartient au champ lexical de ${bonTheme}. Touche le bon panier.`);
+    playSound(false);
+    const firstPanel = contentArea.querySelector('.panier-btn');
+    if (firstPanel) firstPanel.focus();
+  }
+}
+
+// ── Niveau 3 — Trouver l'intrus ────────────────────────────────────────────────
+function setupLevel3() {
+  resetUI();
+
+  const themeIdx = pickThemeIdx();
+  const theme = BANQUE[themeIdx];
+
+  // 4 mots du thème + 1 intrus d'un autre thème.
+  const motsDuTheme = shuffle(theme.mots).slice(0, 4);
+  const autreIdx = pickThemeIdx([themeIdx]);
+  const intrus = shuffle(BANQUE[autreIdx].mots)[0];
+  const intrusTheme = BANQUE[autreIdx].theme;
+
+  const mots = shuffle([
+    ...motsDuTheme.map(m => ({ mot: m, intrus: false })),
+    { mot: intrus, intrus: true },
+  ]);
+
+  state = { themeIdx, theme, intrus, intrusTheme, mots, answered: false };
+
+  questionBox.innerHTML = `Quel mot n'appartient <strong>pas</strong> au champ lexical de <strong>« ${theme.theme} »</strong> ?`;
+
+  const grid = document.createElement('div');
+  grid.className = 'mots-grid';
+
+  mots.forEach(({ mot, intrus: isIntrus }, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'mot-btn';
+    btn.textContent = mot;
+    btn.setAttribute('aria-label', mot);
+    if (i === 0) btn.setAttribute('data-focus-target', '');
+    btn.addEventListener('click', () => handleLevel3(isIntrus, mot, btn, grid));
+    grid.appendChild(btn);
+  });
+
+  contentArea.appendChild(grid);
+  contentArea.querySelector('[data-focus-target]').focus();
+}
+
+function handleLevel3(isIntrus, mot, btn, grid) {
+  if (state.answered) return;
+
+  if (isIntrus) {
+    state.answered = true;
+    grid.querySelectorAll('.mot-btn').forEach(b => { b.disabled = true; });
+    btn.classList.add('correct');
+    setFeedback(true, `Bravo ! « ${state.intrus} » appartient au champ lexical de ${state.intrusTheme}, pas de ${state.theme.theme}.`);
+    playSound(true);
+    revealNew();
+  } else {
+    btn.disabled = true;
+    btn.classList.add('wrong');
+    setFeedback(false, `« ${mot} » appartient bien au champ lexical de ${state.theme.theme}. L'intrus est un autre mot.`);
+    playSound(false);
+    const next = grid.querySelector('.mot-btn:not(:disabled)');
+    if (next) next.focus();
+  }
+}
+
+// ── Navigation ─────────────────────────────────────────────────────────────────
+document.querySelectorAll('.level-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentLevel = parseInt(btn.dataset.level);
+    document.querySelectorAll('.level-btn').forEach(b => {
+      b.classList.remove('active');
+      b.setAttribute('aria-pressed', 'false');
+    });
+    btn.classList.add('active');
+    btn.setAttribute('aria-pressed', 'true');
+    newExercise();
+  });
+});
+
+newBtn.addEventListener('click', newExercise);
+
+function newExercise() {
+  if (currentLevel === 1)      setupLevel1();
+  else if (currentLevel === 2) setupLevel2();
+  else                         setupLevel3();
+}
+
+newExercise();
+</script>
+<script src="feedbackUtils.js"></script>
+</body>
+</html>
