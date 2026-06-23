@@ -1,7 +1,7 @@
 # Suivi des applications
 
 Audit complet — accessibilité (WCAG 2.2 AA), design portail, pédagogie PER.  
-Dernière mise à jour : 2026-06-23 (nettoyage SUIVI.md : fausses alertes seuil 22px résolues)  
+Dernière mise à jour : 2026-06-23 — correctif contraste feedback wrong (app-base.css)  
 Campagne audit accessibilité v2 démarrée le 2026-06-16
 
 > La colonne **« Audité v2 »** suit le nouveau cycle d'audit harmonisé **PER + accessibilité** (arbitrage croisé, distinction drill / instance). Un **❌** signifie « pas encore repassé selon la nouvelle doctrine », et **non** « non conforme ». Les correctifs déjà présents dans les fichiers restent en place.
@@ -17,6 +17,7 @@ Campagne audit accessibilité v2 démarrée le 2026-06-16
 | `apps/app-base.css` (v2) | `.back-link` : `display:inline-flex`, `align-items:center`, `min-height:44px`, `:focus-visible` ; `.level-bar gap` 10→12px ; `.level-btn` : `min-width:44px`, `:focus-visible` (inactif/actif) ; `.verify-btn` + `.new-btn` : `min-width:64px`, `:focus-visible` ; transitions déplacées dans `(prefers-reduced-motion: no-preference)` (bénéficie aux 9 apps utilisant app-base.css) |
 | `apps/app-base.css` (2026-06-19) | `.level-btn`, `.verify-btn`, `.new-btn` : `font-size` porté à `22px` (seuil texte interactif, `skills/accessibilite/SKILL.md` §2) ; bénéficie à toutes les apps utilisant `app-base.css` |
 | `apps/_template.html` | `role="banner"` sur header ; `role="status" aria-live="polite" aria-atomic="true"` sur feedback ; `newBtn.focus()` dans `showFeedback` |
+| `apps/app-base.css` (2026-06-23) | `--app-wrong-fg` : #991B1B → #891818 (contraste 6,8:1 → 7,8:1, seuil `skills/accessibilite/SKILL.md` §2) ; bénéficie à toutes les apps utilisant app-base.css |
 
 ---
 
