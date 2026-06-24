@@ -46,7 +46,7 @@ Ne jamais copier une app existante comme base.
 
 | `data-domain` | Branche               | Domaine PER | Header / bouton | Fond badge | Texte badge | Classe bouton         | Classe badge     | Classe icône     |
 |---------------|-----------------------|-------------|-----------------|------------|-------------|----------------------|------------------|------------------|
-| `francais`    | Français              | Langues     | `#B8960C`       | `#FBF5D6`  | `#7A6200`   | `.launch-btn.francais` | `.badge-francais` | `.icon-francais` |
+| `francais`    | Français              | Langues     | `#7A6200`       | `#FBF5D6`  | `#7A6200`   | `.launch-btn.francais` | `.badge-francais` | `.icon-francais` |
 | `allemand`    | Allemand              | Langues     | `#A08510`       | `#F5F0D0`  | `#6B5800`   | `.launch-btn.allemand` | `.badge-allemand` | `.icon-francais` |
 | `anglais`     | Anglais               | Langues     | `#8C7515`       | `#F0ECC8`  | `#5C4D00`   | `.launch-btn.anglais`  | `.badge-anglais`  | `.icon-francais` |
 | `maths`       | Mathématiques         | MSN         | `#C0272D`       | `#FDECEA`  | `#8B0000`   | `.launch-btn.maths`    | `.badge-maths`    | `.icon-maths`    |
