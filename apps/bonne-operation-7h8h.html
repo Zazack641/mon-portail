@@ -11,6 +11,9 @@
 <style>
   :root {
     --app-header-bg: #C0272D; /* branche Mathématiques (CIIP) */
+    --color-units:    #3B7DD8;
+    --color-tens:     #D64045;
+    --color-hundreds: #3A9E6F;
   }
 
   /* Carte de la situation à modéliser */
@@ -382,7 +385,7 @@
         calcStr = `${fmt(a)} − ${fmt(b)} = ${fmt(result)}`;
       } else if (scenario.kind === 'mul') {
         // grand nombre × petit facteur
-        a = randInt(100, 999);
+        a = randInt(1000, 9999);
         b = randInt(2, 9);
         result = a * b;
         calcStr = `${fmt(a)} × ${b} = ${fmt(result)}`;
