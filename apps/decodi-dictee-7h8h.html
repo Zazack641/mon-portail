@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Dictée DéCoDi — Modules 6-10</title>
+<title>Dictée DéCoDi — Modules 11-15</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
@@ -133,7 +133,8 @@
     min-height: 64px;
     touch-action: manipulation;
     -webkit-appearance: none;
-    transition: border-color 0.15s, outline 0.1s;
+    outline: none;
+    transition: border-color 0.15s;
   }
   .word-input:focus { border-color: #B8960C; outline: 3px solid #B8960C; outline-offset: 2px; }
 
@@ -185,7 +186,8 @@
     min-height: 60px;
     touch-action: manipulation;
     -webkit-appearance: none;
-    transition: border-color 0.15s, outline 0.1s;
+    outline: none;
+    transition: border-color 0.15s;
   }
   .recopy-input:focus { border-color: #D64045; outline: 3px solid #D64045; outline-offset: 2px; }
   .recopy-ok {
@@ -226,18 +228,11 @@
     flex-wrap: wrap;
     margin-top: 20px;
   }
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      transition-duration: 0.01ms !important;
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-    }
-  }
 </style>
 </head>
 <body>
 
-<header class="app-header">
+<header class="app-header" role="banner">
   <a href="../index.html" class="back-link">← Retour</a>
   <h1>✍️ Dictée DéCoDi</h1>
   <div class="header-spacer"></div>
@@ -289,7 +284,7 @@
       aria-label="Saisir le mot dicté"
     >
 
-    <div class="feedback" id="feedback"></div>
+    <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
 
     <div class="recopy-section" id="recopy-section" style="display:none">
       <p class="recopy-label">Recopie le mot : <strong id="recopy-word-display"></strong></p>
@@ -328,32 +323,37 @@
 
 <script src="appUtils.js"></script>
 <script>
-// ── Données — Modules 6 à 10 (C1 / 3H-4H) ───────────────────────────────────
+// ── Données — Modules 11 à 15 (C2 / 5H-6H) ──────────────────────────────────
 const DECODI_DATA = {
-  "Module 6": {
-    "ss": ["fossé","brosse","mousse","bosse","trousse","tissu","tasse","chasse","frousse","assis","passé","rousse","lisse","rassure","passent","pousse","tousse"],
-    "n":  ["bassine","farine","prune","journal","tartine","nid","banane","tourne","fini","bonne","journée","nature","note","mine","maline","tourné","animal","numéro"],
-    "è-ê-ë": ["chèvre","trèfle","forêt","lièvre","vipère","fourmilière","fièvre","frère","fête","chêne","père","lumière","lève","élève","promène","après","problème","très","prêt","bête","fière"]
+  "Module 11": {
+    "g-gu":   ["gâteau","frigo","légumes","grâce","portugais","groupe","fatigant","malgré","degré","ingrédient","gramme","glisser","garder","gout","naviguer","guidait","longue","guerre","genou","fromage","bougie","danger","manger","passage","mélanger","tragique","gentil","équipage","bagage","garage","grange"],
+    "eu-eur": ["feu","deux","Europe","rongeur","fleuve","pêcheur","agriculteur","bleu","jeu","peur","nombreux","malheureux","jeune","peuple","mystérieux","visiteur","sauveur","joueur","furieux","plusieurs","longueur","profondeur","couleur","pleurer","creuser","heure"],
+    "z":      ["zèbre","gazelle","gazon","douze","chimpanzé","magazine","zoo","lézard","zéro","zébrure","bronze","trapéziste","dizaine","bizarrement","zut","bizarre","bazar","bronzé"]
   },
-  "Module 7": {
-    "s":     ["valise","trésor","fusil","usine","épuisé","surprise","méprise","rusé","utilisent","posent","poste","sabre","soupe","piste","salle","ours","sou","sport","sportif","journaliste","sourient","poursuivent"],
-    "on-om": ["violon","buisson","hérisson","homme","charbon","tronc","bouchon","pont","montre","télévision","violoniste","sonne","frisson","son","résonne","ont","volonté","long","bon","sont","font"],
-    "d":     ["dos","monde","dune","doudoune","douche","soldat","vide","dès","nomade","possèdent","tondent","produisent","mode","dur","idéal","idée","balade","départ","malade","altitude","dure","admire","formidable","dire"]
+  "Module 12": {
+    "gn":  ["agneau","araignée","champignon","châtaigne","chignon","cigogne","montagne","ognon","peigne","peignoir","rossignol","vigne","baigner","beignet","gagner","magnifique","campagne","grignote","mignon","compagnon","ligne","poignée","soigner","consigne"],
+    "y":   ["crayon","noyau","cygne","pyjama","tuyau","paysan","stylo","paysage","cyclope","labyrinthe","pyramide","payer","type","joyeux","hyper","essayer","voyage","foyer","voyageurs","effrayé","voyant","royaume","Égypte","joyaux","pays","mystère","papyrus","incroyable"],
+    "k":   ["kiosque","ticket","cake","kaki","basket","ski","skier","koala","kangourou","Viking","kilo","Danemark","kilomètre","kidnappait","snack","cookies","paprika","kebab"],
+    "ph":  ["photo","éléphant","dauphin","phoque","phare","téléphone","pharaons","orphelin","catastrophe","sarcophage","photographe","photographié","téléphoner","phrase","pharmacie","alphabet","géographie"],
+    "x":   ["galaxie","taxi","index","texte","boxe","klaxon","exploser","exploit","explorer","extraordinaire","expérience","excellent","fixer","mixer","vexer","extérieur","exact","excité","excuser","exemple","exercice","exagérer","expliquer"]
   },
-  "Module 8": {
-    "en-em-an-am": ["panda","maman","bambou","viande","branche","panthère","savane","antilope","dent","animal","blanche","pendant","ans","plante","temps","prend","souvent","suspendre","résistant","trente","aliment","ensemble","surprend","mordant","défense","puissant","méfiante","sentir","apprendre","chante"],
-    "qu": ["équipe","orque","banquise","quarante","flaque","moustique","pastèque","attaquant","marque","fréquent","manque","qualifie","fantastique","Arctique","Antarctique","traque","attaque","scientifique","quasiment","jusque"],
-    "oi": ["bois","noir","oie","avoine","framboise","poire","doigt","poil","froid","mois","proie","parfois","assoient","voit","foie","oison","mémoire","endroit","voix","choisi","toi","voir","maladroit","choix","avoir","pouvoir","boire"]
+  "Module 13": {
+    "ain-aim-ein": ["main","train","bain","pain","humain","ceinture","peinture","poulain","copain","maintenant","demain","terrain","vilain","certains","grain","ainsi","craintif","soudain","plaindre","faim","peintre","peindre","peint","plein","frein","éteindre","atteindre","rein"],
+    "oin":  ["coin","foin","groin","pointe","poing","shampoing","pointu","besoin","loin","soin","moins","rejoindre","témoin","point","coincé"],
+    "ien":  ["chien","indien","magicien","mécanicien","bien","vient","italien","ancien","mien","sien","lien","tien","musicien","bienvenu","combien","bientôt","végétarien","quotidien","gardien","prévient","appartient","soutient","souvient","revient","rien"],
+    "un":   ["jungle","brun","lundi","chacun","aucun"]
   },
-  "Module 9": {
-    "e":      ["fenêtre","cheval","renard","melon","chemise","refuse","propreté","environnement","saleté","appartement","retrouve","rapidement","jeton","petit","veste","lettre","lunettes","poubelle","verre","univers","Terre","espoir","préservons","appelle","belle","tristesse","nouvelle","cette","jette","terrible","super","quelques","mettre","personne","perd","reste","ferme","naturellement","tellement","devienne"],
-    "er-ez-et": ["poulet","fermier","tablier","robinet","saladier","boucher","nez","chantier","atelier","violet","préparer","diner","premier","laver","déposer","saler","poivrer","huiler","enfourner","tourner","métier","pratiquer","poissonnier","bijoutier","chez","ouvrier","menuisier","objet","dernier","assez"],
-    "in-im": ["bottines","lutin","lapin","sapin","chemin","jardin","épinards","romarin","inquiet","terminer","impuissant","matin","insu","individu","fini","impressionné","invité","minuit","introduire","installe","instant","pétrin","inquiéter","interdit","imprudent","voisin","jardinier","brin","festin","malin","machine","important","intéressant"]
+  "Module 14": {
+    "ill":  ["papillon","chenille","coquillage","coquille","fille","famille","quille","cheville","aiguille","cuillère","brindille","grille","vanille","billet","juillet","lentille","maquillage","habiller","briller","griller","gentille","brillant","bille"],
+    "ail":  ["poulailler","caille","paille","médaille","portail","ail","caillou","corail","d'ailleurs","volaille","maillot","bétail","travail","travailler","taille","bataille","bâiller","ailleurs","écaille","paillette","détail"],
+    "eil":  ["soleil","abeille","bouteille","oreille","corbeille","réveil","orteil","corneille","oreiller","vieillir","vieillesse","vieille","sommeil","réveiller","merveilleux","conseil","conseiller","meilleur","surveiller","appareil","pareil","veiller"],
+    "ouil": ["grenouille","citrouille","nouilles","bouillotte","bouilloire","fenouil","brouillard","chatouiller","mouiller","ratatouille","bouillir","bouillant","trouillard","fouiller","débrouiller","bouillon","bouillie"],
+    "euil": ["feuille","fauteuil","écureuil","chevreuil","millefeuille","portefeuille","deuil","feuilleter"]
   },
-  "Module 10": {
-    "ai-ei": ["aile","baleine","reine","laine","maison","madeleine","fraise","lait","monnaie","venait","appelait","anniversaire","marraine","était","souhait","aimable","aimait","avait","malaise","domaine","épaisse","promenait","dormait","paisiblement","baiser","désormais","plaisir","achetait","laitier","passait","livrait","donnait","frais","vrai","jamais"],
-    "c-ç":  ["collier","café","école","costume","clé","sac","découvre","cours","écrire","classe","compter","récré","courir","calme","rencontre","camarade","scolaire","spectacle","raconte","raconté","acte","public","citron","ciel","balançoire","scène","français","merci","reçoivent","leçon","ça","silence","remercie","félicite","nécessaire","vacances","concentré","commence"],
-    "au-eau": ["autruche","bateau","chaussure","ruisseau","corbeau","crapaud","épaule","chameau","jaune","oiseau","saucisse","eau","animaux","niveau","autre","pauvre","peau","chaud","troupeau","saute","hausse","aussitôt","sauvé","beau","chauffer"]
+  "Module 15": {
+    "tion-tien": ["émotion","attention","martien","dalmatien","égyptien","potion","imagination","solution","invention","information","communication","conversation","occupation","concentration","création","sensation","modification","invitation","position","relation","action","natation","population","exception"],
+    "w": ["wagon","kiwi"],
+    "h": ["humain","homme","hibou","huit","panthère","hurler","labyrinthe","huile","histoire","aujourd'hui","habitat","habiter","habitant","bonheur","habit","habiller","hiver","heureux","malheureux","hasard","hiberner","habile","hyper","souhait"]
   }
 };
 
