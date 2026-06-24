@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>La bonne opération — Maths 7H-8H</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-base.css">
+<style>
+  :root {
+    --app-header-bg: #C0272D; /* branche Mathématiques (CIIP) */
+    --color-units:    #3B7DD8;
+    --color-tens:     #D64045;
+    --color-hundreds: #3A9E6F;
+  }
+
+  /* Carte de la situation à modéliser */
+  .story {
+    background: #fff;
+    border: 1px solid var(--app-border);
+    border-radius: 16px;
+    padding: 22px 24px;
+    width: 100%;
+    text-align: center;
+  }
+  .story-emoji {
+    font-size: clamp(44px, 11vw, 68px);
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+  .story-text {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: clamp(18px, 3.6vw, 22px);
+    font-weight: 600;
+    line-height: 1.5;
+  }
+  .story-question {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: clamp(18px, 3.6vw, 22px);
+    line-height: 1.5;
+    margin-top: 12px;
+    color: var(--app-text);
+  }
+
+  /* Grille de boutons opération */
+  .choices {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .choice-btn {
+    flex: 1 1 0;
+    min-width: 80px;
+    max-width: 200px;
+    min-height: 80px;
+    padding: 12px 18px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: clamp(32px, 8vw, 48px);
+    border-radius: 16px;
+    border: 3px solid var(--app-border);
+    background: #fff;
+    color: var(--app-text);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+  .choice-btn.correct {
+    background: var(--app-correct-bg);
+    border-color: var(--app-correct-fg);
+    color: var(--app-correct-fg);
+  }
+  .choice-btn.wrong {
+    background: var(--app-wrong-bg);
+    border-color: var(--app-wrong-fg);
+    color: var(--app-wrong-fg);
+  }
+  .choice-btn:disabled { cursor: default; }
+  .choice-btn:focus-visible {
+    outline: 3px solid var(--app-header-bg);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .choice-btn { transition: transform 0.12s, background 0.15s, border-color 0.15s; }
+    .choice-btn:not(:disabled):active { transform: scale(0.96); }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header" role="banner">
+  <a href="../index.html" class="back-link">← Retour</a>
+  <h1>🧩 La bonne opération</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1 · × ou ÷</button>
+  <button class="level-btn"        data-level="2" aria-pressed="false">Niveau 2 · 4 opérations</button>
+  <button class="level-btn"        data-level="3" aria-pressed="false">Niveau 3 · grands nombres</button>
+</div>
+
+<main>
+  <div class="question-box" id="question-box">Lis l'histoire et choisis l'opération.</div>
+
+  <div class="story" id="story" aria-live="polite" aria-atomic="true">
+    <div class="story-emoji" id="story-emoji" aria-hidden="true">🧩</div>
+    <p class="story-text" id="story-text">Chargement…</p>
+    <p class="story-question" id="story-question"></p>
+  </div>
+
+  <div class="choices" id="choices" role="group" aria-label="Choisir l'opération"></div>
+
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="action-row">
+    <button class="new-btn" id="new-btn"><span aria-hidden="true">▶</span> Nouvel exercice</button>
+  </div>
+</main>
+
+<script src="appUtils.js"></script>
+<script>
+  // ── Références DOM ──────────────────────────────────────────────────────────
+  const feedbackEl   = document.getElementById('feedback');
+  const storyEmojiEl = document.getElementById('story-emoji');
+  const storyTextEl  = document.getElementById('story-text');
+  const storyQEl     = document.getElementById('story-question');
+  const choicesEl    = document.getElementById('choices');
+  const newBtn       = document.getElementById('new-btn');
+
+  // ── Type de tâche ───────────────────────────────────────────────────────────
+  // 'drill' : chaque clic sur un bouton clôt l'item — pas de retry sur la même
+  // instance. Le choix d'opération est une décision de reconnaissance : un retry
+  // encouragerait le tâtonnement aveugle (3 options restantes) plutôt que la
+  // réflexion sur la structure de la situation.
+  const TYPE_TACHE = 'drill';
+
+  let currentLevel = 1;
+  let state = {};
+
+  // ── Formatage des nombres (espace fine insécable comme séparateur de milliers)
+  function fmt(n) {
+    return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  }
+
+  // ── Banques de situations ───────────────────────────────────────────────────
+
+  // Niveau 1 : × (a groupes de b éléments)
+  const SC_MUL1 = [
+    { emoji: '🪑', kind: 'mul',
+      text: (a, b) => `Une salle a ${a} rangées de ${b} chaises.`,
+      question: 'Combien y a-t-il de chaises en tout ?',
+      why: 'On réunit plusieurs groupes identiques : on multiplie.' },
+    { emoji: '🚌', kind: 'mul',
+      text: (a, b) => `${a} cars transportent chacun ${b} élèves.`,
+      question: "Combien y a-t-il d'élèves en tout ?",
+      why: 'Plusieurs groupes de même taille : on multiplie.' },
+    { emoji: '📦', kind: 'mul',
+      text: (a, b) => `${a} boîtes contiennent chacune ${b} crayons.`,
+      question: 'Combien y a-t-il de crayons en tout ?',
+      why: 'Plusieurs boîtes identiques : on multiplie.' },
+    { emoji: '🍫', kind: 'mul',
+      text: (a, b) => `${a} tablettes de chocolat ont chacune ${b} carrés.`,
+      question: 'Combien y a-t-il de carrés en tout ?',
+      why: 'On répète le même nombre plusieurs fois : on multiplie.' },
+    { emoji: '🌱', kind: 'mul',
+      text: (a, b) => `Dans le potager, ${a} rangées de ${b} plants de tomates.`,
+      question: 'Combien y a-t-il de plants en tout ?',
+      why: 'Des rangées de taille identique : on multiplie.' },
+  ];
+
+  // Niveau 1 : ÷ (a total réparti en b groupes égaux)
+  const SC_DIV1 = [
+    { emoji: '🍕', kind: 'div',
+      text: (a, b) => `On partage ${a} parts de pizza entre ${b} amis.`,
+      question: 'Combien chaque ami reçoit-il de parts ?',
+      why: 'On répartit en parts égales : on divise.' },
+    { emoji: '📚', kind: 'div',
+      text: (a, b) => `${a} livres sont rangés en ${b} piles identiques.`,
+      question: 'Combien y a-t-il de livres par pile ?',
+      why: 'On partage un total en groupes égaux : on divise.' },
+    { emoji: '🏃', kind: 'div',
+      text: (a, b) => `${a} élèves forment ${b} équipes de taille égale.`,
+      question: "Combien y a-t-il d'élèves par équipe ?",
+      why: 'On divise un groupe en équipes égales : on divise.' },
+    { emoji: '🎨', kind: 'div',
+      text: (a, b) => `${a} feutres sont rangés dans ${b} boîtes identiques.`,
+      question: 'Combien y a-t-il de feutres par boîte ?',
+      why: 'On répartit équitablement : on divise.' },
+    { emoji: '🎁', kind: 'div',
+      text: (a, b) => `On répartit ${a} cadeaux entre ${b} enfants de façon égale.`,
+      question: 'Combien chaque enfant reçoit-il de cadeaux ?',
+      why: 'On partage un total de façon égale : on divise.' },
+  ];
+
+  // Niveaux 2-3 : + (réunir deux quantités)
+  const SC_ADD = [
+    { emoji: '📖', kind: 'add',
+      text: (a, b) => `La bibliothèque a ${fmt(a)} livres de fiction et ${fmt(b)} documentaires.`,
+      question: 'Combien de livres en tout ?',
+      why: 'On réunit deux quantités : on additionne.' },
+    { emoji: '🎫', kind: 'add',
+      text: (a, b) => `${fmt(a)} billets ont été vendus en ligne et ${fmt(b)} au guichet.`,
+      question: 'Combien de billets vendus au total ?',
+      why: 'On combine deux groupes : on additionne.' },
+    { emoji: '🌍', kind: 'add',
+      text: (a, b) => `Une région a ${fmt(a)} habitants en ville et ${fmt(b)} à la campagne.`,
+      question: "Combien d'habitants au total ?",
+      why: "On réunit les deux groupes d'habitants : on additionne." },
+    { emoji: '🚲', kind: 'add',
+      text: (a, b) => `Un magasin a vendu ${fmt(a)} articles en mars et ${fmt(b)} en avril.`,
+      question: 'Combien en tout sur ces deux mois ?',
+      why: 'On réunit les ventes des deux mois : on additionne.' },
+  ];
+
+  // Niveaux 2-3 : − (retirer ou trouver la différence)
+  const SC_SUB = [
+    { emoji: '🏭', kind: 'sub',
+      text: (a, b) => `Une usine avait ${fmt(a)} pièces en stock. Elle en a vendu ${fmt(b)}.`,
+      question: 'Combien de pièces reste-t-il ?',
+      why: 'On retire des pièces du stock : on soustrait.' },
+    { emoji: '🌿', kind: 'sub',
+      text: (a, b) => `Un fermier récolte ${fmt(a)} kg de légumes. Il en vend ${fmt(b)} kg au marché.`,
+      question: 'Combien de kg lui reste-t-il ?',
+      why: 'On retire ce qui est vendu du total : on soustrait.' },
+    { emoji: '🏟️', kind: 'sub',
+      text: (a, b) => `Le stade peut accueillir ${fmt(a)} personnes. ${fmt(b)} places sont déjà réservées.`,
+      question: 'Combien de places sont encore libres ?',
+      why: 'On retire les places réservées du total : on soustrait.' },
+    { emoji: '🎒', kind: 'sub',
+      text: (a, b) => `Une école a commandé ${fmt(a)} cahiers. Elle en a reçu ${fmt(b)}.`,
+      question: 'Combien de cahiers manquent encore ?',
+      why: 'On cherche ce qui reste à recevoir : on soustrait.' },
+  ];
+
+  // Niveau 2 : × (a groupes × b par groupe, chiffres 2-3 digits)
+  const SC_MUL2 = [
+    { emoji: '🏨', kind: 'mul',
+      text: (a, b) => `Un hôtel a ${a} étages avec ${b} chambres par étage.`,
+      question: 'Combien y a-t-il de chambres en tout ?',
+      why: 'Chaque étage a le même nombre de chambres : on multiplie.' },
+    { emoji: '🏫', kind: 'mul',
+      text: (a, b) => `${a} classes ont chacune ${b} élèves.`,
+      question: "Combien y a-t-il d'élèves en tout ?",
+      why: "Chaque classe a le même nombre d'élèves : on multiplie." },
+    { emoji: '🎟️', kind: 'mul',
+      text: (a, b) => `Un festival a ${a} concerts. ${b} spectateurs assistent à chacun.`,
+      question: 'Combien de personnes au total ?',
+      why: 'Même nombre à chaque concert : on multiplie.' },
+    { emoji: '🛒', kind: 'mul',
+      text: (a, b) => `${a} caisses de supermarché traitent ${b} clients à l'heure.`,
+      question: "Combien de clients à l'heure en tout ?",
+      why: 'Chaque caisse traite le même nombre de clients : on multiplie.' },
+  ];
+
+  // Niveau 3 : × (grand nombre × petit facteur)
+  const SC_MUL3 = [
+    { emoji: '🏭', kind: 'mul',
+      text: (a, b) => `Une machine fabrique ${fmt(a)} pièces par heure. Elle tourne ${b} heures.`,
+      question: 'Combien de pièces produit-elle ?',
+      why: 'On répète la même production chaque heure : on multiplie.' },
+    { emoji: '🚜', kind: 'mul',
+      text: (a, b) => `Un fermier récolte ${fmt(a)} kg de blé par champ. Il a ${b} champs.`,
+      question: 'Quelle est la récolte totale ?',
+      why: 'Chaque champ produit la même quantité : on multiplie.' },
+    { emoji: '🚚', kind: 'mul',
+      text: (a, b) => `Un camion transporte ${fmt(a)} kg par voyage. Il fait ${b} voyages.`,
+      question: 'Combien de kg transporte-t-il au total ?',
+      why: 'Chaque voyage transporte la même masse : on multiplie.' },
+    { emoji: '🏗️', kind: 'mul',
+      text: (a, b) => `Un chantier pose ${fmt(a)} briques par jour pendant ${b} jours.`,
+      question: 'Combien de briques en tout ?',
+      why: 'Le même nombre est posé chaque jour : on multiplie.' },
+  ];
+
+  // Niveau 2 : ÷ (répartition en groupes, chiffres 3-4 digits)
+  const SC_DIV2 = [
+    { emoji: '🏫', kind: 'div',
+      text: (a, b) => `${fmt(a)} élèves sont répartis dans ${b} classes de même taille.`,
+      question: "Combien y a-t-il d'élèves par classe ?",
+      why: 'On partage un total en groupes égaux : on divise.' },
+    { emoji: '🎁', kind: 'div',
+      text: (a, b) => `Une association distribue ${fmt(a)} jouets à ${b} enfants en parts égales.`,
+      question: 'Combien chaque enfant reçoit-il de jouets ?',
+      why: 'On répartit équitablement : on divise.' },
+    { emoji: '📦', kind: 'div',
+      text: (a, b) => `On charge ${fmt(a)} cartons dans ${b} camions en quantité égale.`,
+      question: 'Combien y a-t-il de cartons par camion ?',
+      why: 'On répartit un total de façon égale : on divise.' },
+    { emoji: '🏃', kind: 'div',
+      text: (a, b) => `Un marathon de ${fmt(a)} coureurs est organisé en ${b} départs.`,
+      question: 'Combien de coureurs par départ ?',
+      why: 'On répartit les coureurs en groupes égaux : on divise.' },
+  ];
+
+  // Niveau 3 : ÷ (grand total, petit diviseur)
+  const SC_DIV3 = [
+    { emoji: '🏭', kind: 'div',
+      text: (a, b) => `Une usine produit ${fmt(a)} pièces en ${b} jours de travail égaux.`,
+      question: 'Combien de pièces par jour ?',
+      why: 'On partage la production totale en jours égaux : on divise.' },
+    { emoji: '🎫', kind: 'div',
+      text: (a, b) => `${fmt(a)} spectateurs sont répartis dans ${b} secteurs identiques.`,
+      question: 'Combien de spectateurs par secteur ?',
+      why: 'On répartit un total en secteurs égaux : on divise.' },
+    { emoji: '🚚', kind: 'div',
+      text: (a, b) => `Une livraison de ${fmt(a)} kg est chargée dans ${b} palettes égales.`,
+      question: 'Combien de kg par palette ?',
+      why: 'On partage un total en groupes égaux : on divise.' },
+    { emoji: '🌾', kind: 'div',
+      text: (a, b) => `${fmt(a)} graines sont réparties dans ${b} sachets en quantité égale.`,
+      question: 'Combien de graines par sachet ?',
+      why: 'On partage équitablement : on divise.' },
+  ];
+
+  // ── Génération d'un exercice ────────────────────────────────────────────────
+  function generateExercise() {
+    let scenario, a, b, result, calcStr;
+
+    if (currentLevel === 1) {
+      // × ou ÷, tables de 2 à 9
+      const pool = pick(SC_MUL1.concat(SC_DIV1), 1);
+      scenario = pool[0];
+      if (scenario.kind === 'mul') {
+        a = randInt(2, 9);
+        b = randInt(2, 9);
+        result = a * b;
+        calcStr = `${a} × ${b} = ${result}`;
+      } else {
+        // a = dividende, b = diviseur, résultat = a ÷ b (entier)
+        const q = randInt(2, 9);
+        b = randInt(2, 9);
+        a = q * b;
+        result = q;
+        calcStr = `${a} ÷ ${b} = ${result}`;
+      }
+
+    } else if (currentLevel === 2) {
+      // 4 opérations, nombres 3-4 chiffres (100-9 999)
+      const pool = pick([...SC_ADD, ...SC_SUB, ...SC_MUL2, ...SC_DIV2], 1);
+      scenario = pool[0];
+      if (scenario.kind === 'add') {
+        a = randInt(100, 4500);
+        b = randInt(100, Math.min(4500, 9500 - a));
+        result = a + b;
+        calcStr = `${fmt(a)} + ${fmt(b)} = ${fmt(result)}`;
+      } else if (scenario.kind === 'sub') {
+        b = randInt(100, 2000);
+        a = randInt(b + 100, Math.min(9900, b + 4000));
+        result = a - b;
+        calcStr = `${fmt(a)} − ${fmt(b)} = ${fmt(result)}`;
+      } else if (scenario.kind === 'mul') {
+        a = randInt(10, 99);
+        b = randInt(10, 99);
+        result = a * b;
+        calcStr = `${a} × ${b} = ${fmt(result)}`;
+      } else {
+        // ÷ : diviseur × quotient = dividende
+        b = randInt(10, 50);
+        const q = randInt(10, 99);
+        a = b * q;
+        result = q;
+        calcStr = `${fmt(a)} ÷ ${b} = ${result}`;
+      }
+
+    } else {
+      // Niveau 3 : 4 opérations, grands nombres (jusqu'à 99 999)
+      const pool = pick([...SC_ADD, ...SC_SUB, ...SC_MUL3, ...SC_DIV3], 1);
+      scenario = pool[0];
+      if (scenario.kind === 'add') {
+        a = randInt(10000, 45000);
+        b = randInt(10000, Math.min(45000, 95000 - a));
+        result = a + b;
+        calcStr = `${fmt(a)} + ${fmt(b)} = ${fmt(result)}`;
+      } else if (scenario.kind === 'sub') {
+        b = randInt(5000, 30000);
+        a = randInt(b + 5000, Math.min(99000, b + 50000));
+        result = a - b;
+        calcStr = `${fmt(a)} − ${fmt(b)} = ${fmt(result)}`;
+      } else if (scenario.kind === 'mul') {
+        // grand nombre × petit facteur
+        a = randInt(1000, 9999);
+        b = randInt(2, 9);
+        result = a * b;
+        calcStr = `${fmt(a)} × ${b} = ${fmt(result)}`;
+      } else {
+        // ÷ : dividende = diviseur × quotient (grand quotient, petit diviseur)
+        b = randInt(2, 9);
+        const q = randInt(100, 9999);
+        a = b * q;
+        result = q;
+        calcStr = `${fmt(a)} ÷ ${b} = ${fmt(result)}`;
+      }
+    }
+
+    return { scenario, a, b, result, calcStr };
+  }
+
+  // ── Rendu des boutons de choix ──────────────────────────────────────────────
+  function renderChoices() {
+    const ops = currentLevel === 1
+      ? shuffle([
+          { kind: 'mul', label: '×', ariaLabel: 'Multiplier' },
+          { kind: 'div', label: '÷', ariaLabel: 'Diviser' },
+        ])
+      : shuffle([
+          { kind: 'add', label: '+', ariaLabel: 'Additionner' },
+          { kind: 'sub', label: '−', ariaLabel: 'Soustraire' },
+          { kind: 'mul', label: '×', ariaLabel: 'Multiplier' },
+          { kind: 'div', label: '÷', ariaLabel: 'Diviser' },
+        ]);
+
+    choicesEl.innerHTML = '';
+    ops.forEach((op, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.textContent = op.label;
+      btn.setAttribute('aria-label', op.ariaLabel);
+      btn.setAttribute('tabindex', idx === 0 ? '0' : '-1');
+      btn.dataset.kind = op.kind;
+      btn.addEventListener('click', () => handleChoice(op.kind, btn));
+      choicesEl.appendChild(btn);
+    });
+  }
+
+  // ── Feedback (point unique d'appel) ────────────────────────────────────────
+  function showFeedback(correct, msg) {
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = msg;
+    if (correct) {
+      playCorrect();
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        launchConfetti();
+      }
+    } else {
+      playIncorrect();
+    }
+    // TYPE_TACHE = 'drill' : l'item est clos, on affiche le bouton suivant.
+    newBtn.classList.add('visible');
+    newBtn.focus();
+  }
+
+  // ── Gestion du clic sur un bouton opération ─────────────────────────────────
+  function handleChoice(kind, btn) {
+    if (state.answered) return;
+    state.answered = true;
+
+    choicesEl.querySelectorAll('.choice-btn').forEach(b => { b.disabled = true; });
+
+    const correct = (kind === state.scenario.kind);
+    btn.classList.add(correct ? 'correct' : 'wrong');
+
+    if (correct) {
+      showFeedback(true,
+        `Bravo ! ${state.scenario.why} Le calcul est : ${state.calcStr}. Appuie sur « Nouvel exercice » pour continuer.`);
+    } else {
+      showFeedback(false,
+        `Pas tout à fait. ${state.scenario.why} Le bon calcul est : ${state.calcStr}. Appuie sur « Nouvel exercice » pour continuer.`);
+    }
+  }
+
+  // ── Nouvel exercice ─────────────────────────────────────────────────────────
+  function newExercise() {
+    feedbackEl.className = 'feedback';
+    feedbackEl.textContent = '';
+    newBtn.classList.remove('visible');
+
+    const ex = generateExercise();
+    state = {
+      scenario: ex.scenario,
+      a:        ex.a,
+      b:        ex.b,
+      result:   ex.result,
+      calcStr:  ex.calcStr,
+      answered: false,
+    };
+
+    storyEmojiEl.textContent = ex.scenario.emoji;
+    storyTextEl.textContent  = ex.scenario.text(ex.a, ex.b);
+    storyQEl.textContent     = ex.scenario.question;
+
+    renderChoices();
+    const firstBtn = choicesEl.querySelector('.choice-btn');
+    if (firstBtn) firstBtn.focus();
+  }
+
+  // ── Navigation clavier dans les choix (roving tabindex) ──────────────────
+  choicesEl.addEventListener('keydown', e => {
+    const btns = Array.from(choicesEl.querySelectorAll('.choice-btn:not(:disabled)'));
+    const cur = btns.indexOf(document.activeElement);
+    if (cur === -1) return;
+
+    let next = -1;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown')  next = (cur + 1) % btns.length;
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')    next = (cur - 1 + btns.length) % btns.length;
+
+    if (next !== -1) {
+      e.preventDefault();
+      btns.forEach(b => b.setAttribute('tabindex', '-1'));
+      btns[next].setAttribute('tabindex', '0');
+      btns[next].focus();
+    }
+  });
+
+  // ── Sélecteur de niveau ─────────────────────────────────────────────────────
+  // NE PAS MODIFIER ce bloc — convention partagée entre toutes les apps.
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLevel = parseInt(btn.dataset.level);
+      document.querySelectorAll('.level-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+      newExercise();
+    });
+  });
+
+  newBtn.addEventListener('click', newExercise);
+
+  // Raccourcis clavier : 1–4 sélectionnent un bouton ; Entrée/Espace = nouvel exercice
+  document.addEventListener('keydown', e => {
+    if (state.answered) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); newBtn.click(); }
+      return;
+    }
+    const idx = parseInt(e.key, 10);
+    if (idx >= 1 && idx <= 4) {
+      const btns = choicesEl.querySelectorAll('.choice-btn:not(:disabled)');
+      if (btns[idx - 1]) btns[idx - 1].click();
+    }
+  });
+
+  // ── Démarrage ───────────────────────────────────────────────────────────────
+  newExercise();
+</script>
+<script src="feedbackUtils.js"></script>
+</body>
+</html>
