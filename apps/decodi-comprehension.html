@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="app-base.css">
 <style>
   :root {
-    --app-header-bg: #B8960C;
+    --app-header-bg: #7A6200;
   }
 
   /* ── Views & phases ─────────────────────────────────────────────────────── */
@@ -38,7 +38,7 @@
     border: 2px solid var(--app-border);
     border-radius: 14px;
     font-family: 'Nunito', sans-serif;
-    font-size: 18px;
+    font-size: 22px;
     font-weight: 800;
     color: var(--app-text);
     cursor: pointer;
@@ -46,10 +46,9 @@
     touch-action: manipulation;
     -webkit-appearance: none;
     text-align: center;
-    transition: all 0.15s;
   }
-  .module-btn:hover  { background: #FBF5D6; border-color: #B8960C; }
-  .module-btn:active { transform: scale(0.97); }
+  .module-btn:hover { background: #FBF5D6; border-color: #7A6200; }
+  .module-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; border-radius: 14px; }
 
   /* ── Vue 2 — Sélection du texte ─────────────────────────────────────────── */
   .vue-nav {
@@ -64,7 +63,7 @@
     border: 1.5px solid var(--app-border);
     border-radius: 10px;
     font-family: 'Source Sans 3', sans-serif;
-    font-size: 14px;
+    font-size: 22px;
     font-weight: 700;
     color: #475569;
     cursor: pointer;
@@ -72,12 +71,12 @@
     touch-action: manipulation;
     -webkit-appearance: none;
     white-space: nowrap;
-    transition: background 0.15s;
   }
   .back-nav-btn:hover { background: #E2E8F0; }
+  .back-nav-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; border-radius: 10px; }
   .vue-titre {
     font-family: 'Nunito', sans-serif;
-    font-size: clamp(16px, 3vw, 19px);
+    font-size: clamp(18px, 3vw, 19px);
     font-weight: 800;
     color: var(--app-text);
   }
@@ -94,18 +93,17 @@
     border: 2px solid var(--app-border);
     border-radius: 14px;
     font-family: 'Source Sans 3', sans-serif;
-    font-size: clamp(15px, 2.5vw, 17px);
+    font-size: 22px;
     font-weight: 600;
     color: var(--app-text);
     cursor: pointer;
-    min-height: 56px;
+    min-height: 64px;
     touch-action: manipulation;
     -webkit-appearance: none;
     text-align: left;
-    transition: all 0.15s;
   }
-  .texte-btn:hover  { background: #FBF5D6; border-color: #B8960C; }
-  .texte-btn:active { transform: scale(0.99); }
+  .texte-btn:hover { background: #FBF5D6; border-color: #7A6200; }
+  .texte-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; border-radius: 14px; }
 
   /* ── Phase 1 — Lecture ──────────────────────────────────────────────────── */
   .text-card {
@@ -119,33 +117,32 @@
     font-family: 'Nunito', sans-serif;
     font-size: clamp(20px, 4vw, 26px);
     font-weight: 900;
-    color: #B8960C;
+    color: #7A6200;
     margin-bottom: 16px;
   }
   .text-body {
-    font-size: clamp(16px, 2.5vw, 18px);
+    font-size: 18px;
     line-height: 1.85;
     color: var(--app-text);
     white-space: pre-line;
   }
   .primary-btn {
     padding: 18px 32px;
-    background: #B8960C;
+    background: #7A6200;
     color: #fff;
     border: none;
     border-radius: 12px;
     font-family: 'Nunito', sans-serif;
-    font-size: 17px;
+    font-size: 22px;
     font-weight: 800;
     cursor: pointer;
-    min-height: 56px;
+    min-height: 64px;
     touch-action: manipulation;
     -webkit-appearance: none;
     align-self: center;
-    transition: all 0.15s;
   }
-  .primary-btn:hover  { background: #9A7C0A; }
-  .primary-btn:active { transform: scale(0.98); }
+  .primary-btn:hover { background: #5B4800; }
+  .primary-btn:focus-visible { outline: 3px solid rgba(255,255,255,0.9); outline-offset: 3px; }
   .secondary-btn {
     padding: 18px 32px;
     background: #1A3A5C;
@@ -153,16 +150,16 @@
     border: none;
     border-radius: 12px;
     font-family: 'Nunito', sans-serif;
-    font-size: 17px;
+    font-size: 22px;
     font-weight: 800;
     cursor: pointer;
-    min-height: 56px;
+    min-height: 64px;
     touch-action: manipulation;
     -webkit-appearance: none;
     align-self: center;
-    transition: all 0.15s;
   }
   .secondary-btn:hover { background: #253F63; }
+  .secondary-btn:focus-visible { outline: 3px solid rgba(255,255,255,0.9); outline-offset: 3px; }
 
   /* ── Phase 2 — Questions ────────────────────────────────────────────────── */
   .q-header {
@@ -174,7 +171,7 @@
   }
   .q-counter {
     font-family: 'Source Sans 3', sans-serif;
-    font-size: 14px;
+    font-size: 18px;
     font-weight: 700;
     color: #64748B;
     white-space: nowrap;
@@ -194,7 +191,7 @@
     background: #F8FAFC;
     border: none;
     font-family: 'Source Sans 3', sans-serif;
-    font-size: 15px;
+    font-size: 22px;
     font-weight: 700;
     color: #475569;
     cursor: pointer;
@@ -208,7 +205,8 @@
     gap: 8px;
   }
   .accordion-btn:hover { background: #F1F5F9; }
-  .accordion-btn .chevron { font-style: normal; transition: transform 0.2s; }
+  .accordion-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: -3px; }
+  .accordion-btn .chevron { font-style: normal; }
   .accordion-btn[aria-expanded="true"] .chevron { transform: rotate(180deg); }
   .accordion-body {
     display: none;
@@ -217,7 +215,7 @@
   }
   .accordion-body.open { display: block; }
   .accordion-body-text {
-    font-size: clamp(14px, 2.2vw, 16px);
+    font-size: 18px;
     line-height: 1.8;
     color: var(--app-text);
     white-space: pre-line;
@@ -248,7 +246,7 @@
   .q-type-badge.opinion   { background: #FEF3C7; color: #92400E; }
   .q-text {
     font-family: 'Nunito', sans-serif;
-    font-size: clamp(17px, 3.5vw, 20px);
+    font-size: clamp(18px, 3.5vw, 20px);
     font-weight: 800;
     color: var(--app-text);
     line-height: 1.4;
@@ -267,29 +265,28 @@
     border: 2px solid var(--app-border);
     border-radius: 12px;
     font-family: 'Source Sans 3', sans-serif;
-    font-size: clamp(15px, 2.5vw, 17px);
+    font-size: 22px;
     font-weight: 600;
     color: var(--app-text);
     cursor: pointer;
-    min-height: 56px;
+    min-height: 64px;
     touch-action: manipulation;
     -webkit-appearance: none;
     text-align: left;
-    transition: all 0.15s;
     line-height: 1.4;
   }
-  .answer-btn:not(:disabled):hover { background: #FBF5D6; border-color: #B8960C; }
-  .answer-btn:not(:disabled):active { transform: scale(0.99); }
+  .answer-btn:not(:disabled):hover { background: #FBF5D6; border-color: #7A6200; }
   .answer-btn.correct  { background: var(--app-correct-bg); border-color: #10B981; color: var(--app-correct-fg); font-weight: 700; }
   .answer-btn.wrong    { background: var(--app-wrong-bg);   border-color: #EF4444; color: var(--app-wrong-fg); }
   .answer-btn:disabled { cursor: default; }
+  .answer-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; }
 
   /* Feedback QCM */
   .q-feedback {
     padding: 12px 16px;
     border-radius: 10px;
     font-family: 'Source Sans 3', sans-serif;
-    font-size: 15px;
+    font-size: 18px;
     font-weight: 600;
     line-height: 1.5;
     display: none;
@@ -311,7 +308,7 @@
     border: 2px solid var(--app-border);
     border-radius: 12px;
     font-family: 'Source Sans 3', sans-serif;
-    font-size: clamp(15px, 2.5vw, 17px);
+    font-size: 18px;
     color: var(--app-text);
     resize: vertical;
     -webkit-appearance: none;
@@ -319,25 +316,25 @@
     line-height: 1.5;
     background: #F8FAFC;
   }
-  .opinion-zone textarea:focus { border-color: #B8960C; background: #fff; outline: 3px solid #B8960C; outline-offset: 2px; }
+  .opinion-zone textarea:focus { border-color: #7A6200; background: #fff; outline: 3px solid #7A6200; outline-offset: 2px; }
   .see-ex-btn {
     padding: 14px 24px;
-    background: #B8960C;
+    background: #7A6200;
     color: #fff;
     border: none;
     border-radius: 12px;
     font-family: 'Nunito', sans-serif;
-    font-size: 16px;
+    font-size: 22px;
     font-weight: 800;
     cursor: pointer;
-    min-height: 52px;
+    min-height: 64px;
     touch-action: manipulation;
     -webkit-appearance: none;
     align-self: flex-start;
-    transition: all 0.15s;
   }
-  .see-ex-btn:hover:not(:disabled) { background: #9A7C0A; }
+  .see-ex-btn:hover:not(:disabled) { background: #5B4800; }
   .see-ex-btn:disabled { background: #94A3B8; cursor: default; }
+  .see-ex-btn:focus-visible { outline: 3px solid rgba(255,255,255,0.9); outline-offset: 3px; }
   .opinion-ex {
     display: none;
     flex-direction: column;
@@ -350,7 +347,7 @@
   .opinion-ex.visible { display: flex; }
   .opinion-ex-label {
     font-family: 'Source Sans 3', sans-serif;
-    font-size: 13px;
+    font-size: 18px;
     font-weight: 700;
     color: #1E40AF;
     text-transform: uppercase;
@@ -358,7 +355,7 @@
   }
   .opinion-ex-text {
     font-family: 'Source Sans 3', sans-serif;
-    font-size: clamp(15px, 2.5vw, 17px);
+    font-size: 18px;
     color: #1E40AF;
     line-height: 1.6;
   }
@@ -371,18 +368,18 @@
     border: none;
     border-radius: 12px;
     font-family: 'Nunito', sans-serif;
-    font-size: 16px;
+    font-size: 22px;
     font-weight: 800;
     cursor: pointer;
-    min-height: 52px;
+    min-height: 64px;
     touch-action: manipulation;
     -webkit-appearance: none;
     align-self: flex-end;
     display: none;
-    transition: all 0.15s;
   }
   .next-q-btn.visible { display: block; }
   .next-q-btn:hover { background: #0A5C48; }
+  .next-q-btn:focus-visible { outline: 3px solid rgba(255,255,255,0.9); outline-offset: 3px; }
 
   /* ── Phase 3 — Résultat ─────────────────────────────────────────────────── */
   .result-card {
@@ -400,7 +397,7 @@
   .result-emoji { font-size: 64px; line-height: 1; }
   .result-msg {
     font-family: 'Nunito', sans-serif;
-    font-size: clamp(17px, 3.5vw, 21px);
+    font-size: clamp(18px, 3.5vw, 21px);
     font-weight: 800;
     color: var(--app-text);
     line-height: 1.5;
@@ -410,6 +407,21 @@
     gap: 12px;
     flex-wrap: wrap;
     justify-content: center;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .module-btn  { transition: all 0.15s; }
+    .texte-btn   { transition: all 0.15s; }
+    .primary-btn { transition: all 0.15s; }
+    .secondary-btn { transition: all 0.15s; }
+    .answer-btn  { transition: all 0.15s; }
+    .see-ex-btn  { transition: all 0.15s; }
+    .next-q-btn  { transition: all 0.15s; }
+    .accordion-btn .chevron { transition: transform 0.2s; }
+    .module-btn:active  { transform: scale(0.97); }
+    .texte-btn:active   { transform: scale(0.99); }
+    .primary-btn:active { transform: scale(0.98); }
+    .answer-btn:not(:disabled):active { transform: scale(0.99); }
   }
 </style>
 </head>
@@ -1015,6 +1027,9 @@ const DECODI_TEXTS = {
   ]
 };
 
+// QCM : l'erreur clôt la question (pas de retry). Questions d'opinion : logique propre (production libre).
+const TYPE_TACHE = 'drill';
+
 // ── État ─────────────────────────────────────────────────────────────────────
 let currentModule = null;
 let currentText   = null;
@@ -1064,9 +1079,14 @@ function loadModuleTextes(moduleKey) {
     list.appendChild(btn);
   });
   showVue('vue-textes');
+  const firstTexte = list.querySelector('.texte-btn');
+  if (firstTexte) firstTexte.focus();
 }
 
-document.getElementById('back-to-modules').addEventListener('click', () => showVue('vue-modules'));
+document.getElementById('back-to-modules').addEventListener('click', () => {
+  showVue('vue-modules');
+  document.querySelector('.module-btn').focus();
+});
 
 // ── Vue 3, Phase 1 : lecture ──────────────────────────────────────────────────
 function startText(texte) {
@@ -1091,6 +1111,7 @@ document.getElementById('start-questions-btn').addEventListener('click', () => {
 // ── Vue 3, Phase 2 : questions ────────────────────────────────────────────────
 document.getElementById('back-to-textes').addEventListener('click', () => {
   loadModuleTextes(currentModule);
+  // focus géré dans loadModuleTextes()
 });
 
 // Accordéon
@@ -1144,6 +1165,7 @@ function renderQuestion() {
     exDiv.classList.remove('visible');
     document.getElementById('opinion-ex-text').textContent = q.exemple || '';
 
+    ta.focus();
   } else {
     // Afficher QCM, masquer opinion
     document.getElementById('opinion-zone').classList.remove('visible');
@@ -1158,6 +1180,9 @@ function renderQuestion() {
       btn.addEventListener('click', () => handleQCMAnswer(i, btn, q));
       answerList.appendChild(btn);
     });
+
+    const firstBtn = answerList.querySelector('.answer-btn');
+    if (firstBtn) firstBtn.focus();
   }
 }
 
@@ -1181,13 +1206,14 @@ function handleQCMAnswer(idx, btn, q) {
   const feedbackEl = document.getElementById('q-feedback');
   if (correct) {
     feedbackEl.className = 'q-feedback correct';
-    feedbackEl.textContent = '✓ Bonne réponse !';
+    feedbackEl.textContent = '✓ Bonne réponse ! Appuie sur le bouton pour continuer.';
   } else {
     feedbackEl.className = 'q-feedback wrong';
-    feedbackEl.textContent = `La bonne réponse était : « ${q.choix[q.reponse]} »`;
+    feedbackEl.textContent = `La bonne réponse était : « ${q.choix[q.reponse]} ». Appuie sur le bouton pour continuer.`;
   }
 
   showNextBtn();
+  document.getElementById('next-q-btn').focus();
 }
 
 // Opinion : activer "Voir un exemple" dès que le textarea est rempli
@@ -1199,6 +1225,7 @@ document.getElementById('see-ex-btn').addEventListener('click', function () {
   this.disabled = true;
   document.getElementById('opinion-ex').classList.add('visible');
   showNextBtn();
+  document.getElementById('next-q-btn').focus();
 });
 
 function showNextBtn() {
@@ -1232,6 +1259,7 @@ function showResult() {
   }
 
   showPhase('phase-result');
+  document.getElementById('btn-autre-texte').focus();
 }
 
 document.getElementById('btn-autre-texte').addEventListener('click', () => {
@@ -1240,6 +1268,7 @@ document.getElementById('btn-autre-texte').addEventListener('click', () => {
 
 document.getElementById('btn-autre-module').addEventListener('click', () => {
   showVue('vue-modules');
+  document.querySelector('.module-btn').focus();
 });
 </script>
 <script src="feedbackUtils.js"></script>
