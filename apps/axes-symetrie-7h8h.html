@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Les axes de symétrie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-base.css">
+<style>
+  :root {
+    --app-header-bg: #C0272D; /* Mathématiques — rouge MSN */
+  }
+
+  .shape-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 0 4px;
+  }
+
+  #shape-canvas {
+    width: min(220px, 68vw);
+    height: min(220px, 68vw);
+    background: #fff;
+    border: 2px solid var(--app-border, #E2E8F0);
+    border-radius: 12px;
+    display: block;
+  }
+
+  .shape-name {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--app-text, #1A1A2E);
+    text-align: center;
+  }
+
+  .choices-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    padding: 12px 16px 4px;
+  }
+
+  .choice-btn {
+    min-width: 72px;
+    min-height: 64px;
+    font-size: 26px;
+    font-weight: 800;
+    font-family: 'Nunito', sans-serif;
+    color: var(--app-text, #1A1A2E);
+    background: #fff;
+    /* #64748B sur fond blanc = rapport 4,5:1 — conforme WCAG 1.4.11 composants non textuels */
+    border: 2px solid #64748B;
+    border-radius: 12px;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+
+  .choice-btn:focus {
+    outline: 3px solid var(--app-header-bg);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .choice-btn {
+      transition: background 0.12s, border-color 0.12s, transform 0.1s;
+    }
+    .choice-btn:active { transform: scale(0.95); }
+  }
+
+  .choice-btn:hover,
+  .choice-btn:focus-visible {
+    background: #FDECEA;
+    border-color: var(--app-header-bg);
+  }
+
+  .choice-btn:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header" role="banner">
+  <a href="../index.html" class="back-link">← Retour</a>
+  <h1>📐 Les axes de symétrie</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1</button>
+  <button class="level-btn"        data-level="2" aria-pressed="false">Niveau 2</button>
+  <button class="level-btn"        data-level="3" aria-pressed="false">Niveau 3</button>
+</div>
+
+<main>
+  <div class="question-box" id="question-box">Combien d'axes de symétrie a cette figure ?</div>
+
+  <div class="shape-wrap">
+    <!-- Le nom de la figure est dans #shape-name (texte visible) : le canvas est purement visuel -->
+    <canvas id="shape-canvas" width="400" height="400"
+            aria-hidden="true"></canvas>
+    <div class="shape-name" id="shape-name"></div>
+  </div>
+
+  <div class="choices-grid" id="choices-grid" role="group" aria-label="Choisir le nombre d'axes"></div>
+
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="action-row">
+    <button class="new-btn" id="new-btn"><span aria-hidden="true">▶</span> Nouvel exercice</button>
+  </div>
+</main>
+
+<script src="appUtils.js"></script>
+<script>
+  // TYPE_TACHE : 'drill' — compter les axes est une tâche de reconnaissance.
+  // Après une erreur, retry sur la même figure invite au tâtonnement aveugle
+  // (l'élève essaie les autres boutons jusqu'à tomber juste) sans gain pédagogique.
+  const TYPE_TACHE = 'drill';
+
+  // ── Références DOM ────────────────────────────────────────────────────────────
+  const questionBox = document.getElementById('question-box');
+  const feedbackEl  = document.getElementById('feedback');
+  const shapeName   = document.getElementById('shape-name');
+  const choicesGrid = document.getElementById('choices-grid');
+  const newBtn      = document.getElementById('new-btn');
+  const canvas      = document.getElementById('shape-canvas');
+  const ctx         = canvas.getContext('2d');
+
+  // Canvas logique 400×400, affiché en CSS à min(220px, 68vw).
+  const CX = 200, CY = 200, R = 155;
+
+  // ── État ──────────────────────────────────────────────────────────────────────
+  let currentLevel = 1;
+  let state = {};
+
+  // ── Bibliothèque de figures ───────────────────────────────────────────────────
+  // axesLines : segments [x1,y1,x2,y2] tracés sur le canvas après la réponse.
+  // Coordonnées calculées depuis les vertices de chaque figure (canvas 400×400,
+  // CX=200, CY=200), étendus ~15px au-delà des bords pour la lisibilité.
+
+  const SHAPES = {
+    1: [
+      {
+        name: 'Carré',
+        draw: drawSquare,
+        axes: 4,
+        wrong: [2, 1, 0],
+        feedbackOk: 'Bravo ! Le carré a 4 axes : 2 diagonales et 2 lignes reliant les milieux des côtés opposés.',
+        feedbackKo: 'Pas tout à fait. Le carré a 4 axes : 2 diagonales et 2 lignes reliant les milieux des côtés opposés.',
+        // Carré 130×130 centré : coins (135,135)-(265,265)
+        axesLines: [
+          [200, 112, 200, 288], // médiane verticale
+          [112, 200, 288, 200], // médiane horizontale
+          [118, 118, 282, 282], // diagonale ↘
+          [282, 118, 118, 282], // diagonale ↙
+        ],
+      },
+      {
+        name: 'Rectangle',
+        draw: drawRectangle,
+        axes: 2,
+        wrong: [4, 1, 0],
+        feedbackOk: 'Bravo ! Le rectangle a 2 axes : les deux lignes reliant les milieux des côtés opposés.',
+        feedbackKo: 'Pas tout à fait. Le rectangle a 2 axes : les deux lignes reliant les milieux des côtés opposés (et non les diagonales).',
+        // Rectangle (45,120)-(355,280)
+        axesLines: [
+          [200,  95, 200, 305], // médiane verticale
+          [ 20, 200, 380, 200], // médiane horizontale
+        ],
+      },
+      {
+        name: 'Triangle équilatéral',
+        draw: drawTriangleEquil,
+        axes: 3,
+        wrong: [1, 0, 6],
+        feedbackOk: 'Bravo ! Le triangle équilatéral a 3 axes : une par sommet vers le milieu du côté opposé.',
+        feedbackKo: 'Pas tout à fait. Le triangle équilatéral a 3 axes : une par sommet vers le milieu du côté opposé.',
+        // regularPolygon(3, 155, 200, 220, -π/2) → V0(200,65) V1(334,298) V2(66,298)
+        axesLines: [
+          [200,  50, 200, 313], // V0 → mid(V1,V2)
+          [347, 305, 120, 175], // V1 → mid(V0,V2)
+          [ 53, 305, 280, 175], // V2 → mid(V0,V1)
+        ],
+      },
+      {
+        name: 'Triangle isocèle',
+        draw: drawTriangleIsosc,
+        axes: 1,
+        wrong: [0, 2, 3],
+        feedbackOk: 'Bravo ! Ce triangle isocèle a 1 axe : la ligne reliant le sommet principal au milieu de la base.',
+        feedbackKo: 'Pas tout à fait. Ce triangle isocèle a 1 axe : la ligne reliant le sommet principal au milieu de la base.',
+        // Sommet (200,70), base (60,300)-(340,300)
+        axesLines: [
+          [200, 55, 200, 315],
+        ],
+      },
+    ],
+    2: [
+      {
+        name: 'Losange',
+        draw: drawRhombus,
+        axes: 2,
+        wrong: [4, 1, 0],
+        feedbackOk: 'Bravo ! Le losange a 2 axes : ses deux diagonales.',
+        feedbackKo: 'Pas tout à fait. Le losange a 2 axes : ses deux diagonales (à ne pas confondre avec le carré qui en a 4).',
+        // Sommets (200,60) (310,200) (200,340) (90,200)
+        axesLines: [
+          [200,  40, 200, 360], // diagonale verticale
+          [ 70, 200, 330, 200], // diagonale horizontale
+        ],
+      },
+      {
+        name: 'Parallélogramme',
+        draw: drawParallelogram,
+        axes: 0,
+        wrong: [1, 2, 4],
+        feedbackOk: 'Bravo ! Le parallélogramme n\'a aucun axe de symétrie : ses côtés ne se reflètent pas.',
+        feedbackKo: 'Pas tout à fait. Le parallélogramme n\'a aucun axe de symétrie : ses côtés ne se reflètent pas même s\'ils sont parallèles deux à deux.',
+        axesLines: [],
+      },
+      {
+        name: 'Hexagone régulier',
+        draw: drawHexagon,
+        axes: 6,
+        wrong: [3, 4, 2],
+        feedbackOk: 'Bravo ! L\'hexagone régulier a 6 axes : 3 reliant des sommets opposés, et 3 reliant des milieux de côtés opposés.',
+        feedbackKo: 'Pas tout à fait. L\'hexagone régulier a 6 axes : 3 reliant des sommets opposés, et 3 reliant des milieux de côtés opposés.',
+        // regularPolygon(6, 155, 200, 200, -π/2) → V0(200,45) V1(334,122) V2(334,278) V3(200,355) V4(66,278) V5(66,122)
+        axesLines: [
+          [200,  30, 200, 370], // V0-V3 (sommet-sommet)
+          [347, 115,  53, 286], // V1-V4
+          [347, 286,  53, 115], // V2-V5
+          [275,  71, 125, 330], // mid(V0,V1)-mid(V3,V4)
+          [350, 200,  50, 200], // mid(V1,V2)-mid(V4,V5)
+          [275, 330, 125,  71], // mid(V2,V3)-mid(V5,V0)
+        ],
+      },
+      {
+        name: 'Triangle scalène',
+        draw: drawTriangleScalene,
+        axes: 0,
+        wrong: [1, 2, 3],
+        feedbackOk: 'Bravo ! Ce triangle scalène n\'a aucun axe : ses trois côtés sont tous différents.',
+        feedbackKo: 'Pas tout à fait. Ce triangle scalène n\'a aucun axe : ses trois côtés sont tous différents, donc aucun pli ne donne deux moitiés identiques.',
+        axesLines: [],
+      },
+    ],
+    3: [
+      {
+        name: 'Trapèze isocèle',
+        draw: drawTrapezoidIsosc,
+        axes: 1,
+        wrong: [0, 2, 3],
+        feedbackOk: 'Bravo ! Le trapèze isocèle a 1 axe : la ligne reliant les milieux des deux côtés parallèles.',
+        feedbackKo: 'Pas tout à fait. Le trapèze isocèle a 1 axe : la ligne reliant les milieux des deux côtés parallèles.',
+        // Base haute (120,110)-(280,110), base basse (50,290)-(350,290)
+        axesLines: [
+          [200, 95, 200, 305],
+        ],
+      },
+      {
+        name: 'Trapèze quelconque',
+        draw: drawTrapezoidScalene,
+        axes: 0,
+        wrong: [1, 2, 3],
+        feedbackOk: 'Bravo ! Ce trapèze quelconque n\'a aucun axe : ses côtés non parallèles sont inégaux.',
+        feedbackKo: 'Pas tout à fait. Ce trapèze quelconque n\'a aucun axe : ses côtés non parallèles sont inégaux, donc il n\'est pas symétrique.',
+        axesLines: [],
+      },
+      {
+        name: 'Demi-cercle',
+        draw: drawSemiCircle,
+        axes: 1,
+        wrong: [0, 2, 4],
+        feedbackOk: 'Bravo ! Le demi-cercle a 1 axe : la perpendiculaire au diamètre passant par le centre.',
+        feedbackKo: 'Pas tout à fait. Le demi-cercle a 1 axe : la perpendiculaire au diamètre passant par le centre.',
+        // arc(200, 230, 155) → sommet (200,75), milieu diamètre (200,230)
+        axesLines: [
+          [200, 60, 200, 248],
+        ],
+      },
+      {
+        name: 'Pentagone régulier',
+        draw: drawPentagon,
+        axes: 5,
+        wrong: [1, 3, 6],
+        feedbackOk: 'Bravo ! Le pentagone régulier a 5 axes : une par sommet vers le milieu du côté opposé.',
+        feedbackKo: 'Pas tout à fait. Le pentagone régulier a 5 axes : une par sommet vers le milieu du côté opposé.',
+        // regularPolygon(5, 155, 200, 200, -π/2) → V0(200,45) V1(347,152) V2(291,325) V3(109,325) V4(53,152)
+        axesLines: [
+          [200,  30, 200, 340], // V0 → mid(V2,V3)
+          [361, 147,  67, 244], // V1 → mid(V3,V4)
+          [300, 337, 118,  87], // V2 → mid(V4,V0)
+          [100, 337, 283,  87], // V3 → mid(V0,V1)
+          [ 39, 147, 333, 244], // V4 → mid(V1,V2)
+        ],
+      },
+    ],
+  };
+
+  // ── Fonctions de dessin ───────────────────────────────────────────────────────
+
+  function clearCanvas() {
+    ctx.clearRect(0, 0, 400, 400);
+  }
+
+  function drawPoly(pts) {
+    ctx.beginPath();
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+    ctx.closePath();
+    ctx.fillStyle = '#EBF3FC';
+    ctx.fill();
+    ctx.strokeStyle = '#1A3A5C';
+    ctx.lineWidth = 5;
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+  }
+
+  function regularPolygon(n, r, cx, cy, startAngle) {
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+      const a = startAngle + (2 * Math.PI * i) / n;
+      pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]);
+    }
+    return pts;
+  }
+
+  function drawSquare() {
+    const s = 130;
+    drawPoly([
+      [CX - s / 2, CY - s / 2],
+      [CX + s / 2, CY - s / 2],
+      [CX + s / 2, CY + s / 2],
+      [CX - s / 2, CY + s / 2],
+    ]);
+  }
+
+  function drawRectangle() {
+    drawPoly([
+      [CX - 155, CY - 80],
+      [CX + 155, CY - 80],
+      [CX + 155, CY + 80],
+      [CX - 155, CY + 80],
+    ]);
+  }
+
+  function drawTriangleEquil() {
+    drawPoly(regularPolygon(3, R, CX, CY + 20, -Math.PI / 2));
+  }
+
+  function drawTriangleIsosc() {
+    drawPoly([
+      [CX,       CY - 130],
+      [CX - 140, CY + 100],
+      [CX + 140, CY + 100],
+    ]);
+  }
+
+  function drawRhombus() {
+    drawPoly([
+      [CX,       CY - 140],
+      [CX + 110, CY],
+      [CX,       CY + 140],
+      [CX - 110, CY],
+    ]);
+  }
+
+  function drawParallelogram() {
+    drawPoly([
+      [CX - 130, CY - 75],
+      [CX + 80,  CY - 75],
+      [CX + 130, CY + 75],
+      [CX - 80,  CY + 75],
+    ]);
+  }
+
+  function drawHexagon() {
+    drawPoly(regularPolygon(6, R, CX, CY, -Math.PI / 2));
+  }
+
+  function drawTriangleScalene() {
+    drawPoly([
+      [CX - 140, CY + 110],
+      [CX + 30,  CY - 130],
+      [CX + 155, CY + 110],
+    ]);
+  }
+
+  function drawTrapezoidIsosc() {
+    drawPoly([
+      [CX - 80,  CY - 90],
+      [CX + 80,  CY - 90],
+      [CX + 150, CY + 90],
+      [CX - 150, CY + 90],
+    ]);
+  }
+
+  function drawTrapezoidScalene() {
+    drawPoly([
+      [CX - 130, CY - 90],
+      [CX + 30,  CY - 90],
+      [CX + 150, CY + 90],
+      [CX - 150, CY + 90],
+    ]);
+  }
+
+  function drawSemiCircle() {
+    ctx.beginPath();
+    ctx.arc(CX, CY + 30, 155, Math.PI, 0);
+    ctx.closePath();
+    ctx.fillStyle = '#EBF3FC';
+    ctx.fill();
+    ctx.strokeStyle = '#1A3A5C';
+    ctx.lineWidth = 5;
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+  }
+
+  function drawPentagon() {
+    drawPoly(regularPolygon(5, R, CX, CY, -Math.PI / 2));
+  }
+
+  // Superpose les axes de symétrie sur la figure après la réponse de l'élève.
+  // Pour les figures sans axe (axesLines vide), ne fait rien — le texte suffit.
+  function drawAxesOverlay(shape) {
+    if (!shape.axesLines || shape.axesLines.length === 0) return;
+    ctx.save();
+    ctx.strokeStyle = '#C0272D';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.setLineDash([10, 6]);
+    shape.axesLines.forEach(([x1, y1, x2, y2]) => {
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    });
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+
+  // ── Feedback et logique principale ────────────────────────────────────────────
+
+  function showFeedback(correct, msg) {
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = msg;
+    if (correct) {
+      playCorrect();
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        launchConfetti();
+      }
+    } else {
+      playIncorrect();
+    }
+    drawAxesOverlay(state.shape);
+    // TYPE_TACHE = 'drill' : item clos dans tous les cas
+    newBtn.classList.add('visible');
+    newBtn.focus();
+  }
+
+  function buildChoices(shape) {
+    const choices = shuffle([shape.axes, ...shape.wrong]);
+    choicesGrid.innerHTML = '';
+    choices.forEach((val, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.textContent = val;
+      btn.setAttribute('aria-label', val === 1 ? '1 axe' : `${val} axes`);
+      if (idx === 0) btn.setAttribute('data-focus-target', 'true');
+      btn.addEventListener('click', () => {
+        if (state.answered) return;
+        state.answered = true;
+        choicesGrid.querySelectorAll('.choice-btn').forEach(b => { b.disabled = true; });
+        showFeedback(val === shape.axes, val === shape.axes ? shape.feedbackOk : shape.feedbackKo);
+      });
+      choicesGrid.appendChild(btn);
+    });
+    const first = choicesGrid.querySelector('[data-focus-target]');
+    if (first) first.focus();
+  }
+
+  function newExercise() {
+    feedbackEl.className = 'feedback';
+    feedbackEl.textContent = '';
+    newBtn.classList.remove('visible');
+
+    const pool = SHAPES[currentLevel];
+    const shape = pick(pool, 1)[0];
+    state = { shape, answered: false };
+
+    clearCanvas();
+    shape.draw();
+    shapeName.textContent = shape.name;
+    buildChoices(shape);
+  }
+
+  // ── Sélecteur de niveau ───────────────────────────────────────────────────────
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLevel = parseInt(btn.dataset.level);
+      document.querySelectorAll('.level-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+      newExercise();
+    });
+  });
+
+  newBtn.addEventListener('click', newExercise);
+
+  newExercise();
+</script>
+<script src="feedbackUtils.js"></script>
+</body>
+</html>
