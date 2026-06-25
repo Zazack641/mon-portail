@@ -136,7 +136,6 @@
   const ctx         = canvas.getContext('2d');
 
   // Canvas logique 400×400, affiché en CSS à min(220px, 68vw).
-  // devicePixelRatio déjà géré par le canvas width/height = 400 (2× la taille CSS max).
   const CX = 200, CY = 200, R = 155;
 
   // ── État ──────────────────────────────────────────────────────────────────────
@@ -144,8 +143,9 @@
   let state = {};
 
   // ── Bibliothèque de figures ───────────────────────────────────────────────────
-  // Chaque figure : { name, draw, axes (réponse correcte), wrong (3 distracteurs),
-  //                   feedback (explication formatrice) }
+  // axesLines : segments [x1,y1,x2,y2] tracés sur le canvas après la réponse.
+  // Coordonnées calculées depuis les vertices de chaque figure (canvas 400×400,
+  // CX=200, CY=200), étendus ~15px au-delà des bords pour la lisibilité.
 
   const SHAPES = {
     1: [
@@ -154,32 +154,54 @@
         draw: drawSquare,
         axes: 4,
         wrong: [2, 1, 0],
-        feedbackOk:  'Bravo ! Le carré a 4 axes : 2 diagonales et 2 lignes reliant les milieux des côtés opposés.',
-        feedbackKo:  'Pas tout à fait. Le carré a 4 axes : 2 diagonales et 2 lignes reliant les milieux des côtés opposés.'
+        feedbackOk: 'Bravo ! Le carré a 4 axes : 2 diagonales et 2 lignes reliant les milieux des côtés opposés.',
+        feedbackKo: 'Pas tout à fait. Le carré a 4 axes : 2 diagonales et 2 lignes reliant les milieux des côtés opposés.',
+        // Carré 130×130 centré : coins (135,135)-(265,265)
+        axesLines: [
+          [200, 112, 200, 288], // médiane verticale
+          [112, 200, 288, 200], // médiane horizontale
+          [118, 118, 282, 282], // diagonale ↘
+          [282, 118, 118, 282], // diagonale ↙
+        ],
       },
       {
         name: 'Rectangle',
         draw: drawRectangle,
         axes: 2,
         wrong: [4, 1, 0],
-        feedbackOk:  'Bravo ! Le rectangle a 2 axes : les deux lignes reliant les milieux des côtés opposés.',
-        feedbackKo:  'Pas tout à fait. Le rectangle a 2 axes : les deux lignes reliant les milieux des côtés opposés (et non les diagonales).'
+        feedbackOk: 'Bravo ! Le rectangle a 2 axes : les deux lignes reliant les milieux des côtés opposés.',
+        feedbackKo: 'Pas tout à fait. Le rectangle a 2 axes : les deux lignes reliant les milieux des côtés opposés (et non les diagonales).',
+        // Rectangle (45,120)-(355,280)
+        axesLines: [
+          [200,  95, 200, 305], // médiane verticale
+          [ 20, 200, 380, 200], // médiane horizontale
+        ],
       },
       {
         name: 'Triangle équilatéral',
         draw: drawTriangleEquil,
         axes: 3,
         wrong: [1, 0, 6],
-        feedbackOk:  'Bravo ! Le triangle équilatéral a 3 axes : une par sommet vers le milieu du côté opposé.',
-        feedbackKo:  'Pas tout à fait. Le triangle équilatéral a 3 axes : une par sommet vers le milieu du côté opposé.'
+        feedbackOk: 'Bravo ! Le triangle équilatéral a 3 axes : une par sommet vers le milieu du côté opposé.',
+        feedbackKo: 'Pas tout à fait. Le triangle équilatéral a 3 axes : une par sommet vers le milieu du côté opposé.',
+        // regularPolygon(3, 155, 200, 220, -π/2) → V0(200,65) V1(334,298) V2(66,298)
+        axesLines: [
+          [200,  50, 200, 313], // V0 → mid(V1,V2)
+          [347, 305, 120, 175], // V1 → mid(V0,V2)
+          [ 53, 305, 280, 175], // V2 → mid(V0,V1)
+        ],
       },
       {
         name: 'Triangle isocèle',
         draw: drawTriangleIsosc,
         axes: 1,
         wrong: [0, 2, 3],
-        feedbackOk:  'Bravo ! Ce triangle isocèle a 1 axe : la ligne reliant le sommet principal au milieu de la base.',
-        feedbackKo:  'Pas tout à fait. Ce triangle isocèle a 1 axe : la ligne reliant le sommet principal au milieu de la base.'
+        feedbackOk: 'Bravo ! Ce triangle isocèle a 1 axe : la ligne reliant le sommet principal au milieu de la base.',
+        feedbackKo: 'Pas tout à fait. Ce triangle isocèle a 1 axe : la ligne reliant le sommet principal au milieu de la base.',
+        // Sommet (200,70), base (60,300)-(340,300)
+        axesLines: [
+          [200, 55, 200, 315],
+        ],
       },
     ],
     2: [
@@ -188,32 +210,48 @@
         draw: drawRhombus,
         axes: 2,
         wrong: [4, 1, 0],
-        feedbackOk:  'Bravo ! Le losange a 2 axes : ses deux diagonales.',
-        feedbackKo:  'Pas tout à fait. Le losange a 2 axes : ses deux diagonales (à ne pas confondre avec le carré qui en a 4).'
+        feedbackOk: 'Bravo ! Le losange a 2 axes : ses deux diagonales.',
+        feedbackKo: 'Pas tout à fait. Le losange a 2 axes : ses deux diagonales (à ne pas confondre avec le carré qui en a 4).',
+        // Sommets (200,60) (310,200) (200,340) (90,200)
+        axesLines: [
+          [200,  40, 200, 360], // diagonale verticale
+          [ 70, 200, 330, 200], // diagonale horizontale
+        ],
       },
       {
         name: 'Parallélogramme',
         draw: drawParallelogram,
         axes: 0,
         wrong: [1, 2, 4],
-        feedbackOk:  'Bravo ! Le parallélogramme n\'a aucun axe de symétrie : ses côtés ne se reflètent pas.',
-        feedbackKo:  'Pas tout à fait. Le parallélogramme n\'a aucun axe de symétrie : ses côtés ne se reflètent pas même s\'ils sont parallèles deux à deux.'
+        feedbackOk: 'Bravo ! Le parallélogramme n\'a aucun axe de symétrie : ses côtés ne se reflètent pas.',
+        feedbackKo: 'Pas tout à fait. Le parallélogramme n\'a aucun axe de symétrie : ses côtés ne se reflètent pas même s\'ils sont parallèles deux à deux.',
+        axesLines: [],
       },
       {
         name: 'Hexagone régulier',
         draw: drawHexagon,
         axes: 6,
         wrong: [3, 4, 2],
-        feedbackOk:  'Bravo ! L\'hexagone régulier a 6 axes : 3 reliant des sommets opposés, et 3 reliant des milieux de côtés opposés.',
-        feedbackKo:  'Pas tout à fait. L\'hexagone régulier a 6 axes : 3 reliant des sommets opposés, et 3 reliant des milieux de côtés opposés.'
+        feedbackOk: 'Bravo ! L\'hexagone régulier a 6 axes : 3 reliant des sommets opposés, et 3 reliant des milieux de côtés opposés.',
+        feedbackKo: 'Pas tout à fait. L\'hexagone régulier a 6 axes : 3 reliant des sommets opposés, et 3 reliant des milieux de côtés opposés.',
+        // regularPolygon(6, 155, 200, 200, -π/2) → V0(200,45) V1(334,122) V2(334,278) V3(200,355) V4(66,278) V5(66,122)
+        axesLines: [
+          [200,  30, 200, 370], // V0-V3 (sommet-sommet)
+          [347, 115,  53, 286], // V1-V4
+          [347, 286,  53, 115], // V2-V5
+          [275,  71, 125, 330], // mid(V0,V1)-mid(V3,V4)
+          [350, 200,  50, 200], // mid(V1,V2)-mid(V4,V5)
+          [275, 330, 125,  71], // mid(V2,V3)-mid(V5,V0)
+        ],
       },
       {
         name: 'Triangle scalène',
         draw: drawTriangleScalene,
         axes: 0,
         wrong: [1, 2, 3],
-        feedbackOk:  'Bravo ! Ce triangle scalène n\'a aucun axe : ses trois côtés sont tous différents.',
-        feedbackKo:  'Pas tout à fait. Ce triangle scalène n\'a aucun axe : ses trois côtés sont tous différents, donc aucun pli ne donne deux moitiés identiques.'
+        feedbackOk: 'Bravo ! Ce triangle scalène n\'a aucun axe : ses trois côtés sont tous différents.',
+        feedbackKo: 'Pas tout à fait. Ce triangle scalène n\'a aucun axe : ses trois côtés sont tous différents, donc aucun pli ne donne deux moitiés identiques.',
+        axesLines: [],
       },
     ],
     3: [
@@ -222,32 +260,49 @@
         draw: drawTrapezoidIsosc,
         axes: 1,
         wrong: [0, 2, 3],
-        feedbackOk:  'Bravo ! Le trapèze isocèle a 1 axe : la ligne reliant les milieux des deux côtés parallèles.',
-        feedbackKo:  'Pas tout à fait. Le trapèze isocèle a 1 axe : la ligne reliant les milieux des deux côtés parallèles.'
+        feedbackOk: 'Bravo ! Le trapèze isocèle a 1 axe : la ligne reliant les milieux des deux côtés parallèles.',
+        feedbackKo: 'Pas tout à fait. Le trapèze isocèle a 1 axe : la ligne reliant les milieux des deux côtés parallèles.',
+        // Base haute (120,110)-(280,110), base basse (50,290)-(350,290)
+        axesLines: [
+          [200, 95, 200, 305],
+        ],
       },
       {
         name: 'Trapèze quelconque',
         draw: drawTrapezoidScalene,
         axes: 0,
         wrong: [1, 2, 3],
-        feedbackOk:  'Bravo ! Ce trapèze quelconque n\'a aucun axe : ses côtés non parallèles sont inégaux.',
-        feedbackKo:  'Pas tout à fait. Ce trapèze quelconque n\'a aucun axe : ses côtés non parallèles sont inégaux, donc il n\'est pas symétrique.'
+        feedbackOk: 'Bravo ! Ce trapèze quelconque n\'a aucun axe : ses côtés non parallèles sont inégaux.',
+        feedbackKo: 'Pas tout à fait. Ce trapèze quelconque n\'a aucun axe : ses côtés non parallèles sont inégaux, donc il n\'est pas symétrique.',
+        axesLines: [],
       },
       {
         name: 'Demi-cercle',
         draw: drawSemiCircle,
         axes: 1,
         wrong: [0, 2, 4],
-        feedbackOk:  'Bravo ! Le demi-cercle a 1 axe : la perpendiculaire au diamètre passant par le centre.',
-        feedbackKo:  'Pas tout à fait. Le demi-cercle a 1 axe : la perpendiculaire au diamètre passant par le centre.'
+        feedbackOk: 'Bravo ! Le demi-cercle a 1 axe : la perpendiculaire au diamètre passant par le centre.',
+        feedbackKo: 'Pas tout à fait. Le demi-cercle a 1 axe : la perpendiculaire au diamètre passant par le centre.',
+        // arc(200, 230, 155) → sommet (200,75), milieu diamètre (200,230)
+        axesLines: [
+          [200, 60, 200, 248],
+        ],
       },
       {
         name: 'Pentagone régulier',
         draw: drawPentagon,
         axes: 5,
         wrong: [1, 3, 6],
-        feedbackOk:  'Bravo ! Le pentagone régulier a 5 axes : une par sommet vers le milieu du côté opposé.',
-        feedbackKo:  'Pas tout à fait. Le pentagone régulier a 5 axes : une par sommet vers le milieu du côté opposé.'
+        feedbackOk: 'Bravo ! Le pentagone régulier a 5 axes : une par sommet vers le milieu du côté opposé.',
+        feedbackKo: 'Pas tout à fait. Le pentagone régulier a 5 axes : une par sommet vers le milieu du côté opposé.',
+        // regularPolygon(5, 155, 200, 200, -π/2) → V0(200,45) V1(347,152) V2(291,325) V3(109,325) V4(53,152)
+        axesLines: [
+          [200,  30, 200, 340], // V0 → mid(V2,V3)
+          [361, 147,  67, 244], // V1 → mid(V3,V4)
+          [300, 337, 118,  87], // V2 → mid(V4,V0)
+          [100, 337, 283,  87], // V3 → mid(V0,V1)
+          [ 39, 147, 333, 244], // V4 → mid(V1,V2)
+        ],
       },
     ],
   };
@@ -300,31 +355,27 @@
   }
 
   function drawTriangleEquil() {
-    // sommet en haut, base en bas
-    const r = R;
-    drawPoly(regularPolygon(3, r, CX, CY + 20, -Math.PI / 2));
+    drawPoly(regularPolygon(3, R, CX, CY + 20, -Math.PI / 2));
   }
 
   function drawTriangleIsosc() {
-    // isocèle non équilatéral (base large)
     drawPoly([
-      [CX,        CY - 130],
-      [CX - 140,  CY + 100],
-      [CX + 140,  CY + 100],
+      [CX,       CY - 130],
+      [CX - 140, CY + 100],
+      [CX + 140, CY + 100],
     ]);
   }
 
   function drawRhombus() {
     drawPoly([
-      [CX,      CY - 140],
+      [CX,       CY - 140],
       [CX + 110, CY],
-      [CX,      CY + 140],
+      [CX,       CY + 140],
       [CX - 110, CY],
     ]);
   }
 
   function drawParallelogram() {
-    // clairement non rectangle, non losange
     drawPoly([
       [CX - 130, CY - 75],
       [CX + 80,  CY - 75],
@@ -338,7 +389,6 @@
   }
 
   function drawTriangleScalene() {
-    // tous les côtés différents (clairement asymétrique)
     drawPoly([
       [CX - 140, CY + 110],
       [CX + 30,  CY - 130],
@@ -347,7 +397,6 @@
   }
 
   function drawTrapezoidIsosc() {
-    // base large en bas, base courte en haut, symétrique
     drawPoly([
       [CX - 80,  CY - 90],
       [CX + 80,  CY - 90],
@@ -357,7 +406,6 @@
   }
 
   function drawTrapezoidScalene() {
-    // base large en bas, base plus à gauche (asymétrique)
     drawPoly([
       [CX - 130, CY - 90],
       [CX + 30,  CY - 90],
@@ -382,6 +430,25 @@
     drawPoly(regularPolygon(5, R, CX, CY, -Math.PI / 2));
   }
 
+  // Superpose les axes de symétrie sur la figure après la réponse de l'élève.
+  // Pour les figures sans axe (axesLines vide), ne fait rien — le texte suffit.
+  function drawAxesOverlay(shape) {
+    if (!shape.axesLines || shape.axesLines.length === 0) return;
+    ctx.save();
+    ctx.strokeStyle = '#C0272D';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.setLineDash([10, 6]);
+    shape.axesLines.forEach(([x1, y1, x2, y2]) => {
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    });
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+
   // ── Feedback et logique principale ────────────────────────────────────────────
 
   function showFeedback(correct, msg) {
@@ -395,6 +462,7 @@
     } else {
       playIncorrect();
     }
+    drawAxesOverlay(state.shape);
     // TYPE_TACHE = 'drill' : item clos dans tous les cas
     newBtn.classList.add('visible');
     newBtn.focus();
