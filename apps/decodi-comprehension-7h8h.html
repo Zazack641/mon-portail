@@ -237,7 +237,7 @@
     padding: 4px 12px;
     border-radius: 999px;
     font-family: 'Source Sans 3', sans-serif;
-    font-size: 12px;
+    font-size: 18px;
     font-weight: 700;
     align-self: flex-start;
   }
@@ -249,7 +249,7 @@
     font-size: clamp(18px, 3.5vw, 20px);
     font-weight: 800;
     color: var(--app-text);
-    line-height: 1.4;
+    line-height: 1.5;
   }
 
   /* Boutons QCM */
@@ -273,7 +273,7 @@
     touch-action: manipulation;
     -webkit-appearance: none;
     text-align: left;
-    line-height: 1.4;
+    line-height: 1.5;
   }
   .answer-btn:not(:disabled):hover { background: #FBF5D6; border-color: #7A6200; }
   .answer-btn.correct  { background: var(--app-correct-bg); border-color: #10B981; color: var(--app-correct-fg); font-weight: 700; }
@@ -802,6 +802,8 @@ function startText(texte) {
 
   showVue('vue-lecture');
   showPhase('phase-read');
+  const startQuestionsBtn = document.getElementById('start-questions-btn');
+  if (startQuestionsBtn) startQuestionsBtn.focus();
 }
 
 document.getElementById('start-questions-btn').addEventListener('click', () => {
