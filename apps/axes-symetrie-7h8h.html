@@ -407,7 +407,7 @@
       const btn = document.createElement('button');
       btn.className = 'choice-btn';
       btn.textContent = val;
-      btn.setAttribute('aria-label', val === 1 ? '1 axe' : `${val} axe${val === 0 ? '' : 's'}`);
+      btn.setAttribute('aria-label', val === 1 ? '1 axe' : `${val} axes`);
       if (idx === 0) btn.setAttribute('data-focus-target', 'true');
       btn.addEventListener('click', () => {
         if (state.answered) return;
@@ -427,7 +427,7 @@
     newBtn.classList.remove('visible');
 
     const pool = SHAPES[currentLevel];
-    const shape = pick(pool);
+    const shape = pick(pool, 1)[0];
     state = { shape, answered: false };
 
     clearCanvas();
