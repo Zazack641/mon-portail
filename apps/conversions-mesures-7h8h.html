@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Conversions de mesures</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-base.css">
+<style>
+  :root {
+    --app-header-bg: #C0272D;
+  }
+
+  .choices-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    max-width: 440px;
+    margin: 24px auto 0;
+    padding: 0 16px;
+  }
+
+  .choice-btn {
+    min-height: 72px;
+    min-width: 64px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: #1A1A2E;
+    background: #fff;
+    border: 2px solid var(--app-border, #E2E8F0);
+    border-radius: 14px;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    padding: 8px 12px;
+    line-height: 1.2;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .choice-btn {
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .choice-btn:active {
+      transform: scale(0.96);
+    }
+  }
+
+  .choice-btn:hover,
+  .choice-btn:focus-visible {
+    background: #f5f5f5;
+    border-color: var(--app-header-bg);
+  }
+
+  .choice-btn:focus {
+    outline: 3px solid var(--app-header-bg);
+    outline-offset: 2px;
+  }
+
+  .choice-btn:disabled {
+    cursor: default;
+    opacity: 0.85;
+  }
+
+  .choice-btn.is-correct {
+    background: var(--app-correct-bg, #D1FAE5);
+    color: var(--app-correct-fg, #065F46);
+    border-color: var(--app-correct-fg, #065F46);
+  }
+
+  .choice-btn.is-wrong {
+    background: var(--app-wrong-bg, #FEE2E2);
+    color: var(--app-wrong-fg, #991B1B);
+    border-color: var(--app-wrong-fg, #991B1B);
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header" role="banner">
+  <a href="../index.html" class="back-link">← Retour</a>
+  <h1>📏 Conversions de mesures</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1 · Longueurs</button>
+  <button class="level-btn"        data-level="2" aria-pressed="false">Niveau 2 · Masses et capacités</button>
+  <button class="level-btn"        data-level="3" aria-pressed="false">Niveau 3 · Conversions composées</button>
+</div>
+
+<main>
+  <div class="question-box" id="question-box">Chargement…</div>
+
+  <div class="choices-grid" id="choices-grid"></div>
+
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="action-row">
+    <button class="new-btn" id="new-btn"><span aria-hidden="true">▶</span> Nouvel exercice</button>
+  </div>
+</main>
+
+<script src="appUtils.js"></script>
+<script>
+  // ── Type de tâche ────────────────────────────────────────────────────────────
+  // 'drill' : convertir une unité est un fait à mémoriser et restituer.
+  // L'erreur clôt l'item et révèle la règle ; le retry aveugle n'apporterait
+  // pas de valeur pédagogique sur une tâche de reconnaissance de faits.
+  const TYPE_TACHE = 'drill';
+
+  // ── Références DOM ────────────────────────────────────────────────────────────
+  const questionBox = document.getElementById('question-box');
+  const feedbackEl  = document.getElementById('feedback');
+  const choicesGrid = document.getElementById('choices-grid');
+  const newBtn      = document.getElementById('new-btn');
+
+  // ── État ──────────────────────────────────────────────────────────────────────
+  let currentLevel = 1;
+  let answered     = false;
+
+  // ── Formatage français (espace fine pour les milliers) ────────────────────────
+  function fmt(n) {
+    return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  }
+
+  // ── Génération de 4 choix : correct + 3 distracteurs distincts ────────────────
+  // Les candidats représentent les erreurs typiques de l'élève (mauvais facteur,
+  // oubli de conversion). makeChoices filtre les doublons et complète si besoin.
+  function makeChoices(correct, candidates) {
+    const wrongs = [];
+    for (const c of candidates) {
+      if (Number.isInteger(c) && c > 0 && c !== correct && !wrongs.includes(c)) {
+        wrongs.push(c);
+      }
+      if (wrongs.length === 3) break;
+    }
+    let pad = correct + 10;
+    while (wrongs.length < 3) {
+      if (pad !== correct && !wrongs.includes(pad)) wrongs.push(pad);
+      pad += 10;
+    }
+    return shuffle([correct, ...wrongs.slice(0, 3)]);
+  }
+
+  // ── Niveau 1 : longueurs (mm, cm, m, km) ─────────────────────────────────────
+  function genLevel1() {
+    const t = randInt(0, 5);
+
+    if (t === 0) {
+      const m = randInt(1, 9);
+      return {
+        q: `${m} m = ___ cm`,
+        correct: m * 100,
+        unit: 'cm',
+        choices: makeChoices(m * 100, [m * 10, m * 1000, m]),
+        expl: `${m} m = ${m} × 100 = ${m * 100} cm`
+      };
+    }
+    if (t === 1) {
+      const m  = randInt(1, 9);
+      const cm = m * 100;
+      return {
+        q: `${cm} cm = ___ m`,
+        correct: m,
+        unit: 'm',
+        choices: makeChoices(m, [cm / 10, cm, cm * 10]),
+        expl: `${cm} cm = ${cm} ÷ 100 = ${m} m`
+      };
+    }
+    if (t === 2) {
+      const km      = randInt(1, 5);
+      const correct = km * 1000;
+      return {
+        q: `${km} km = ___ m`,
+        correct,
+        unit: 'm',
+        choices: makeChoices(correct, [km * 100, km * 10, km]),
+        expl: `${km} km = ${km} × 1 000 = ${fmt(correct)} m`
+      };
+    }
+    if (t === 3) {
+      const km   = randInt(1, 5);
+      const mVal = km * 1000;
+      return {
+        q: `${fmt(mVal)} m = ___ km`,
+        correct: km,
+        unit: 'km',
+        choices: makeChoices(km, [mVal / 100, mVal / 10, mVal]),
+        expl: `${fmt(mVal)} m = ${fmt(mVal)} ÷ 1 000 = ${km} km`
+      };
+    }
+    if (t === 4) {
+      const cm      = randInt(1, 9);
+      const correct = cm * 10;
+      return {
+        q: `${cm} cm = ___ mm`,
+        correct,
+        unit: 'mm',
+        choices: makeChoices(correct, [cm * 100, cm, correct + 5]),
+        expl: `${cm} cm = ${cm} × 10 = ${correct} mm`
+      };
+    }
+    // t === 5
+    const cm   = randInt(1, 9);
+    const mm   = cm * 10;
+    return {
+      q: `${mm} mm = ___ cm`,
+      correct: cm,
+      unit: 'cm',
+      choices: makeChoices(cm, [mm * 10, mm, mm * 100]),
+      expl: `${mm} mm = ${mm} ÷ 10 = ${cm} cm`
+    };
+  }
+
+  // ── Niveau 2 : masses (g, kg) et capacités (mL, dL, L) ───────────────────────
+  function genLevel2() {
+    const t = randInt(0, 5);
+
+    if (t === 0) {
+      const kg      = randInt(1, 5);
+      const correct = kg * 1000;
+      return {
+        q: `${kg} kg = ___ g`,
+        correct,
+        unit: 'g',
+        choices: makeChoices(correct, [kg * 100, kg * 10, kg]),
+        expl: `${kg} kg = ${kg} × 1 000 = ${fmt(correct)} g`
+      };
+    }
+    if (t === 1) {
+      const kg = randInt(1, 5);
+      const g  = kg * 1000;
+      return {
+        q: `${fmt(g)} g = ___ kg`,
+        correct: kg,
+        unit: 'kg',
+        choices: makeChoices(kg, [g / 100, g / 10, g]),
+        expl: `${fmt(g)} g = ${fmt(g)} ÷ 1 000 = ${kg} kg`
+      };
+    }
+    if (t === 2) {
+      const l       = randInt(1, 4);
+      const correct = l * 1000;
+      return {
+        q: `${l} L = ___ mL`,
+        correct,
+        unit: 'mL',
+        choices: makeChoices(correct, [l * 100, l * 10, l]),
+        expl: `${l} L = ${l} × 1 000 = ${fmt(correct)} mL`
+      };
+    }
+    if (t === 3) {
+      const l  = randInt(1, 4);
+      const ml = l * 1000;
+      return {
+        q: `${fmt(ml)} mL = ___ L`,
+        correct: l,
+        unit: 'L',
+        choices: makeChoices(l, [ml / 100, ml / 10, ml]),
+        expl: `${fmt(ml)} mL = ${fmt(ml)} ÷ 1 000 = ${l} L`
+      };
+    }
+    if (t === 4) {
+      const l       = randInt(1, 6);
+      const correct = l * 10;
+      return {
+        q: `${l} L = ___ dL`,
+        correct,
+        unit: 'dL',
+        choices: makeChoices(correct, [l * 100, l * 1000, l]),
+        expl: `${l} L = ${l} × 10 = ${correct} dL`
+      };
+    }
+    // t === 5
+    const l  = randInt(1, 6);
+    const dl = l * 10;
+    return {
+      q: `${dl} dL = ___ L`,
+      correct: l,
+      unit: 'L',
+      choices: makeChoices(l, [dl * 10, dl * 100, dl]),
+      expl: `${dl} dL = ${dl} ÷ 10 = ${l} L`
+    };
+  }
+
+  // ── Niveau 3 : conversions composées ─────────────────────────────────────────
+  // L'élève doit convertir la grande unité PUIS additionner la petite unité.
+  function genLevel3() {
+    const t = randInt(0, 3);
+
+    if (t === 0) {
+      const m       = randInt(1, 5);
+      const cm      = pick([10, 20, 25, 30, 40, 50, 60, 75, 80]);
+      const correct = m * 100 + cm;
+      return {
+        q: `${m} m ${cm} cm = ___ cm`,
+        correct,
+        unit: 'cm',
+        choices: makeChoices(correct, [m * 100, cm, correct + 10, correct - 10]),
+        expl: `${m} m = ${m * 100} cm, donc ${m * 100} + ${cm} = ${correct} cm`
+      };
+    }
+    if (t === 1) {
+      const km      = randInt(1, 3);
+      const m       = pick([100, 200, 250, 500, 750]);
+      const correct = km * 1000 + m;
+      return {
+        q: `${km} km ${m} m = ___ m`,
+        correct,
+        unit: 'm',
+        choices: makeChoices(correct, [km * 1000, m, correct + 100, correct - 100]),
+        expl: `${km} km = ${fmt(km * 1000)} m, donc ${fmt(km * 1000)} + ${m} = ${fmt(correct)} m`
+      };
+    }
+    if (t === 2) {
+      const kg      = randInt(1, 4);
+      const g       = pick([100, 200, 250, 500, 750]);
+      const correct = kg * 1000 + g;
+      return {
+        q: `${kg} kg ${g} g = ___ g`,
+        correct,
+        unit: 'g',
+        choices: makeChoices(correct, [kg * 1000, g, correct + 100, correct - 100]),
+        expl: `${kg} kg = ${fmt(kg * 1000)} g, donc ${fmt(kg * 1000)} + ${g} = ${fmt(correct)} g`
+      };
+    }
+    // t === 3
+    const l       = randInt(1, 3);
+    const ml      = pick([100, 250, 500, 750]);
+    const correct = l * 1000 + ml;
+    return {
+      q: `${l} L ${ml} mL = ___ mL`,
+      correct,
+      unit: 'mL',
+      choices: makeChoices(correct, [l * 1000, ml, correct + 250, correct - 250]),
+      expl: `${l} L = ${fmt(l * 1000)} mL, donc ${fmt(l * 1000)} + ${ml} = ${fmt(correct)} mL`
+    };
+  }
+
+  // ── Feedback unifié ──────────────────────────────────────────────────────────
+  // TYPE_TACHE = 'drill' : l'item est toujours clos après une réponse.
+  function showFeedback(correct, msg) {
+    feedbackEl.className  = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = msg;
+    if (correct) {
+      playCorrect();
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        launchConfetti();
+      }
+    } else {
+      playIncorrect();
+    }
+    newBtn.classList.add('visible');
+    newBtn.focus();
+  }
+
+  // ── Construction de la grille de choix ────────────────────────────────────────
+  function buildChoices(ex) {
+    choicesGrid.innerHTML = '';
+    answered = false;
+
+    ex.choices.forEach((val, idx) => {
+      const btn    = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.type      = 'button';
+      btn.textContent = fmt(val) + ' ' + ex.unit;
+      if (idx === 0) btn.setAttribute('data-focus-target', '');
+
+      btn.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+
+        const isCorrect = val === ex.correct;
+
+        // Fix A : doubler l'état visuel par un label textuel pour les lecteurs d'écran
+        // (ne jamais communiquer par la couleur seule — skills/accessibilite/SKILL.md §2).
+        choicesGrid.querySelectorAll('.choice-btn').forEach((b, j) => {
+          b.disabled = true;
+          if (ex.choices[j] === ex.correct) {
+            b.classList.add('is-correct');
+            b.setAttribute('aria-label', fmt(ex.choices[j]) + ' ' + ex.unit + ' — bonne réponse');
+          } else {
+            b.setAttribute('aria-label', fmt(ex.choices[j]) + ' ' + ex.unit + ' — non sélectionné');
+          }
+        });
+        if (!isCorrect) {
+          btn.classList.add('is-wrong');
+          btn.setAttribute('aria-label', fmt(val) + ' ' + ex.unit + ' — mauvaise réponse');
+        }
+
+        // Fix B : indiquer quoi faire après une erreur (skills/accessibilite/SKILL.md §5).
+        const msg = isCorrect
+          ? `Bravo ! ${ex.expl}.`
+          : `Pas tout à fait. ${ex.expl}. Appuie sur « Nouvel exercice » pour continuer.`;
+        showFeedback(isCorrect, msg);
+      });
+
+      choicesGrid.appendChild(btn);
+    });
+
+    const target = choicesGrid.querySelector('[data-focus-target]');
+    if (target) target.focus();
+  }
+
+  // ── Nouvel exercice ───────────────────────────────────────────────────────────
+  function newExercise() {
+    feedbackEl.className   = 'feedback';
+    feedbackEl.textContent = '';
+    newBtn.classList.remove('visible');
+
+    let ex;
+    if      (currentLevel === 1) ex = genLevel1();
+    else if (currentLevel === 2) ex = genLevel2();
+    else                         ex = genLevel3();
+
+    questionBox.textContent = ex.q;
+    buildChoices(ex);
+  }
+
+  // ── Sélecteur de niveau ───────────────────────────────────────────────────────
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLevel = parseInt(btn.dataset.level);
+      document.querySelectorAll('.level-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+      newExercise();
+    });
+  });
+
+  newBtn.addEventListener('click', newExercise);
+
+  // ── Démarrage ─────────────────────────────────────────────────────────────────
+  newExercise();
+</script>
+<script src="feedbackUtils.js"></script>
+</body>
+</html>
