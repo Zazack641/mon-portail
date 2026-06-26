@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="app-base.css">
 <style>
   :root {
-    --app-header-bg: #B8960C;
+    --app-header-bg: #7A6200;
   }
 
   /* ── Navigation contextuelle (remplace level-bar) ────────────────── */
@@ -25,7 +25,7 @@
   }
   .nav-bar-title {
     font-family: 'Source Sans 3', sans-serif;
-    font-size: 15px;
+    font-size: 18px;
     font-weight: 700;
     color: #64748B;
     white-space: nowrap;
@@ -38,7 +38,7 @@
     background: #F8FAFC;
     color: #4A5568;
     font-family: 'Source Sans 3', sans-serif;
-    font-size: 15px;
+    font-size: 22px;
     font-weight: 700;
     cursor: pointer;
     min-height: 48px;
@@ -49,6 +49,7 @@
   }
   .nav-back-btn:hover  { background: #EEF2F7; }
   .nav-back-btn:active { background: #E2EAF4; }
+  .nav-back-btn:focus-visible { outline: 3px solid #7A6200; outline-offset: 3px; }
 
   /* ── Grilles de sélection ────────────────────────────────────────── */
   .select-grid {
@@ -65,20 +66,21 @@
     background: #fff;
     color: var(--app-text);
     font-family: 'Nunito', sans-serif;
-    font-size: 17px;
+    font-size: 22px;
     font-weight: 800;
     cursor: pointer;
-    min-height: 52px;
+    min-height: 64px;
     touch-action: manipulation;
     -webkit-appearance: none;
     transition: all 0.15s;
   }
-  .select-btn:hover  { background: #FBF5D6; border-color: #B8960C; color: #7A6200; }
+  .select-btn:hover  { background: #FBF5D6; border-color: #7A6200; color: #7A6200; }
   .select-btn:active { background: #F5ECC0; }
+  .select-btn:focus-visible { outline: 3px solid #7A6200; outline-offset: 3px; }
 
   .select-section-title {
     font-family: 'Source Sans 3', sans-serif;
-    font-size: 15px;
+    font-size: 18px;
     font-weight: 700;
     color: #64748B;
     text-align: center;
@@ -92,12 +94,11 @@
     min-width: 140px;
   }
   .bloc-btn-title {
-    font-size: 17px;
     font-weight: 800;
   }
   .bloc-btn-words {
     font-family: 'Source Sans 3', sans-serif;
-    font-size: 12px;
+    font-size: 18px;
     font-weight: 600;
     color: #94A3B8;
   }
@@ -112,7 +113,7 @@
 
   .bloc-info {
     font-family: 'Source Sans 3', sans-serif;
-    font-size: 15px;
+    font-size: 18px;
     font-weight: 700;
     color: #64748B;
     text-align: center;
@@ -135,7 +136,7 @@
     -webkit-appearance: none;
     transition: border-color 0.15s, outline 0.1s;
   }
-  .word-input:focus { border-color: #B8960C; outline: 3px solid #B8960C; outline-offset: 2px; }
+  .word-input:focus { border-color: #7A6200; outline: 3px solid #7A6200; outline-offset: 2px; }
 
   .listen-btn {
     padding: 14px 28px;
@@ -144,16 +145,17 @@
     border: none;
     border-radius: 12px;
     font-family: 'Nunito', sans-serif;
-    font-size: 18px;
+    font-size: 22px;
     font-weight: 800;
     cursor: pointer;
-    min-height: 54px;
+    min-height: 64px;
     touch-action: manipulation;
     -webkit-appearance: none;
     transition: background 0.15s;
   }
-  .listen-btn:hover  { background: #9A7A08; }
-  .listen-btn:active { background: #7A6200; }
+  .listen-btn:hover  { background: #5C4D00; }
+  .listen-btn:active { background: #3D3200; }
+  .listen-btn:focus-visible { outline: 3px solid rgba(255,255,255,0.9); outline-offset: 3px; border-radius: 12px; }
 
   /* ── Recopie ─────────────────────────────────────────────────────── */
   .recopy-section {
@@ -165,7 +167,7 @@
   }
   .recopy-label {
     font-family: 'Source Sans 3', sans-serif;
-    font-size: 15px;
+    font-size: 18px;
     font-weight: 700;
     color: var(--app-wrong-fg);
     text-align: center;
@@ -182,7 +184,7 @@
     text-align: center;
     color: var(--app-text);
     background: #fff;
-    min-height: 60px;
+    min-height: 64px;
     touch-action: manipulation;
     -webkit-appearance: none;
     transition: border-color 0.15s, outline 0.1s;
@@ -190,7 +192,7 @@
   .recopy-input:focus { border-color: #D64045; outline: 3px solid #D64045; outline-offset: 2px; }
   .recopy-ok {
     font-family: 'Nunito', sans-serif;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 800;
     color: var(--app-correct-fg);
     display: none;
@@ -215,7 +217,7 @@
   }
   .recap-detail {
     font-family: 'Source Sans 3', sans-serif;
-    font-size: 15px;
+    font-size: 18px;
     color: #64748B;
     margin-bottom: 0;
   }
@@ -237,7 +239,7 @@
 </head>
 <body>
 
-<header class="app-header">
+<header class="app-header" role="banner">
   <a href="../index.html" class="back-link">← Retour</a>
   <h1>✍️ Dictée DéCoDi</h1>
   <div class="header-spacer"></div>
@@ -289,7 +291,7 @@
       aria-label="Saisir le mot dicté"
     >
 
-    <div class="feedback" id="feedback"></div>
+    <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
 
     <div class="recopy-section" id="recopy-section" style="display:none">
       <p class="recopy-label">Recopie le mot : <strong id="recopy-word-display"></strong></p>
@@ -358,6 +360,9 @@ const DECODI_DATA = {
 };
 
 const BLOC_SIZE = 7;
+
+// 'drill' : l'erreur clôt l'item (pas de retry sur la même dictée ; la recopie est un étayage)
+const TYPE_TACHE = 'drill';
 
 // ── Références DOM ────────────────────────────────────────────────────────────
 const viewModule    = document.getElementById('view-module');
@@ -464,6 +469,8 @@ function goToModule() {
   selectedGrapheme = null;
   updateNavBar('module');
   showView('module');
+  const firstBtn = moduleGrid.querySelector('.select-btn');
+  if (firstBtn) firstBtn.focus();
 }
 
 function selectModule(moduleName) {
@@ -471,6 +478,8 @@ function selectModule(moduleName) {
   buildGraphemeGrid(moduleName);
   updateNavBar('grapheme');
   showView('grapheme');
+  const firstBtn = graphemeGrid.querySelector('.select-btn');
+  if (firstBtn) firstBtn.focus();
 }
 
 // ── Vue 2 — Graphèmes ─────────────────────────────────────────────────────────
@@ -491,6 +500,8 @@ function goToGrapheme() {
   buildGraphemeGrid(selectedModule);
   updateNavBar('grapheme');
   showView('grapheme');
+  const firstBtn = graphemeGrid.querySelector('.select-btn');
+  if (firstBtn) firstBtn.focus();
 }
 
 function selectGrapheme(grapheme) {
@@ -503,6 +514,8 @@ function selectGrapheme(grapheme) {
   buildBlocGrid();
   updateNavBar('bloc');
   showView('bloc');
+  const firstBtn = blocGrid.querySelector('.select-btn');
+  if (firstBtn) firstBtn.focus();
 }
 
 // ── Vue 2b — Blocs ────────────────────────────────────────────────────────────
@@ -525,6 +538,8 @@ function goToBloc() {
   buildBlocGrid();
   updateNavBar('bloc');
   showView('bloc');
+  const firstBtn = blocGrid.querySelector('.select-btn');
+  if (firstBtn) firstBtn.focus();
 }
 
 function selectBloc(idx) {
@@ -549,13 +564,13 @@ function startWord() {
   blocInfo.textContent = `Bloc ${currentBlocIdx + 1} / ${blocs.length}`;
 
   questionBox.innerHTML =
-    `<div style="font-size:14px;font-weight:700;color:#64748B;margin-bottom:6px;">Mot ${currentWordIdx + 1} / ${bloc.length}</div>` +
+    `<div style="font-size:18px;font-weight:700;color:#64748B;margin-bottom:6px;">Mot ${currentWordIdx + 1} / ${bloc.length}</div>` +
     `Écoute le mot, puis écris-le.`;
 
   wordInput.value = '';
   wordInput.disabled = false;
   wordInput.style.display = '';
-  wordInput.focus();
+  listenBtn.focus();
 
   listenBtn.style.display = '';
 
@@ -587,6 +602,7 @@ function verifyWord() {
     correctCount++;
     showFeedback(true, `Bravo ! <strong>${mot}</strong> s'écrit bien avec <strong>${selectedGrapheme}</strong>.`);
     newBtn.classList.add('visible');
+    newBtn.focus();
   } else {
     showFeedback(false, `Pas tout à fait. Le mot était : <strong>${mot}</strong>`);
     showRecopy(mot);
@@ -607,6 +623,7 @@ function showRecopy(mot) {
       recopyOk.classList.add('visible');
       recopyInput.disabled = true;
       newBtn.classList.add('visible');
+      newBtn.focus();
     }
   };
 }
@@ -638,6 +655,8 @@ function showRecap() {
 
   nextBlocBtn.style.display = currentBlocIdx + 1 < blocs.length ? '' : 'none';
   recapBox.style.display = '';
+  if (nextBlocBtn.style.display !== 'none') nextBlocBtn.focus();
+  else changeBlocBtn.focus();
 }
 
 // ── Événements ────────────────────────────────────────────────────────────────
