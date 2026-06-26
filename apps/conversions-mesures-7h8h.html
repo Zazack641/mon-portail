@@ -188,7 +188,7 @@
         q: `${fmt(mVal)} m = ___ km`,
         correct: km,
         unit: 'km',
-        choices: makeChoices(km, [mVal / 100, mVal / 10, mVal]),
+        choices: makeChoices(km, [mVal / 100, mVal / 10, km + 1]),
         expl: `${fmt(mVal)} m = ${fmt(mVal)} ÷ 1 000 = ${km} km`
       };
     }
@@ -237,7 +237,7 @@
         q: `${fmt(g)} g = ___ kg`,
         correct: kg,
         unit: 'kg',
-        choices: makeChoices(kg, [g / 100, g / 10, g]),
+        choices: makeChoices(kg, [g / 100, g / 10, kg + 1]),
         expl: `${fmt(g)} g = ${fmt(g)} ÷ 1 000 = ${kg} kg`
       };
     }
@@ -259,7 +259,7 @@
         q: `${fmt(ml)} mL = ___ L`,
         correct: l,
         unit: 'L',
-        choices: makeChoices(l, [ml / 100, ml / 10, ml]),
+        choices: makeChoices(l, [ml / 100, ml / 10, l + 1]),
         expl: `${fmt(ml)} mL = ${fmt(ml)} ÷ 1 000 = ${l} L`
       };
     }
@@ -281,7 +281,7 @@
       q: `${dl} dL = ___ L`,
       correct: l,
       unit: 'L',
-      choices: makeChoices(l, [dl * 10, dl * 100, dl]),
+      choices: makeChoices(l, [dl, l * 2, l + 1]),
       expl: `${dl} dL = ${dl} ÷ 10 = ${l} L`
     };
   }
@@ -293,7 +293,7 @@
 
     if (t === 0) {
       const m       = randInt(1, 5);
-      const cm      = pick([10, 20, 25, 30, 40, 50, 60, 75, 80]);
+      const cm      = pick([10, 20, 25, 30, 40, 50, 60, 75, 80], 1)[0];
       const correct = m * 100 + cm;
       return {
         q: `${m} m ${cm} cm = ___ cm`,
@@ -305,7 +305,7 @@
     }
     if (t === 1) {
       const km      = randInt(1, 3);
-      const m       = pick([100, 200, 250, 500, 750]);
+      const m       = pick([100, 200, 250, 500, 750], 1)[0];
       const correct = km * 1000 + m;
       return {
         q: `${km} km ${m} m = ___ m`,
@@ -317,7 +317,7 @@
     }
     if (t === 2) {
       const kg      = randInt(1, 4);
-      const g       = pick([100, 200, 250, 500, 750]);
+      const g       = pick([100, 200, 250, 500, 750], 1)[0];
       const correct = kg * 1000 + g;
       return {
         q: `${kg} kg ${g} g = ___ g`,
@@ -329,7 +329,7 @@
     }
     // t === 3
     const l       = randInt(1, 3);
-    const ml      = pick([100, 250, 500, 750]);
+    const ml      = pick([100, 250, 500, 750], 1)[0];
     const correct = l * 1000 + ml;
     return {
       q: `${l} L ${ml} mL = ___ mL`,
