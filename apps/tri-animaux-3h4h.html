@@ -85,7 +85,7 @@
 
 <header class="app-header" role="banner">
   <a href="../index.html" class="back-link">← Retour</a>
-  <h1>🐾 Trie les animaux</h1>
+  <h1><span aria-hidden="true">🐾</span> Trie les animaux</h1>
   <div class="header-spacer"></div>
 </header>
 
@@ -96,7 +96,7 @@
 </div>
 
 <main>
-  <div class="question-box" id="question-box">Chargement…</div>
+  <div class="question-box" id="question-box" aria-live="polite">Chargement…</div>
 
   <div class="animal-display"
        id="animal-display"
@@ -143,7 +143,10 @@
   const LEVELS = {
     1: {
       question: 'Cet animal vole-t-il ?',
-      categories: ['Vole 🪶', 'Ne vole pas 🚫'],
+      categories: [
+        { display: 'Vole 🪶',        aria: 'Vole' },
+        { display: 'Ne vole pas 🚫',  aria: 'Ne vole pas' },
+      ],
       animals: [
         { emoji: '🦅', nom: "l'aigle",      cat: 0, why: "L'aigle est un oiseau : il a des ailes et des plumes pour voler." },
         { emoji: '🦋', nom: 'le papillon',   cat: 0, why: "Le papillon est un insecte qui vole grâce à ses quatre ailes." },
@@ -161,7 +164,12 @@
     },
     2: {
       question: 'Quel groupe d\'animaux ?',
-      categories: ['Mammifère 🐾', 'Oiseau 🪶', 'Poisson 🐠', 'Insecte 🐛'],
+      categories: [
+        { display: 'Mammifère 🐾', aria: 'Mammifère' },
+        { display: 'Oiseau 🪶',    aria: 'Oiseau' },
+        { display: 'Poisson 🐠',   aria: 'Poisson' },
+        { display: 'Insecte 🐛',   aria: 'Insecte' },
+      ],
       animals: [
         { emoji: '🐕', nom: 'le chien',         cat: 0, why: "Le chien est un mammifère : il a des poils et allaite ses petits." },
         { emoji: '🦅', nom: "l'aigle",           cat: 1, why: "L'aigle est un oiseau : il a des plumes et un bec." },
@@ -182,7 +190,10 @@
     },
     3: {
       question: 'Vertébré ou invertébré ?',
-      categories: ['Vertébré 🦴', 'Invertébré 🐛'],
+      categories: [
+        { display: 'Vertébré 🦴',   aria: 'Vertébré' },
+        { display: 'Invertébré 🐛', aria: 'Invertébré' },
+      ],
       animals: [
         { emoji: '🐕', nom: 'le chien',      cat: 0, why: "Le chien est un vertébré : il a une colonne vertébrale et un squelette interne." },
         { emoji: '🐝', nom: "l'abeille",     cat: 1, why: "L'abeille est un invertébré : elle n'a pas d'os, mais un exosquelette." },
@@ -212,24 +223,35 @@
     } else {
       playIncorrect();
     }
+    // Labelliser chaque bouton bonne/mauvaise réponse pour les lecteurs d'écran, puis désactiver.
+    const categories = LEVELS[currentLevel].categories;
+    answerGrid.querySelectorAll('.answer-btn').forEach((b, idx) => {
+      b.setAttribute('aria-label',
+        categories[idx].aria + (idx === state.animal.cat ? ' — bonne réponse' : ' — mauvaise réponse')
+      );
+      b.disabled = true;
+    });
     // TYPE_TACHE = 'drill' : l'item est clos, on propose la suite.
-    answerGrid.querySelectorAll('.answer-btn').forEach(b => { b.disabled = true; });
-    newBtn.classList.add('visible');
-    newBtn.focus();
+    if (correct || TYPE_TACHE === 'drill') {
+      newBtn.classList.add('visible');
+      newBtn.focus();
+    }
   }
 
   // ── Construction de la grille de réponses ────────────────────────────────────
   function buildAnswerButtons(categories) {
     answerGrid.innerHTML = '';
-    categories.forEach((label, idx) => {
+    let firstBtn = null;
+    categories.forEach((cat, idx) => {
       const btn = document.createElement('button');
       btn.className = 'answer-btn';
-      btn.textContent = label;
+      btn.textContent = cat.display;
+      btn.setAttribute('aria-label', cat.aria);
       btn.addEventListener('click', () => handleAnswer(idx));
       answerGrid.appendChild(btn);
+      if (idx === 0) firstBtn = btn;
     });
-    const first = answerGrid.querySelector('.answer-btn');
-    if (first) first.focus();
+    if (firstBtn) firstBtn.focus();
   }
 
   // ── Validation ───────────────────────────────────────────────────────────────
