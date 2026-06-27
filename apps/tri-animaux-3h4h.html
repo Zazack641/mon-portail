@@ -141,44 +141,20 @@
   const animalImg    = document.getElementById('animal-img');
   const answerGrid   = document.getElementById('answer-grid');
 
-  const imgCache = {};
-
-  async function getAnimalImage(animal) {
-    if (Object.prototype.hasOwnProperty.call(imgCache, animal.wikiKey)) {
-      return imgCache[animal.wikiKey];
-    }
-    try {
-      const r = await fetch(
-        'https://en.wikipedia.org/api/rest_v1/page/summary/' +
-        encodeURIComponent(animal.wikiKey)
-      );
-      const d = await r.json();
-      const url = d.thumbnail?.source?.replace(/\/\d+px-/, '/300px-') ?? null;
-      imgCache[animal.wikiKey] = url;
-      return url;
-    } catch {
-      imgCache[animal.wikiKey] = null;
-      return null;
-    }
-  }
-
   function showAnimal(animal) {
     animalName.textContent = animal.nom.charAt(0).toUpperCase() + animal.nom.slice(1);
     animalEmoji.textContent = animal.emoji;
     animalEmoji.style.display = 'block';
     animalImg.style.display = 'none';
 
-    getAnimalImage(animal).then(url => {
-      if (!url || state.animal !== animal) return;
-      animalImg.onload = () => {
-        if (state.animal !== animal) return;
-        animalImg.style.display = 'block';
-        animalEmoji.style.display = 'none';
-      };
-      animalImg.onerror = () => {};
-      animalImg.src = url;
-      animalImg.alt = '';
-    });
+    animalImg.onload = () => {
+      if (state.animal !== animal) return;
+      animalImg.style.display = 'block';
+      animalEmoji.style.display = 'none';
+    };
+    animalImg.onerror = () => {};
+    animalImg.src = 'animals/' + animal.img;
+    animalImg.alt = '';
   }
 
   // ── Type de tâche ─────────────────────────────────────────────────────────
@@ -200,18 +176,18 @@
         { display: 'Ne vole pas 🚫',  aria: 'Ne vole pas' },
       ],
       animals: [
-        { emoji: '🦅', nom: "l'aigle",      wikiKey: 'Golden_eagle',              cat: 0, why: "L'aigle est un oiseau : il a des ailes et des plumes pour voler." },
-        { emoji: '🦋', nom: 'le papillon',   wikiKey: 'Monarch_butterfly',         cat: 0, why: "Le papillon est un insecte qui vole grâce à ses quatre ailes." },
-        { emoji: '🐕', nom: 'le chien',      wikiKey: 'Dog',                       cat: 1, why: "Le chien est un mammifère : il court sur ses quatre pattes." },
-        { emoji: '🐸', nom: 'la grenouille', wikiKey: 'European_tree_frog',        cat: 1, why: "La grenouille saute très loin, mais elle ne vole pas." },
-        { emoji: '🐝', nom: "l'abeille",     wikiKey: 'Western_honey_bee',         cat: 0, why: "L'abeille est un insecte qui vole de fleur en fleur." },
-        { emoji: '🐈', nom: 'le chat',       wikiKey: 'Cat',                       cat: 1, why: "Le chat est un mammifère : il grimpe et saute, mais ne vole pas." },
-        { emoji: '🦆', nom: 'le canard',     wikiKey: 'Mallard',                   cat: 0, why: "Le canard est un oiseau : il vole et nage." },
-        { emoji: '🐟', nom: 'le poisson',    wikiKey: 'Goldfish',                  cat: 1, why: "Le poisson nage dans l'eau ; il ne vole pas." },
-        { emoji: '🦉', nom: 'le hibou',      wikiKey: 'Great_horned_owl',          cat: 0, why: "Le hibou est un oiseau de nuit : il vole en silence." },
-        { emoji: '🐴', nom: 'le cheval',     wikiKey: 'Horse',                     cat: 1, why: "Le cheval est un mammifère : il galope, mais ne vole pas." },
-        { emoji: '🐞', nom: 'la coccinelle', wikiKey: 'Coccinella_septempunctata', cat: 0, why: "La coccinelle est un insecte : elle ouvre ses élytres et vole." },
-        { emoji: '🐇', nom: 'le lapin',      wikiKey: 'European_rabbit',           cat: 1, why: "Le lapin est un mammifère : il saute, mais ne vole pas." },
+        { emoji: '🦅', nom: "l'aigle",      img: 'aigle.jpg',              cat: 0, why: "L'aigle est un oiseau : il a des ailes et des plumes pour voler." },
+        { emoji: '🦋', nom: 'le papillon',   img: 'papillon.jpg',         cat: 0, why: "Le papillon est un insecte qui vole grâce à ses quatre ailes." },
+        { emoji: '🐕', nom: 'le chien',      img: 'chien.jpg',                       cat: 1, why: "Le chien est un mammifère : il court sur ses quatre pattes." },
+        { emoji: '🐸', nom: 'la grenouille', img: 'grenouille.jpg',        cat: 1, why: "La grenouille saute très loin, mais elle ne vole pas." },
+        { emoji: '🐝', nom: "l'abeille",     img: 'abeille.jpg',         cat: 0, why: "L'abeille est un insecte qui vole de fleur en fleur." },
+        { emoji: '🐈', nom: 'le chat',       img: 'chat.jpg',                       cat: 1, why: "Le chat est un mammifère : il grimpe et saute, mais ne vole pas." },
+        { emoji: '🦆', nom: 'le canard',     img: 'canard.jpg',                   cat: 0, why: "Le canard est un oiseau : il vole et nage." },
+        { emoji: '🐟', nom: 'le poisson',    img: 'poisson.jpg',                  cat: 1, why: "Le poisson nage dans l'eau ; il ne vole pas." },
+        { emoji: '🦉', nom: 'le hibou',      img: 'hibou.jpg',          cat: 0, why: "Le hibou est un oiseau de nuit : il vole en silence." },
+        { emoji: '🐴', nom: 'le cheval',     img: 'cheval.jpg',                     cat: 1, why: "Le cheval est un mammifère : il galope, mais ne vole pas." },
+        { emoji: '🐞', nom: 'la coccinelle', img: 'coccinelle.jpg', cat: 0, why: "La coccinelle est un insecte : elle ouvre ses élytres et vole." },
+        { emoji: '🐇', nom: 'le lapin',      img: 'lapin.jpg',           cat: 1, why: "Le lapin est un mammifère : il saute, mais ne vole pas." },
       ],
     },
     2: {
@@ -223,21 +199,21 @@
         { display: 'Insecte 🐛',   aria: 'Insecte' },
       ],
       animals: [
-        { emoji: '🐕', nom: 'le chien',         wikiKey: 'Dog',                       cat: 0, why: "Le chien est un mammifère : il a des poils et allaite ses petits." },
-        { emoji: '🦅', nom: "l'aigle",           wikiKey: 'Golden_eagle',              cat: 1, why: "L'aigle est un oiseau : il a des plumes et un bec." },
-        { emoji: '🐟', nom: 'le saumon',         wikiKey: 'Atlantic_salmon',           cat: 2, why: "Le saumon est un poisson : il a des écailles et des nageoires." },
-        { emoji: '🐝', nom: "l'abeille",         wikiKey: 'Western_honey_bee',         cat: 3, why: "L'abeille est un insecte : elle a six pattes et des antennes." },
-        { emoji: '🐈', nom: 'le chat',           wikiKey: 'Cat',                       cat: 0, why: "Le chat est un mammifère : il a des poils et des griffes." },
-        { emoji: '🐧', nom: 'le pingouin',       wikiKey: 'Emperor_penguin',           cat: 1, why: "Le pingouin est un oiseau : il a des plumes, même s'il ne vole pas." },
-        { emoji: '🦈', nom: 'le requin',         wikiKey: 'Great_white_shark',         cat: 2, why: "Le requin est un poisson : il vit dans la mer et a des nageoires." },
-        { emoji: '🐜', nom: 'la fourmi',         wikiKey: 'Formica_rufa',              cat: 3, why: "La fourmi est un insecte : elle a six pattes et un corps en trois parties." },
-        { emoji: '🐇', nom: 'le lapin',          wikiKey: 'European_rabbit',           cat: 0, why: "Le lapin est un mammifère : il a de la fourrure et des oreilles pointues." },
-        { emoji: '🦉', nom: 'la chouette',       wikiKey: 'Tawny_owl',                 cat: 1, why: "La chouette est un oiseau de nuit : elle a des plumes et des serres." },
-        { emoji: '🐞', nom: 'la coccinelle',     wikiKey: 'Coccinella_septempunctata', cat: 3, why: "La coccinelle est un insecte : elle a six pattes et des élytres." },
-        { emoji: '🦆', nom: 'le canard',         wikiKey: 'Mallard',                   cat: 1, why: "Le canard est un oiseau : il a des plumes et un bec plat." },
-        { emoji: '🐴', nom: 'le cheval',         wikiKey: 'Horse',                     cat: 0, why: "Le cheval est un mammifère : il a quatre pattes et de la crinière." },
-        { emoji: '🦋', nom: 'le papillon',       wikiKey: 'Monarch_butterfly',         cat: 3, why: "Le papillon est un insecte : il a six pattes et quatre ailes." },
-        { emoji: '🐠', nom: 'le poisson-clown',  wikiKey: 'Amphiprioninae',            cat: 2, why: "Le poisson-clown est un poisson : il a des écailles et des nageoires." },
+        { emoji: '🐕', nom: 'le chien',         img: 'chien.jpg',                       cat: 0, why: "Le chien est un mammifère : il a des poils et allaite ses petits." },
+        { emoji: '🦅', nom: "l'aigle",           img: 'aigle.jpg',              cat: 1, why: "L'aigle est un oiseau : il a des plumes et un bec." },
+        { emoji: '🐟', nom: 'le saumon',         img: 'saumon.jpg',           cat: 2, why: "Le saumon est un poisson : il a des écailles et des nageoires." },
+        { emoji: '🐝', nom: "l'abeille",         img: 'abeille.jpg',         cat: 3, why: "L'abeille est un insecte : elle a six pattes et des antennes." },
+        { emoji: '🐈', nom: 'le chat',           img: 'chat.jpg',                       cat: 0, why: "Le chat est un mammifère : il a des poils et des griffes." },
+        { emoji: '🐧', nom: 'le pingouin',       img: 'pingouin.jpg',           cat: 1, why: "Le pingouin est un oiseau : il a des plumes, même s'il ne vole pas." },
+        { emoji: '🦈', nom: 'le requin',         img: 'requin.jpg',         cat: 2, why: "Le requin est un poisson : il vit dans la mer et a des nageoires." },
+        { emoji: '🐜', nom: 'la fourmi',         img: 'fourmi.jpg',              cat: 3, why: "La fourmi est un insecte : elle a six pattes et un corps en trois parties." },
+        { emoji: '🐇', nom: 'le lapin',          img: 'lapin.jpg',           cat: 0, why: "Le lapin est un mammifère : il a de la fourrure et des oreilles pointues." },
+        { emoji: '🦉', nom: 'la chouette',       img: 'chouette.jpg',                 cat: 1, why: "La chouette est un oiseau de nuit : elle a des plumes et des serres." },
+        { emoji: '🐞', nom: 'la coccinelle',     img: 'coccinelle.jpg', cat: 3, why: "La coccinelle est un insecte : elle a six pattes et des élytres." },
+        { emoji: '🦆', nom: 'le canard',         img: 'canard.jpg',                   cat: 1, why: "Le canard est un oiseau : il a des plumes et un bec plat." },
+        { emoji: '🐴', nom: 'le cheval',         img: 'cheval.jpg',                     cat: 0, why: "Le cheval est un mammifère : il a quatre pattes et de la crinière." },
+        { emoji: '🦋', nom: 'le papillon',       img: 'papillon.jpg',         cat: 3, why: "Le papillon est un insecte : il a six pattes et quatre ailes." },
+        { emoji: '🐠', nom: 'le poisson-clown',  img: 'poisson-clown.jpg',            cat: 2, why: "Le poisson-clown est un poisson : il a des écailles et des nageoires." },
       ],
     },
     3: {
@@ -247,18 +223,18 @@
         { display: 'Invertébré 🐛', aria: 'Invertébré' },
       ],
       animals: [
-        { emoji: '🐕', nom: 'le chien',      wikiKey: 'Dog',                   cat: 0, why: "Le chien est un vertébré : il a une colonne vertébrale et un squelette interne." },
-        { emoji: '🐝', nom: "l'abeille",     wikiKey: 'Western_honey_bee',     cat: 1, why: "L'abeille est un invertébré : elle n'a pas d'os, mais un exosquelette." },
-        { emoji: '🐟', nom: 'le saumon',     wikiKey: 'Atlantic_salmon',       cat: 0, why: "Le saumon est un vertébré : il a une colonne vertébrale et des arêtes." },
-        { emoji: '🐜', nom: 'la fourmi',     wikiKey: 'Formica_rufa',          cat: 1, why: "La fourmi est un invertébré : son corps est protégé par une carapace externe." },
-        { emoji: '🦅', nom: "l'aigle",       wikiKey: 'Golden_eagle',          cat: 0, why: "L'aigle est un vertébré : comme tous les oiseaux, il a une colonne vertébrale." },
-        { emoji: '🐌', nom: "l'escargot",    wikiKey: 'Garden_snail',          cat: 1, why: "L'escargot est un invertébré : il n'a pas d'os à l'intérieur." },
-        { emoji: '🐸', nom: 'la grenouille', wikiKey: 'European_tree_frog',    cat: 0, why: "La grenouille est un vertébré : elle a un squelette interne." },
-        { emoji: '🕷️', nom: "l'araignée",   wikiKey: 'Argiope_bruennichi',    cat: 1, why: "L'araignée est un invertébré : elle a huit pattes et pas d'os." },
-        { emoji: '🐴', nom: 'le cheval',     wikiKey: 'Horse',                 cat: 0, why: "Le cheval est un vertébré : il a un grand squelette interne." },
-        { emoji: '🦋', nom: 'le papillon',   wikiKey: 'Monarch_butterfly',     cat: 1, why: "Le papillon est un invertébré : comme tous les insectes, il n'a pas d'os." },
-        { emoji: '🦈', nom: 'le requin',     wikiKey: 'Great_white_shark',     cat: 0, why: "Le requin est un vertébré : il a un squelette en cartilage." },
-        { emoji: '🦀', nom: 'le crabe',      wikiKey: 'Carcinus_maenas',       cat: 1, why: "Le crabe est un invertébré : sa carapace lui tient lieu d'armure." },
+        { emoji: '🐕', nom: 'le chien',      img: 'chien.jpg',                   cat: 0, why: "Le chien est un vertébré : il a une colonne vertébrale et un squelette interne." },
+        { emoji: '🐝', nom: "l'abeille",     img: 'abeille.jpg',     cat: 1, why: "L'abeille est un invertébré : elle n'a pas d'os, mais un exosquelette." },
+        { emoji: '🐟', nom: 'le saumon',     img: 'saumon.jpg',       cat: 0, why: "Le saumon est un vertébré : il a une colonne vertébrale et des arêtes." },
+        { emoji: '🐜', nom: 'la fourmi',     img: 'fourmi.jpg',          cat: 1, why: "La fourmi est un invertébré : son corps est protégé par une carapace externe." },
+        { emoji: '🦅', nom: "l'aigle",       img: 'aigle.jpg',          cat: 0, why: "L'aigle est un vertébré : comme tous les oiseaux, il a une colonne vertébrale." },
+        { emoji: '🐌', nom: "l'escargot",    img: 'escargot.jpg',          cat: 1, why: "L'escargot est un invertébré : il n'a pas d'os à l'intérieur." },
+        { emoji: '🐸', nom: 'la grenouille', img: 'grenouille.jpg',    cat: 0, why: "La grenouille est un vertébré : elle a un squelette interne." },
+        { emoji: '🕷️', nom: "l'araignée",   img: 'araignee.jpg',    cat: 1, why: "L'araignée est un invertébré : elle a huit pattes et pas d'os." },
+        { emoji: '🐴', nom: 'le cheval',     img: 'cheval.jpg',                 cat: 0, why: "Le cheval est un vertébré : il a un grand squelette interne." },
+        { emoji: '🦋', nom: 'le papillon',   img: 'papillon.jpg',     cat: 1, why: "Le papillon est un invertébré : comme tous les insectes, il n'a pas d'os." },
+        { emoji: '🦈', nom: 'le requin',     img: 'requin.jpg',     cat: 0, why: "Le requin est un vertébré : il a un squelette en cartilage." },
+        { emoji: '🦀', nom: 'le crabe',      img: 'crabe.jpg',       cat: 1, why: "Le crabe est un invertébré : sa carapace lui tient lieu d'armure." },
       ],
     },
   };
