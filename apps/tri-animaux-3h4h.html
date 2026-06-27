@@ -170,10 +170,14 @@
 
     getAnimalImage(animal).then(url => {
       if (!url || state.animal !== animal) return;
+      animalImg.onload = () => {
+        if (state.animal !== animal) return;
+        animalImg.style.display = 'block';
+        animalEmoji.style.display = 'none';
+      };
+      animalImg.onerror = () => {};
       animalImg.src = url;
       animalImg.alt = '';
-      animalImg.style.display = 'block';
-      animalEmoji.style.display = 'none';
     });
   }
 
