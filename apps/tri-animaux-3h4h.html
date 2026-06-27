@@ -27,15 +27,9 @@
     height: 180px;
     object-fit: cover;
     border-radius: 12px;
-    display: none;
+    display: block;
     margin: 0 auto;
     background: #f0f0f0;
-  }
-
-  .animal-emoji {
-    font-size: 72px;
-    line-height: 1.2;
-    display: block;
   }
 
   .animal-name {
@@ -112,9 +106,8 @@
        id="animal-display"
        aria-live="polite"
        aria-atomic="true">
-    <img  class="animal-img" id="animal-img"   src="" alt="">
-    <span class="animal-emoji" id="animal-emoji" aria-hidden="true"></span>
-    <span class="animal-name"  id="animal-name"></span>
+    <img  class="animal-img" id="animal-img" src="" alt="">
+    <span class="animal-name" id="animal-name"></span>
   </div>
 
   <div class="answer-grid"
@@ -136,23 +129,12 @@
   const questionBox  = document.getElementById('question-box');
   const feedbackEl   = document.getElementById('feedback');
   const newBtn       = document.getElementById('new-btn');
-  const animalEmoji  = document.getElementById('animal-emoji');
   const animalName   = document.getElementById('animal-name');
   const animalImg    = document.getElementById('animal-img');
   const answerGrid   = document.getElementById('answer-grid');
 
   function showAnimal(animal) {
     animalName.textContent = animal.nom.charAt(0).toUpperCase() + animal.nom.slice(1);
-    animalEmoji.textContent = animal.emoji;
-    animalEmoji.style.display = 'block';
-    animalImg.style.display = 'none';
-
-    animalImg.onload = () => {
-      if (state.animal !== animal) return;
-      animalImg.style.display = 'block';
-      animalEmoji.style.display = 'none';
-    };
-    animalImg.onerror = () => {};
     animalImg.src = 'animals/' + animal.img;
     animalImg.alt = '';
   }
