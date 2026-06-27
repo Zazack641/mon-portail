@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Trie les animaux — Sciences 3H-4H</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-base.css">
+<style>
+  :root {
+    --app-header-bg: #A02030;
+  }
+
+  .animal-display {
+    text-align: center;
+    padding: 20px 24px;
+    background: #fff;
+    border: 2px solid var(--app-border);
+    border-radius: 16px;
+    width: 100%;
+  }
+
+  .animal-emoji {
+    font-size: 72px;
+    line-height: 1.2;
+    display: block;
+  }
+
+  .animal-name {
+    font-family: 'Nunito', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--app-text);
+    margin-top: 8px;
+    display: block;
+  }
+
+  .answer-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .answer-btn {
+    min-height: 64px;
+    min-width: 64px;
+    padding: 12px 16px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    border: 3px solid var(--app-border);
+    border-radius: 14px;
+    background: #fff;
+    color: var(--app-text);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    line-height: 1.2;
+  }
+
+  .answer-btn:not(:disabled):hover {
+    background: #f8f0f0;
+    border-color: #A02030;
+  }
+
+  .answer-btn:focus-visible {
+    outline: 3px solid #A02030;
+    outline-offset: 2px;
+  }
+
+  .answer-btn:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .answer-btn { transition: background 0.15s, border-color 0.15s; }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header" role="banner">
+  <a href="../index.html" class="back-link">← Retour</a>
+  <h1>🐾 Trie les animaux</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1</button>
+  <button class="level-btn"        data-level="2" aria-pressed="false">Niveau 2</button>
+  <button class="level-btn"        data-level="3" aria-pressed="false">Niveau 3</button>
+</div>
+
+<main>
+  <div class="question-box" id="question-box">Chargement…</div>
+
+  <div class="animal-display"
+       id="animal-display"
+       aria-live="polite"
+       aria-atomic="true">
+    <span class="animal-emoji" id="animal-emoji" aria-hidden="true"></span>
+    <span class="animal-name"  id="animal-name"></span>
+  </div>
+
+  <div class="answer-grid"
+       id="answer-grid"
+       role="group"
+       aria-label="Choix de réponse">
+  </div>
+
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="action-row">
+    <button class="new-btn" id="new-btn"><span aria-hidden="true">▶</span> Nouvel exercice</button>
+  </div>
+</main>
+
+<script src="appUtils.js"></script>
+<script>
+  // ── Références DOM ─────────────────────────────────────────────────────────
+  const questionBox  = document.getElementById('question-box');
+  const feedbackEl   = document.getElementById('feedback');
+  const newBtn       = document.getElementById('new-btn');
+  const animalEmoji  = document.getElementById('animal-emoji');
+  const animalName   = document.getElementById('animal-name');
+  const answerGrid   = document.getElementById('answer-grid');
+
+  // ── Type de tâche ─────────────────────────────────────────────────────────
+  // 'drill' : classer un animal = reconnaître un fait observable → l'erreur clôt
+  // l'item. Retry sur la même instance encouragerait le tâtonnement aveugle.
+  const TYPE_TACHE = 'drill';
+
+  // ── État ────────────────────────────────────────────────────────────────────
+  let currentLevel = 1;
+  let state = {};
+  let lastAnimal = null;
+
+  // ── Données ─────────────────────────────────────────────────────────────────
+  const LEVELS = {
+    1: {
+      question: 'Cet animal vole-t-il ?',
+      categories: ['Vole 🪶', 'Ne vole pas 🚫'],
+      animals: [
+        { emoji: '🦅', nom: "l'aigle",      cat: 0, why: "L'aigle est un oiseau : il a des ailes et des plumes pour voler." },
+        { emoji: '🦋', nom: 'le papillon',   cat: 0, why: "Le papillon est un insecte qui vole grâce à ses quatre ailes." },
+        { emoji: '🐕', nom: 'le chien',      cat: 1, why: "Le chien est un mammifère : il court sur ses quatre pattes." },
+        { emoji: '🐸', nom: 'la grenouille', cat: 1, why: "La grenouille saute très loin, mais elle ne vole pas." },
+        { emoji: '🐝', nom: "l'abeille",     cat: 0, why: "L'abeille est un insecte qui vole de fleur en fleur." },
+        { emoji: '🐈', nom: 'le chat',       cat: 1, why: "Le chat est un mammifère : il grimpe et saute, mais ne vole pas." },
+        { emoji: '🦆', nom: 'le canard',     cat: 0, why: "Le canard est un oiseau : il vole et nage." },
+        { emoji: '🐟', nom: 'le poisson',    cat: 1, why: "Le poisson nage dans l'eau ; il ne vole pas." },
+        { emoji: '🦉', nom: 'le hibou',      cat: 0, why: "Le hibou est un oiseau de nuit : il vole en silence." },
+        { emoji: '🐴', nom: 'le cheval',     cat: 1, why: "Le cheval est un mammifère : il galope, mais ne vole pas." },
+        { emoji: '🐞', nom: 'la coccinelle', cat: 0, why: "La coccinelle est un insecte : elle ouvre ses élytres et vole." },
+        { emoji: '🐇', nom: 'le lapin',      cat: 1, why: "Le lapin est un mammifère : il saute, mais ne vole pas." },
+      ],
+    },
+    2: {
+      question: 'Quel groupe d\'animaux ?',
+      categories: ['Mammifère 🐾', 'Oiseau 🪶', 'Poisson 🐠', 'Insecte 🐛'],
+      animals: [
+        { emoji: '🐕', nom: 'le chien',         cat: 0, why: "Le chien est un mammifère : il a des poils et allaite ses petits." },
+        { emoji: '🦅', nom: "l'aigle",           cat: 1, why: "L'aigle est un oiseau : il a des plumes et un bec." },
+        { emoji: '🐟', nom: 'le saumon',         cat: 2, why: "Le saumon est un poisson : il a des écailles et des nageoires." },
+        { emoji: '🐝', nom: "l'abeille",         cat: 3, why: "L'abeille est un insecte : elle a six pattes et des antennes." },
+        { emoji: '🐈', nom: 'le chat',           cat: 0, why: "Le chat est un mammifère : il a des poils et des griffes." },
+        { emoji: '🐧', nom: 'le pingouin',       cat: 1, why: "Le pingouin est un oiseau : il a des plumes, même s'il ne vole pas." },
+        { emoji: '🦈', nom: 'le requin',         cat: 2, why: "Le requin est un poisson : il vit dans la mer et a des nageoires." },
+        { emoji: '🐜', nom: 'la fourmi',         cat: 3, why: "La fourmi est un insecte : elle a six pattes et un corps en trois parties." },
+        { emoji: '🐇', nom: 'le lapin',          cat: 0, why: "Le lapin est un mammifère : il a de la fourrure et des oreilles pointues." },
+        { emoji: '🦉', nom: 'la chouette',       cat: 1, why: "La chouette est un oiseau de nuit : elle a des plumes et des serres." },
+        { emoji: '🐞', nom: 'la coccinelle',     cat: 3, why: "La coccinelle est un insecte : elle a six pattes et des élytres." },
+        { emoji: '🦆', nom: 'le canard',         cat: 1, why: "Le canard est un oiseau : il a des plumes et un bec plat." },
+        { emoji: '🐴', nom: 'le cheval',         cat: 0, why: "Le cheval est un mammifère : il a quatre pattes et de la crinière." },
+        { emoji: '🦋', nom: 'le papillon',       cat: 3, why: "Le papillon est un insecte : il a six pattes et quatre ailes." },
+        { emoji: '🐠', nom: 'le poisson-clown',  cat: 2, why: "Le poisson-clown est un poisson : il a des écailles et des nageoires." },
+      ],
+    },
+    3: {
+      question: 'Vertébré ou invertébré ?',
+      categories: ['Vertébré 🦴', 'Invertébré 🐛'],
+      animals: [
+        { emoji: '🐕', nom: 'le chien',      cat: 0, why: "Le chien est un vertébré : il a une colonne vertébrale et un squelette interne." },
+        { emoji: '🐝', nom: "l'abeille",     cat: 1, why: "L'abeille est un invertébré : elle n'a pas d'os, mais un exosquelette." },
+        { emoji: '🐟', nom: 'le saumon',     cat: 0, why: "Le saumon est un vertébré : il a une colonne vertébrale et des arêtes." },
+        { emoji: '🐜', nom: 'la fourmi',     cat: 1, why: "La fourmi est un invertébré : son corps est protégé par une carapace externe." },
+        { emoji: '🦅', nom: "l'aigle",       cat: 0, why: "L'aigle est un vertébré : comme tous les oiseaux, il a une colonne vertébrale." },
+        { emoji: '🐌', nom: "l'escargot",    cat: 1, why: "L'escargot est un invertébré : il n'a pas d'os à l'intérieur." },
+        { emoji: '🐸', nom: 'la grenouille', cat: 0, why: "La grenouille est un vertébré : elle a un squelette interne." },
+        { emoji: '🕷️', nom: "l'araignée",   cat: 1, why: "L'araignée est un invertébré : elle a huit pattes et pas d'os." },
+        { emoji: '🐴', nom: 'le cheval',     cat: 0, why: "Le cheval est un vertébré : il a un grand squelette interne." },
+        { emoji: '🦋', nom: 'le papillon',   cat: 1, why: "Le papillon est un invertébré : comme tous les insectes, il n'a pas d'os." },
+        { emoji: '🦈', nom: 'le requin',     cat: 0, why: "Le requin est un vertébré : il a un squelette en cartilage." },
+        { emoji: '🦀', nom: 'le crabe',      cat: 1, why: "Le crabe est un invertébré : sa carapace lui tient lieu d'armure." },
+      ],
+    },
+  };
+
+  // ── Feedback unifié ─────────────────────────────────────────────────────────
+  function showFeedback(correct, msg) {
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = msg;
+    if (correct) {
+      playCorrect();
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        launchConfetti();
+      }
+    } else {
+      playIncorrect();
+    }
+    // TYPE_TACHE = 'drill' : l'item est clos, on propose la suite.
+    answerGrid.querySelectorAll('.answer-btn').forEach(b => { b.disabled = true; });
+    newBtn.classList.add('visible');
+    newBtn.focus();
+  }
+
+  // ── Construction de la grille de réponses ────────────────────────────────────
+  function buildAnswerButtons(categories) {
+    answerGrid.innerHTML = '';
+    categories.forEach((label, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'answer-btn';
+      btn.textContent = label;
+      btn.addEventListener('click', () => handleAnswer(idx));
+      answerGrid.appendChild(btn);
+    });
+    const first = answerGrid.querySelector('.answer-btn');
+    if (first) first.focus();
+  }
+
+  // ── Validation ───────────────────────────────────────────────────────────────
+  function handleAnswer(selectedCat) {
+    const { cat, why } = state.animal;
+    const correct = selectedCat === cat;
+    showFeedback(correct, (correct ? 'Bravo ! ' : 'Pas tout à fait. ') + why);
+  }
+
+  // ── Nouvelle question ────────────────────────────────────────────────────────
+  function newExercise() {
+    const levelData = LEVELS[currentLevel];
+
+    // Evite de montrer le même animal deux fois de suite.
+    let animal;
+    do { animal = pick(levelData.animals, 1)[0]; } while (animal === lastAnimal && levelData.animals.length > 1);
+    lastAnimal = animal;
+    state = { animal };
+
+    feedbackEl.className = 'feedback';
+    feedbackEl.textContent = '';
+    newBtn.classList.remove('visible');
+
+    questionBox.textContent = levelData.question;
+    animalEmoji.textContent  = animal.emoji;
+    animalName.textContent   = animal.nom.charAt(0).toUpperCase() + animal.nom.slice(1);
+
+    buildAnswerButtons(levelData.categories);
+  }
+
+  // ── Sélecteur de niveau ─────────────────────────────────────────────────────
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLevel = parseInt(btn.dataset.level);
+      document.querySelectorAll('.level-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+      newExercise();
+    });
+  });
+
+  newBtn.addEventListener('click', newExercise);
+
+  // ── Démarrage ───────────────────────────────────────────────────────────────
+  newExercise();
+</script>
+<script src="feedbackUtils.js"></script>
+</body>
+</html>
