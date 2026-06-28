@@ -16,38 +16,6 @@
     --app-header-bg:  #C0272D; /* branche Mathématiques */
   }
 
-  .app-header {
-    background: #C0272D;
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  .back-link {
-    color: rgba(255,255,255,0.85);
-    text-decoration: none;
-    font-size: 15px;
-    font-weight: 600;
-    white-space: nowrap;
-    touch-action: manipulation;
-    padding: 8px 12px;
-    margin: -8px -12px;
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-    border-radius: 8px;
-  }
-  .back-link:hover { color: #fff; }
-  .app-header h1 {
-    font-family: 'Nunito', sans-serif;
-    font-size: clamp(18px, 4vw, 24px);
-    font-weight: 900;
-    color: #fff;
-    flex: 1;
-    text-align: center;
-  }
-  .header-spacer { width: 80px; }
-
   main {
     flex: 1;
     display: flex;
@@ -136,14 +104,15 @@
 
   <div class="action-row">
     <button class="verify-btn" id="verify-btn" disabled>Vérifier</button>
-    <button class="new-btn" id="new-btn">Nouvel exercice</button>
+    <button class="new-btn" id="new-btn"><span aria-hidden="true">▶</span> Nouvel exercice</button>
   </div>
 </main>
 
 <script src="appUtils.js"></script>
 <script>
-  const PLACE_COLORS = ['--color-units', '--color-tens', '--color-hundreds'];
-  function colorForRank(rank) { return `var(${PLACE_COLORS[rank % 3]})`; }
+  // 'instance' : placer un nombre sur une droite est une tâche corrigeable —
+  // l'élève ajuste le repère et revérifie sur la même instance jusqu'à réussite.
+  const TYPE_TACHE = 'instance';
 
   let currentLevel = 1;
   let state = {};
@@ -157,7 +126,8 @@
   const ctx = canvas.getContext('2d');
   const questionBox = document.getElementById('question-box');
 
-  // randInt : fourni par appUtils.js (chargé avant ce script).
+  // colorForRank et pick : fournis par appUtils.js (chargé avant ce script).
+  const PAD_L = 46, PAD_R = 46;
 
   function renderTargetNumber(n) {
     targetNumberEl.innerHTML = '';
@@ -172,7 +142,21 @@
     });
   }
 
-  function setup() {
+  function showFeedback(correct, msg) {
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = msg;
+    if (correct || TYPE_TACHE === 'drill') {
+      playCorrect();
+      launchConfetti();
+      verifyBtn.style.display = 'none';
+      newBtn.classList.add('visible');
+      newBtn.focus();
+    } else {
+      playIncorrect();
+    }
+  }
+
+  function setup(moveFocus) {
     // 3H-4H : nombres jusqu'à 100, droite complète 0–100.
     // Niveau 1 : placer une dizaine (graduations étiquetées de 10).
     // Niveau 2 : placer un nombre quelconque (unités entre les dizaines).
@@ -184,13 +168,13 @@
     if (currentLevel === 1) {
       const inner = [];
       for (let v = nlStart + 10; v < nlEnd; v += 10) inner.push(v); // 10..90
-      target = inner[Math.floor(Math.random() * inner.length)];
+      target = pick(inner, 1)[0];
     } else {
       const inner = [];
       for (let v = nlStart + 1; v < nlEnd; v++) {
         if (v % 10 !== 0) inner.push(v); // une unité, jamais une dizaine étiquetée
       }
-      target = inner[Math.floor(Math.random() * inner.length)];
+      target = pick(inner, 1)[0];
     }
 
     state = {
@@ -204,6 +188,7 @@
     renderTargetNumber(target);
     feedbackEl.className = 'feedback';
     feedbackEl.textContent = '';
+    feedbackEl.removeAttribute('tabindex');
     verifyBtn.style.display = '';
     verifyBtn.disabled = true;
     newBtn.classList.remove('visible');
@@ -211,6 +196,7 @@
     nlWrap.setAttribute('aria-valuemax', nlEnd);
     nlWrap.setAttribute('aria-valuenow', nlStart);
     resizeAndDraw();
+    if (moveFocus) nlWrap.focus();
   }
 
   function resizeAndDraw() {
@@ -230,9 +216,8 @@
     ctx.save();
     ctx.scale(dpr, dpr);
 
-    const padL = 46, padR = 46;
     const lineY = H * 0.5;
-    const lineW = W - padL - padR;
+    const lineW = W - PAD_L - PAD_R;
     const { nlStart, nlEnd, step, segments } = state;
 
     // Main line
@@ -240,15 +225,15 @@
     ctx.lineWidth = 3.5;
     ctx.lineCap = 'round';
     ctx.beginPath();
-    ctx.moveTo(padL, lineY);
-    ctx.lineTo(padL + lineW, lineY);
+    ctx.moveTo(PAD_L, lineY);
+    ctx.lineTo(PAD_L + lineW, lineY);
     ctx.stroke();
 
     // Arrow right
     ctx.beginPath();
-    ctx.moveTo(padL + lineW - 10, lineY - 8);
-    ctx.lineTo(padL + lineW + 5, lineY);
-    ctx.lineTo(padL + lineW - 10, lineY + 8);
+    ctx.moveTo(PAD_L + lineW - 10, lineY - 8);
+    ctx.lineTo(PAD_L + lineW + 5, lineY);
+    ctx.lineTo(PAD_L + lineW - 10, lineY + 8);
     ctx.fillStyle = '#64748B';
     ctx.fill();
 
@@ -260,7 +245,7 @@
 
     for (let i = 0; i <= segments; i++) {
       const val = nlStart + i * step;
-      const x = padL + (i / segments) * lineW;
+      const x = PAD_L + (i / segments) * lineW;
       const isEndpoint = i === 0 || i === segments;
 
       ctx.strokeStyle = '#64748B';
@@ -281,7 +266,7 @@
       for (let v = nlStart + subStep; v < nlEnd; v += subStep) {
         if (v % step === 0) continue;
         const frac = (v - nlStart) / totalRange;
-        const x = padL + frac * lineW;
+        const x = PAD_L + frac * lineW;
         ctx.strokeStyle = '#CBD5E0';
         ctx.lineWidth = 1;
         ctx.beginPath();
@@ -294,7 +279,7 @@
     // User marker
     const frac = userFrac !== undefined ? userFrac : state.userPos;
     if (frac !== null && frac !== undefined) {
-      const ux = padL + frac * lineW;
+      const ux = PAD_L + frac * lineW;
       ctx.fillStyle = '#1A3A5C';
       ctx.beginPath();
       ctx.arc(ux, lineY, 11, 0, Math.PI * 2);
@@ -312,7 +297,7 @@
     // Correct marker (after verification)
     if (showResult) {
       const correctFrac = (state.target - nlStart) / (nlEnd - nlStart);
-      const cx = padL + correctFrac * lineW;
+      const cx = PAD_L + correctFrac * lineW;
       ctx.fillStyle = '#10B981';
       ctx.beginPath();
       ctx.arc(cx, lineY, 11, 0, Math.PI * 2);
@@ -347,9 +332,8 @@
     e.preventDefault();
     const x = getCanvasX(e);
     const dpr = window.devicePixelRatio || 1;
-    const padL = 46, padR = 46;
-    const lineW = canvas.width / dpr - padL - padR;
-    let frac = (x - padL) / lineW;
+    const lineW = canvas.width / dpr - PAD_L - PAD_R;
+    let frac = (x - PAD_L) / lineW;
     frac = Math.max(0, Math.min(1, frac));
     setUserValue(state.nlStart + frac * (state.nlEnd - state.nlStart));
     nlWrap.focus();
@@ -380,7 +364,7 @@
   });
 
   verifyBtn.addEventListener('click', () => {
-    if (state.userPos === null) return;
+    if (state.userPos === null || state.answered) return;
 
     const userVal = Math.round(state.nlStart + state.userPos * (state.nlEnd - state.nlStart));
     const correct = userVal === state.target;
@@ -388,17 +372,11 @@
     if (correct) {
       state.answered = true;
       drawLine(state.userPos, true);
-      feedbackEl.className = 'feedback correct';
-      feedbackEl.textContent = `Bravo ! ${state.target} est bien placé sur la droite.`;
-      playCorrect(); launchConfetti();
-      verifyBtn.style.display = 'none';
-      newBtn.classList.add('visible');
+      showFeedback(true, `Bravo ! ${state.target} est bien placé sur la droite.`);
     } else {
-      feedbackEl.className = 'feedback wrong';
-      feedbackEl.textContent = currentLevel === 1
+      showFeedback(false, currentLevel === 1
         ? `Presque ! Compte les dizaines depuis 0 jusqu'à ${state.target}.`
-        : `Presque ! Repère la dizaine juste avant ${state.target}, puis compte les unités.`;
-      playIncorrect();
+        : `Presque ! Repère la dizaine juste avant ${state.target}, puis compte les unités.`);
     }
   });
 
@@ -411,11 +389,11 @@
       });
       btn.classList.add('active');
       btn.setAttribute('aria-pressed', 'true');
-      setup();
+      setup(true);
     });
   });
 
-  newBtn.addEventListener('click', setup);
+  newBtn.addEventListener('click', () => setup(true));
   window.addEventListener('resize', () => { resizeAndDraw(); });
 
   setup();
