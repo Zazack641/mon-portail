@@ -251,6 +251,7 @@
   function initSpinners() {
     state.selDiz  = null; // null = non touché
     state.selUnit = null;
+    [dizPlus, dizMinus, unitPlus, unitMinus].forEach(b => { b.disabled = false; });
     refreshSlots();
     verifyBtn.disabled = true;
     verifyBtn.style.display = '';
@@ -284,13 +285,13 @@
   }
 
   function adjustDiz(delta) {
-    if (state.selDiz === null) state.selDiz = delta > 0 ? 0 : 9;
+    if (state.selDiz === null) { state.selDiz = delta > 0 ? 0 : 9; refreshSlots(); return; }
     state.selDiz = Math.max(0, Math.min(9, state.selDiz + delta));
     refreshSlots();
   }
 
   function adjustUnit(delta) {
-    if (state.selUnit === null) state.selUnit = delta > 0 ? 0 : 9;
+    if (state.selUnit === null) { state.selUnit = delta > 0 ? 0 : 9; refreshSlots(); return; }
     state.selUnit = Math.max(0, Math.min(9, state.selUnit + delta));
     refreshSlots();
   }
@@ -317,6 +318,7 @@
     if (correct || TYPE_TACHE === 'drill') {
       verifyBtn.style.display = 'none';
       newBtn.classList.add('visible');
+      [dizPlus, dizMinus, unitPlus, unitMinus].forEach(b => { b.disabled = true; });
       newBtn.focus();
     } else {
       // 'instance' + incorrect : l'élève corrige et revérifie la même instance
@@ -345,9 +347,10 @@
         // 11–39 : 1–3 dizaines, 1–9 unités (pas de dizaine ronde pour faciliter le comptage visuel)
         n = randInt(1, 3) * 10 + randInt(1, 9);
       } else if (level === 2) {
-        // 11–79 : inclut les dizaines rondes (0 unités)
-        n = randInt(1, 7) * 10 + randInt(0, 9);
-        if (n < 11) n += 10;
+        // 11–79 : inclut les dizaines rondes (0 unités), sauf 10
+        const d2 = randInt(1, 7);
+        const u2 = (d2 === 1) ? randInt(1, 9) : randInt(0, 9);
+        n = d2 * 10 + u2;
       } else {
         // 11–99 : tous les nombres à deux chiffres
         n = randInt(1, 9) * 10 + randInt(0, 9);
@@ -390,7 +393,7 @@
 
   // ── Messages de feedback ───────────────────────────────────────────────────
   function plural(val, word) {
-    return val > 1 ? word + 's' : word;
+    return val !== 1 ? word + 's' : word;
   }
 
   function feedbackMessages(correct, level, n, d, u, selD, selU) {
@@ -450,9 +453,9 @@
     questionBox.textContent = 'Combien y a-t-il de dizaines et d\'unités ?';
     // Chiffre des dizaines en rouge, chiffre des unités en bleu
     contentZone.innerHTML =
-      `<div class="number-display" aria-label="Le nombre ${n}">` +
-      `<span style="color:var(--color-tens)">${d}</span>` +
-      `<span style="color:var(--color-units)">${u}</span>` +
+      `<div class="number-display" role="img" aria-label="Le nombre ${n}">` +
+      `<span style="color:var(--color-tens)" aria-hidden="true">${d}</span>` +
+      `<span style="color:var(--color-units)" aria-hidden="true">${u}</span>` +
       `</div>`;
   }
 
@@ -466,8 +469,8 @@
 
     questionBox.textContent = 'Décompose ce nombre en dizaines et en unités.';
     contentZone.innerHTML =
-      `<div class="number-display" aria-label="Le nombre ${n}">` +
-      `<span>${n}</span>` +
+      `<div class="number-display" role="img" aria-label="Le nombre ${n}">` +
+      `<span aria-hidden="true">${n}</span>` +
       `</div>`;
   }
 
@@ -481,22 +484,23 @@
       });
       btn.classList.add('active');
       btn.setAttribute('aria-pressed', 'true');
-      newExercise();
+      newExercise(true);
     });
   });
 
   verifyBtn.addEventListener('click', verify);
-  newBtn.addEventListener('click', newExercise);
+  newBtn.addEventListener('click', () => newExercise(true));
 
-  function newExercise() {
+  // fromUserGesture : iOS Safari ignore .focus() hors geste utilisateur
+  function newExercise(fromUserGesture = false) {
     if      (currentLevel === 1) setupLevel1();
     else if (currentLevel === 2) setupLevel2();
     else                          setupLevel3();
-    dizPlus.focus();
+    if (fromUserGesture) dizPlus.focus();
   }
 
   // ── Démarrage ───────────────────────────────────────────────────────────────
-  newExercise();
+  newExercise(false);
 </script>
 <!-- feedbackUtils.js DOIT être chargé APRÈS le script de l'app, juste avant </body> -->
 <script src="feedbackUtils.js"></script>
