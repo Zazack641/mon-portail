@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Dizaines et unités</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-base.css">
+<style>
+  :root {
+    --app-header-bg: #C0272D; /* Mathématiques — MSN */
+    --color-units:    #3B7DD8;
+    --color-tens:     #D64045;
+    --color-hundreds: #3A9E6F;
+  }
+
+  /* ── Affichage du nombre ──────────────────────────────────────────────── */
+  .number-display {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(80px, 22vw, 130px);
+    font-weight: 900;
+    line-height: 1;
+    min-height: 130px;
+    width: 100%;
+    letter-spacing: 4px;
+  }
+
+  /* ── Blocs visuels (Niveau 1) ─────────────────────────────────────────── */
+  .blocks-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+    padding: 8px 0;
+  }
+  .blocks-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .blocks-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    max-width: 280px;
+  }
+  /* Barre de dizaine : 2 colonnes × 5 rangées de petits carrés */
+  .dizaine-bar {
+    display: grid;
+    grid-template-columns: repeat(2, 12px);
+    grid-template-rows: repeat(5, 12px);
+    gap: 2px;
+    padding: 3px;
+    border: 2px solid var(--color-tens);
+    border-radius: 6px;
+    background: #fff;
+  }
+  .dizaine-cell {
+    width: 12px;
+    height: 12px;
+    background: var(--color-tens);
+    border-radius: 2px;
+  }
+  .unite-sq {
+    width: 24px;
+    height: 24px;
+    background: var(--color-units);
+    border-radius: 4px;
+  }
+  .blocks-sep {
+    font-family: 'Nunito', sans-serif;
+    font-size: 28px;
+    font-weight: 900;
+    color: #94A3B8;
+    display: flex;
+    align-items: center;
+    align-self: center;
+  }
+
+  /* ── Zone de décomposition (réponse par spinners) ────────────────────── */
+  .decomposition-zone {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .slot-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .slot-label {
+    font-family: 'Nunito', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    text-align: center;
+  }
+  /* Le carré qui affiche la valeur sélectionnée */
+  .slot-value {
+    font-family: 'Nunito', sans-serif;
+    font-size: 56px;
+    font-weight: 900;
+    width: 84px;
+    height: 84px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    border: 3px solid var(--app-border);
+    background: #fff;
+  }
+  .slot-value.is-set { border-width: 3px; }
+  .dizaines-slot { color: var(--color-tens); }
+  .unites-slot   { color: var(--color-units); }
+  .dizaines-slot.is-set { border-color: var(--color-tens); }
+  .unites-slot.is-set   { border-color: var(--color-units); }
+
+  /* Boutons +/− */
+  .spin-btn {
+    min-width: 64px;
+    min-height: 64px;
+    border-radius: 12px;
+    border: 2px solid var(--app-border);
+    background: #F8FAFC;
+    font-family: 'Nunito', sans-serif;
+    font-size: 28px;
+    font-weight: 900;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--app-text);
+    line-height: 1;
+  }
+  .spin-btn:hover { background: #EEF2F7; }
+  .spin-btn:active { transform: scale(0.96); }
+  .spin-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; }
+  .spin-btn:disabled { opacity: 0.4; cursor: default; }
+
+  .slot-connector {
+    font-family: 'Nunito', sans-serif;
+    font-size: 28px;
+    font-weight: 900;
+    color: #94A3B8;
+    display: flex;
+    align-items: center;
+    padding-top: 96px; /* alignement vertical avec les slots */
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .slot-value { transition: border-color 0.15s; }
+    .spin-btn   { transition: background 0.1s, transform 0.08s; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────────── -->
+<header class="app-header" role="banner">
+  <a href="../index.html" class="back-link">← Retour</a>
+  <h1>🔟 Dizaines et unités</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<!-- ── Sélecteur de niveau ─────────────────────────────────────────────────── -->
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1</button>
+  <button class="level-btn"        data-level="2" aria-pressed="false">Niveau 2</button>
+  <button class="level-btn"        data-level="3" aria-pressed="false">Niveau 3</button>
+</div>
+
+<!-- ── Contenu principal ───────────────────────────────────────────────────── -->
+<main>
+  <div class="question-box" id="question-box">Chargement…</div>
+
+  <!-- Affichage du nombre ou des blocs -->
+  <div id="content-zone"></div>
+
+  <!-- Zone de décomposition -->
+  <div class="decomposition-zone" id="decomposition-zone">
+    <div class="slot-group">
+      <div class="slot-label" style="color: var(--color-tens);">Dizaines</div>
+      <button class="spin-btn" id="diz-plus"  aria-label="Augmenter le nombre de dizaines">+</button>
+      <div class="slot-value dizaines-slot" id="diz-slot"
+           role="status" aria-live="polite" aria-atomic="true"
+           aria-label="Dizaines sélectionnées : aucune">?</div>
+      <button class="spin-btn" id="diz-minus" aria-label="Diminuer le nombre de dizaines">−</button>
+    </div>
+
+    <div class="slot-connector" aria-hidden="true">et</div>
+
+    <div class="slot-group">
+      <div class="slot-label" style="color: var(--color-units);">Unités</div>
+      <button class="spin-btn" id="unit-plus"  aria-label="Augmenter le nombre d'unités">+</button>
+      <div class="slot-value unites-slot" id="unit-slot"
+           role="status" aria-live="polite" aria-atomic="true"
+           aria-label="Unités sélectionnées : aucune">?</div>
+      <button class="spin-btn" id="unit-minus" aria-label="Diminuer le nombre d'unités">−</button>
+    </div>
+  </div>
+
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="action-row">
+    <button class="verify-btn" id="verify-btn" disabled>Vérifier</button>
+    <button class="new-btn"    id="new-btn"><span aria-hidden="true">▶</span> Nouvel exercice</button>
+  </div>
+</main>
+
+<!-- ── Script de l'app ─────────────────────────────────────────────────────── -->
+<script src="appUtils.js"></script>
+<script>
+  // ── Références DOM ─────────────────────────────────────────────────────────
+  const questionBox = document.getElementById('question-box');
+  const feedbackEl  = document.getElementById('feedback');
+  const verifyBtn   = document.getElementById('verify-btn');
+  const newBtn      = document.getElementById('new-btn');
+  const contentZone = document.getElementById('content-zone');
+  const dizSlot     = document.getElementById('diz-slot');
+  const unitSlot    = document.getElementById('unit-slot');
+  const dizPlus     = document.getElementById('diz-plus');
+  const dizMinus    = document.getElementById('diz-minus');
+  const unitPlus    = document.getElementById('unit-plus');
+  const unitMinus   = document.getElementById('unit-minus');
+
+  // ── Type de tâche ─────────────────────────────────────────────────────────
+  // 'instance' : l'erreur est corrigeable, l'élève réessaie sur la MÊME instance.
+  // Décomposer un nombre est une tâche ouverte : l'élève peut corriger chaque
+  // chiffre séparément après avoir lu le feedback formatif.
+  const TYPE_TACHE = 'instance';
+
+  // ── État ───────────────────────────────────────────────────────────────────
+  let currentLevel = 1;
+  let state = {};   // { n, d, u }
+
+  // ── Spinners ───────────────────────────────────────────────────────────────
+  function initSpinners() {
+    state.selDiz  = null; // null = non touché
+    state.selUnit = null;
+    refreshSlots();
+    verifyBtn.disabled = true;
+    verifyBtn.style.display = '';
+    newBtn.classList.remove('visible');
+  }
+
+  function refreshSlots() {
+    const dVal = state.selDiz  === null ? '?' : String(state.selDiz);
+    const uVal = state.selUnit === null ? '?' : String(state.selUnit);
+
+    dizSlot.textContent  = dVal;
+    unitSlot.textContent = uVal;
+
+    const dSet = state.selDiz  !== null;
+    const uSet = state.selUnit !== null;
+
+    dizSlot.classList.toggle('is-set', dSet);
+    unitSlot.classList.toggle('is-set', uSet);
+
+    dizSlot.setAttribute('aria-label',
+      dSet ? `Dizaines : ${state.selDiz}` : 'Dizaines : non défini');
+    unitSlot.setAttribute('aria-label',
+      uSet ? `Unités : ${state.selUnit}` : 'Unités : non défini');
+
+    // Activer Vérifier uniquement quand les deux spinners sont touchés
+    const bothSet = dSet && uSet;
+    // Ne pas réactiver si la bonne réponse a déjà été validée
+    if (!feedbackEl.classList.contains('correct')) {
+      verifyBtn.disabled = !bothSet;
+    }
+  }
+
+  function adjustDiz(delta) {
+    if (state.selDiz === null) state.selDiz = delta > 0 ? 0 : 9;
+    state.selDiz = Math.max(0, Math.min(9, state.selDiz + delta));
+    refreshSlots();
+  }
+
+  function adjustUnit(delta) {
+    if (state.selUnit === null) state.selUnit = delta > 0 ? 0 : 9;
+    state.selUnit = Math.max(0, Math.min(9, state.selUnit + delta));
+    refreshSlots();
+  }
+
+  dizPlus.addEventListener('click',  () => adjustDiz(+1));
+  dizMinus.addEventListener('click', () => adjustDiz(-1));
+  unitPlus.addEventListener('click',  () => adjustUnit(+1));
+  unitMinus.addEventListener('click', () => adjustUnit(-1));
+
+  // ── Feedback unifié ─────────────────────────────────────────────────────────
+  function showFeedback(correct, msg) {
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = msg;
+
+    if (correct) {
+      playCorrect();
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        launchConfetti();
+      }
+    } else {
+      playIncorrect();
+    }
+
+    if (correct || TYPE_TACHE === 'drill') {
+      verifyBtn.style.display = 'none';
+      newBtn.classList.add('visible');
+      newBtn.focus();
+    } else {
+      // 'instance' + incorrect : l'élève corrige et revérifie la même instance
+      verifyBtn.style.display = '';
+      verifyBtn.disabled = false;
+      newBtn.classList.remove('visible');
+      // Remettre le focus sur le premier spinner pour faciliter la correction
+      dizPlus.focus();
+    }
+  }
+
+  function resetFeedback() {
+    feedbackEl.className = 'feedback';
+    feedbackEl.textContent = '';
+    verifyBtn.style.display = '';
+    verifyBtn.disabled = true;
+    newBtn.classList.remove('visible');
+  }
+
+  // ── Génération du nombre ───────────────────────────────────────────────────
+  function pickNumber(level) {
+    let n;
+    // Eviter de répéter le même nombre deux fois de suite
+    do {
+      if (level === 1) {
+        // 11–39 : 1–3 dizaines, 1–9 unités (pas de dizaine ronde pour faciliter le comptage visuel)
+        n = randInt(1, 3) * 10 + randInt(1, 9);
+      } else if (level === 2) {
+        // 11–79 : inclut les dizaines rondes (0 unités)
+        n = randInt(1, 7) * 10 + randInt(0, 9);
+        if (n < 11) n += 10;
+      } else {
+        // 11–99 : tous les nombres à deux chiffres
+        n = randInt(1, 9) * 10 + randInt(0, 9);
+      }
+    } while (n === (state.n || 0));
+    return n;
+  }
+
+  // ── Construction du HTML des blocs visuels (Niveau 1) ─────────────────────
+  function buildBlocks(d, u) {
+    let html = '<div class="blocks-container" aria-hidden="true">';
+
+    // Barres de dizaines
+    html += '<div class="blocks-group"><div class="blocks-row">';
+    for (let i = 0; i < d; i++) {
+      html += '<div class="dizaine-bar">';
+      for (let j = 0; j < 10; j++) {
+        html += '<div class="dizaine-cell"></div>';
+      }
+      html += '</div>';
+    }
+    html += '</div></div>';
+
+    if (d > 0 && u > 0) {
+      html += '<div class="blocks-sep" aria-hidden="true">+</div>';
+    }
+
+    // Carrés d'unités
+    if (u > 0) {
+      html += '<div class="blocks-group"><div class="blocks-row">';
+      for (let i = 0; i < u; i++) {
+        html += '<div class="unite-sq"></div>';
+      }
+      html += '</div></div>';
+    }
+
+    html += '</div>';
+    return html;
+  }
+
+  // ── Messages de feedback ───────────────────────────────────────────────────
+  function plural(val, word) {
+    return val > 1 ? word + 's' : word;
+  }
+
+  function feedbackMessages(correct, level, n, d, u, selD, selU) {
+    if (correct) {
+      if (level === 1) {
+        return `Bravo ! Il y a bien ${d} ${plural(d, 'dizaine')} et ${u} ${plural(u, 'unité')}.`;
+      }
+      return `Exact ! ${n} = ${d} ${plural(d, 'dizaine')} + ${u} ${plural(u, 'unité')}.`;
+    }
+
+    // Feedback formatif : indiquer précisément ce qui est faux
+    if (level === 1) {
+      let hint = 'Recompte les barres rouges (dizaines) et les carrés bleus (unités).';
+      if (selD !== d && selU === u) hint = `Recompte les barres rouges : chaque barre vaut une dizaine.`;
+      if (selD === d && selU !== u) hint = `Recompte les carrés bleus : chaque carré vaut une unité.`;
+      return `Pas tout à fait. ${hint} Réessaie !`;
+    }
+
+    let hint = `Le chiffre des dizaines de ${n} est ${d} et le chiffre des unités est ${u}.`;
+    if (selD !== d && selU === u) {
+      hint = `Regarde le chiffre des dizaines${level === 2 ? ' (en rouge)' : ''} de ${n} : c'est ${d}.`;
+    } else if (selD === d && selU !== u) {
+      hint = `Regarde le chiffre des unités${level === 2 ? ' (en bleu)' : ''} de ${n} : c'est ${u}.`;
+    }
+    return `Pas tout à fait. ${hint} Réessaie !`;
+  }
+
+  // ── Vérification ──────────────────────────────────────────────────────────
+  function verify() {
+    const { n, d, u } = state;
+    const correct = state.selDiz === d && state.selUnit === u;
+    const msg = feedbackMessages(correct, currentLevel, n, d, u, state.selDiz, state.selUnit);
+    showFeedback(correct, msg);
+  }
+
+  // ── Setup par niveau ───────────────────────────────────────────────────────
+  function setupLevel1() {
+    resetFeedback();
+    const n = pickNumber(1);
+    const d = Math.floor(n / 10);
+    const u = n % 10;
+    state = { n, d, u };
+    initSpinners();
+
+    questionBox.textContent = 'Compte les blocs. Combien y a-t-il de dizaines et d\'unités ?';
+    contentZone.innerHTML = buildBlocks(d, u);
+  }
+
+  function setupLevel2() {
+    resetFeedback();
+    const n = pickNumber(2);
+    const d = Math.floor(n / 10);
+    const u = n % 10;
+    state = { n, d, u };
+    initSpinners();
+
+    questionBox.textContent = 'Combien y a-t-il de dizaines et d\'unités ?';
+    // Chiffre des dizaines en rouge, chiffre des unités en bleu
+    contentZone.innerHTML =
+      `<div class="number-display" aria-label="Le nombre ${n}">` +
+      `<span style="color:var(--color-tens)">${d}</span>` +
+      `<span style="color:var(--color-units)">${u}</span>` +
+      `</div>`;
+  }
+
+  function setupLevel3() {
+    resetFeedback();
+    const n = pickNumber(3);
+    const d = Math.floor(n / 10);
+    const u = n % 10;
+    state = { n, d, u };
+    initSpinners();
+
+    questionBox.textContent = 'Décompose ce nombre en dizaines et en unités.';
+    contentZone.innerHTML =
+      `<div class="number-display" aria-label="Le nombre ${n}">` +
+      `<span>${n}</span>` +
+      `</div>`;
+  }
+
+  // ── Sélecteur de niveau (convention partagée — NE PAS MODIFIER) ────────────
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLevel = parseInt(btn.dataset.level);
+      document.querySelectorAll('.level-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+      newExercise();
+    });
+  });
+
+  verifyBtn.addEventListener('click', verify);
+  newBtn.addEventListener('click', newExercise);
+
+  function newExercise() {
+    if      (currentLevel === 1) setupLevel1();
+    else if (currentLevel === 2) setupLevel2();
+    else                          setupLevel3();
+    dizPlus.focus();
+  }
+
+  // ── Démarrage ───────────────────────────────────────────────────────────────
+  newExercise();
+</script>
+<!-- feedbackUtils.js DOIT être chargé APRÈS le script de l'app, juste avant </body> -->
+<script src="feedbackUtils.js"></script>
+</body>
+</html>
