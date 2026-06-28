@@ -192,7 +192,7 @@
 
   <!-- Zone de décomposition -->
   <div class="decomposition-zone" id="decomposition-zone">
-    <div class="slot-group">
+    <div class="slot-group" id="diz-group">
       <div class="slot-label" style="color: var(--color-tens);">Dizaines</div>
       <button class="spin-btn" id="diz-plus"  aria-label="Augmenter le nombre de dizaines">+</button>
       <div class="slot-value dizaines-slot" id="diz-slot"
@@ -201,9 +201,9 @@
       <button class="spin-btn" id="diz-minus" aria-label="Diminuer le nombre de dizaines">−</button>
     </div>
 
-    <div class="slot-connector" aria-hidden="true">et</div>
+    <div class="slot-connector" id="slot-connector" aria-hidden="true">et</div>
 
-    <div class="slot-group">
+    <div class="slot-group" id="unit-group">
       <div class="slot-label" style="color: var(--color-units);">Unités</div>
       <button class="spin-btn" id="unit-plus"  aria-label="Augmenter le nombre d'unités">+</button>
       <div class="slot-value unites-slot" id="unit-slot"
@@ -225,17 +225,20 @@
 <script src="appUtils.js"></script>
 <script>
   // ── Références DOM ─────────────────────────────────────────────────────────
-  const questionBox = document.getElementById('question-box');
-  const feedbackEl  = document.getElementById('feedback');
-  const verifyBtn   = document.getElementById('verify-btn');
-  const newBtn      = document.getElementById('new-btn');
-  const contentZone = document.getElementById('content-zone');
-  const dizSlot     = document.getElementById('diz-slot');
-  const unitSlot    = document.getElementById('unit-slot');
-  const dizPlus     = document.getElementById('diz-plus');
-  const dizMinus    = document.getElementById('diz-minus');
-  const unitPlus    = document.getElementById('unit-plus');
-  const unitMinus   = document.getElementById('unit-minus');
+  const questionBox   = document.getElementById('question-box');
+  const feedbackEl    = document.getElementById('feedback');
+  const verifyBtn     = document.getElementById('verify-btn');
+  const newBtn        = document.getElementById('new-btn');
+  const contentZone   = document.getElementById('content-zone');
+  const dizSlot       = document.getElementById('diz-slot');
+  const unitSlot      = document.getElementById('unit-slot');
+  const dizPlus       = document.getElementById('diz-plus');
+  const dizMinus      = document.getElementById('diz-minus');
+  const unitPlus      = document.getElementById('unit-plus');
+  const unitMinus     = document.getElementById('unit-minus');
+  const dizGroup      = document.getElementById('diz-group');
+  const unitGroup     = document.getElementById('unit-group');
+  const slotConnector = document.getElementById('slot-connector');
 
   // ── Type de tâche ─────────────────────────────────────────────────────────
   // 'instance' : l'erreur est corrigeable, l'élève réessaie sur la MÊME instance.
@@ -249,9 +252,18 @@
 
   // ── Spinners ───────────────────────────────────────────────────────────────
   function initSpinners() {
-    state.selDiz  = null; // null = non touché
+    state.selDiz  = null;
     state.selUnit = null;
     [dizPlus, dizMinus, unitPlus, unitMinus].forEach(b => { b.disabled = false; });
+
+    // Afficher uniquement le(s) groupe(s) pertinent(s)
+    const asking = state.asking || 'both';
+    const showDiz  = asking === 'both' || asking === 'dizaines';
+    const showUnit = asking === 'both' || asking === 'unites';
+    dizGroup.style.display      = showDiz  ? '' : 'none';
+    unitGroup.style.display     = showUnit ? '' : 'none';
+    slotConnector.style.display = (asking === 'both') ? '' : 'none';
+
     refreshSlots();
     verifyBtn.disabled = true;
     verifyBtn.style.display = '';
@@ -276,11 +288,13 @@
     unitSlot.setAttribute('aria-label',
       uSet ? `Unités : ${state.selUnit}` : 'Unités : non défini');
 
-    // Activer Vérifier uniquement quand les deux spinners sont touchés
-    const bothSet = dSet && uSet;
-    // Ne pas réactiver si la bonne réponse a déjà été validée
+    // Activer Vérifier selon ce qui est demandé
+    const asking = state.asking || 'both';
+    const canVerify = asking === 'both'     ? (dSet && uSet)
+                    : asking === 'dizaines' ? dSet
+                    :                         uSet;
     if (!feedbackEl.classList.contains('correct')) {
-      verifyBtn.disabled = !bothSet;
+      verifyBtn.disabled = !canVerify;
     }
   }
 
@@ -325,8 +339,9 @@
       verifyBtn.style.display = '';
       verifyBtn.disabled = false;
       newBtn.classList.remove('visible');
-      // Remettre le focus sur le premier spinner pour faciliter la correction
-      dizPlus.focus();
+      // Remettre le focus sur le premier spinner visible pour faciliter la correction
+      const firstSpinner = state.asking === 'unites' ? unitPlus : dizPlus;
+      firstSpinner.focus();
     }
   }
 
@@ -345,7 +360,7 @@
     do {
       if (level === 1) {
         // 11–39 : 1–3 dizaines, 1–9 unités (pas de dizaine ronde pour faciliter le comptage visuel)
-        n = randInt(1, 3) * 10 + randInt(1, 9);
+        n = randInt(1, 5) * 10 + randInt(1, 9);
       } else if (level === 2) {
         // 11–79 : inclut les dizaines rondes (0 unités), sauf 10
         const d2 = randInt(1, 7);
@@ -396,12 +411,13 @@
     return val !== 1 ? word + 's' : word;
   }
 
-  function feedbackMessages(correct, level, n, d, u, selD, selU) {
+  function feedbackMessages(correct, level, n, d, u, asking, selD, selU) {
     if (correct) {
       if (level === 1) {
         return `Bravo ! Il y a bien ${d} ${plural(d, 'dizaine')} et ${u} ${plural(u, 'unité')}.`;
       }
-      return `Exact ! ${n} = ${d} ${plural(d, 'dizaine')} + ${u} ${plural(u, 'unité')}.`;
+      if (asking === 'dizaines') return `Bravo ! Le chiffre des dizaines de ${n} est bien ${d}.`;
+      return `Bravo ! Le chiffre des unités de ${n} est bien ${u}.`;
     }
 
     // Feedback formatif : indiquer précisément ce qui est faux
@@ -412,20 +428,20 @@
       return `Pas tout à fait. ${hint} Réessaie !`;
     }
 
-    let hint = `Le chiffre des dizaines de ${n} est ${d} et le chiffre des unités est ${u}.`;
-    if (selD !== d && selU === u) {
-      hint = `Regarde le chiffre des dizaines${level === 2 ? ' (en rouge)' : ''} de ${n} : c'est ${d}.`;
-    } else if (selD === d && selU !== u) {
-      hint = `Regarde le chiffre des unités${level === 2 ? ' (en bleu)' : ''} de ${n} : c'est ${u}.`;
+    const colorHint = level === 2 ? ` (en ${asking === 'dizaines' ? 'rouge' : 'bleu'})` : '';
+    if (asking === 'dizaines') {
+      return `Pas tout à fait. Regarde le chiffre des dizaines${colorHint} de ${n} : c'est ${d}. Réessaie !`;
     }
-    return `Pas tout à fait. ${hint} Réessaie !`;
+    return `Pas tout à fait. Regarde le chiffre des unités${colorHint} de ${n} : c'est ${u}. Réessaie !`;
   }
 
   // ── Vérification ──────────────────────────────────────────────────────────
   function verify() {
-    const { n, d, u } = state;
-    const correct = state.selDiz === d && state.selUnit === u;
-    const msg = feedbackMessages(correct, currentLevel, n, d, u, state.selDiz, state.selUnit);
+    const { n, d, u, asking } = state;
+    const correct = asking === 'dizaines' ? state.selDiz  === d
+                  : asking === 'unites'   ? state.selUnit === u
+                  :                         state.selDiz  === d && state.selUnit === u;
+    const msg = feedbackMessages(correct, currentLevel, n, d, u, asking, state.selDiz, state.selUnit);
     showFeedback(correct, msg);
   }
 
@@ -435,7 +451,7 @@
     const n = pickNumber(1);
     const d = Math.floor(n / 10);
     const u = n % 10;
-    state = { n, d, u };
+    state = { n, d, u, asking: 'both' };
     initSpinners();
 
     questionBox.textContent = 'Compte les blocs. Combien y a-t-il de dizaines et d\'unités ?';
@@ -447,10 +463,13 @@
     const n = pickNumber(2);
     const d = Math.floor(n / 10);
     const u = n % 10;
-    state = { n, d, u };
+    const asking = Math.random() < 0.5 ? 'dizaines' : 'unites';
+    state = { n, d, u, asking };
     initSpinners();
 
-    questionBox.textContent = 'Combien y a-t-il de dizaines et d\'unités ?';
+    questionBox.textContent = asking === 'dizaines'
+      ? 'Quel est le chiffre des dizaines de ce nombre ?'
+      : 'Quel est le chiffre des unités de ce nombre ?';
     // Chiffre des dizaines en rouge, chiffre des unités en bleu
     contentZone.innerHTML =
       `<div class="number-display" role="img" aria-label="Le nombre ${n}">` +
@@ -464,10 +483,13 @@
     const n = pickNumber(3);
     const d = Math.floor(n / 10);
     const u = n % 10;
-    state = { n, d, u };
+    const asking = Math.random() < 0.5 ? 'dizaines' : 'unites';
+    state = { n, d, u, asking };
     initSpinners();
 
-    questionBox.textContent = 'Décompose ce nombre en dizaines et en unités.';
+    questionBox.textContent = asking === 'dizaines'
+      ? 'Quel est le chiffre des dizaines de ce nombre ?'
+      : 'Quel est le chiffre des unités de ce nombre ?';
     contentZone.innerHTML =
       `<div class="number-display" role="img" aria-label="Le nombre ${n}">` +
       `<span aria-hidden="true">${n}</span>` +
@@ -496,7 +518,10 @@
     if      (currentLevel === 1) setupLevel1();
     else if (currentLevel === 2) setupLevel2();
     else                          setupLevel3();
-    if (fromUserGesture) dizPlus.focus();
+    if (fromUserGesture) {
+      const firstSpinner = state.asking === 'unites' ? unitPlus : dizPlus;
+      firstSpinner.focus();
+    }
   }
 
   // ── Démarrage ───────────────────────────────────────────────────────────────
