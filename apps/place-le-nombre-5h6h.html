@@ -144,7 +144,7 @@
       for (let v = nlStart + 10; v < nlEnd1; v += 10) {
         if (v % 100 !== 0) inner.push(v); // une dizaine, jamais une centaine étiquetée
       }
-      target = pick(inner);
+      target = pick(inner, 1)[0];
     } else {
       nlStart = randInt(0, 9) * 100; // une centaine au hasard (0–900)
       step = 10;
@@ -153,7 +153,7 @@
       for (let v = nlStart + 1; v < nlEnd2; v++) {
         if (v % 10 !== 0) inner.push(v); // une unité, jamais une dizaine étiquetée
       }
-      target = pick(inner);
+      target = pick(inner, 1)[0];
     }
     const nlEnd = nlStart + segments * step;
 
@@ -347,7 +347,7 @@
   function showFeedback(correct, msg) {
     feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
     feedbackEl.textContent = msg;
-    if (correct) {
+    if (correct || TYPE_TACHE === 'drill') {
       playCorrect();
       launchConfetti();
       verifyBtn.style.display = 'none';
