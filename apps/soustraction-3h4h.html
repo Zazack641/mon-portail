@@ -147,10 +147,10 @@
   }
 
   // ── Génération des distracteurs ─────────────────────────────────────────────
-  function makeDistractors(correct, maxVal, count) {
+  function makeDistractors(correct, maxVal, count, step = 1) {
     const used = new Set([correct]);
     const result = [];
-    const nearby = shuffle([correct - 1, correct + 1, correct - 2, correct + 2, correct + 3, correct - 3]);
+    const nearby = shuffle([correct - step, correct + step, correct - 2*step, correct + 2*step, correct + 3*step, correct - 3*step]);
     for (const v of nearby) {
       if (!used.has(v) && v >= 0 && v <= maxVal) {
         used.add(v);
@@ -158,8 +158,8 @@
         if (result.length >= count) break;
       }
     }
-    for (let v = 0; result.length < count; v++) {
-      if (!used.has(v) && v >= 0) { used.add(v); result.push(v); }
+    for (let v = 0; v <= maxVal && result.length < count; v += step) {
+      if (!used.has(v)) { used.add(v); result.push(v); }
     }
     return result;
   }
@@ -187,6 +187,26 @@
     if (first) { first.setAttribute('tabindex', '0'); first.focus(); }
   }
 
+  // ── Rendu de l'équation ──────────────────────────────────────────────────────
+  function renderEquation(a, b) {
+    equationEl.innerHTML =
+      `<span>${a}</span>` +
+      `<span class="eq-operator">−</span>` +
+      `<span>${b}</span>` +
+      `<span class="eq-operator">=</span>` +
+      `<span class="eq-unknown">?</span>`;
+  }
+
+  // ── Initialisation de l'état ─────────────────────────────────────────────────
+  function applyState(a, b, correct, msgCorrect) {
+    state = {
+      answered: false,
+      correctAnswer: correct,
+      msgCorrect,
+      msgWrong: `Pas tout à fait. ${a} − ${b} = ${correct}. Appuie sur « Nouvel exercice » pour continuer.`,
+    };
+  }
+
   // ── Contextes variés pour le Niveau 1 ──────────────────────────────────────
   const CONTEXTES_N1 = [
     (a, b) => `Tu avais ${a} billes. Tu en donnes ${b}. Combien t'en reste-t-il ?`,
@@ -200,26 +220,15 @@
   // ── Exercice Niveau 1 : soustractions jusqu'à 10 ────────────────────────────
   function setupLevel1() {
     const a = randInt(2, 10);
-    const b = randInt(0, a);
+    const b = randInt(1, a);
     const correct = a - b;
     const distractors = makeDistractors(correct, 12, 3);
     const options = shuffle([correct, ...distractors]);
 
     const contexte = pick(CONTEXTES_N1, 1)[0];
     questionBox.textContent = contexte(a, b);
-    equationEl.innerHTML =
-      `<span>${a}</span>` +
-      `<span class="eq-operator">−</span>` +
-      `<span>${b}</span>` +
-      `<span class="eq-operator">=</span>` +
-      `<span class="eq-unknown">?</span>`;
-
-    state = {
-      answered: false,
-      correctAnswer: correct,
-      msgCorrect: `Bravo ! ${a} − ${b} = ${correct}.`,
-      msgWrong:   `Pas tout à fait. ${a} − ${b} = ${correct}. Appuie sur « Nouvel exercice » pour continuer.`,
-    };
+    renderEquation(a, b);
+    applyState(a, b, correct, `Bravo ! ${a} − ${b} = ${correct}.`);
     buildChoices(options);
   }
 
@@ -232,19 +241,8 @@
     const options = shuffle([correct, ...distractors]);
 
     questionBox.textContent = `Calcule en tête : ${a} − ${b} = ?`;
-    equationEl.innerHTML =
-      `<span>${a}</span>` +
-      `<span class="eq-operator">−</span>` +
-      `<span>${b}</span>` +
-      `<span class="eq-operator">=</span>` +
-      `<span class="eq-unknown">?</span>`;
-
-    state = {
-      answered: false,
-      correctAnswer: correct,
-      msgCorrect: `Exact ! ${a} − ${b} = ${correct}.`,
-      msgWrong:   `Pas tout à fait. ${a} − ${b} = ${correct}. Appuie sur « Nouvel exercice » pour continuer.`,
-    };
+    renderEquation(a, b);
+    applyState(a, b, correct, `Exact ! ${a} − ${b} = ${correct}.`);
     buildChoices(options);
   }
 
@@ -255,23 +253,12 @@
     const tensB = randInt(1, tensA - 1);
     const b = tensB * 10;
     const correct = a - b;
-    const distractors = makeDistractors(correct / 10, 9, 3).map(v => v * 10);
+    const distractors = makeDistractors(correct, 90, 3, 10);
     const options = shuffle([correct, ...distractors]);
 
     questionBox.textContent = `Soustrais les dizaines : ${a} − ${b} = ?`;
-    equationEl.innerHTML =
-      `<span>${a}</span>` +
-      `<span class="eq-operator">−</span>` +
-      `<span>${b}</span>` +
-      `<span class="eq-operator">=</span>` +
-      `<span class="eq-unknown">?</span>`;
-
-    state = {
-      answered: false,
-      correctAnswer: correct,
-      msgCorrect: `Exact ! ${a} − ${b} = ${correct}.`,
-      msgWrong:   `Pas tout à fait. ${a} − ${b} = ${correct}. Appuie sur « Nouvel exercice » pour continuer.`,
-    };
+    renderEquation(a, b);
+    applyState(a, b, correct, `Exact ! ${a} − ${b} = ${correct}.`);
     buildChoices(options);
   }
 
