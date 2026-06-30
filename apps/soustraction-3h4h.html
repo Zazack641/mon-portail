@@ -121,11 +121,18 @@
     border: 1px solid #E2E8F0;
   }
   .scaffold.visible { display: block; }
-  .scaffold-legend {
+  .scaffold-instruction {
+    text-align: center;
+    font-size: 14px;
+    color: #1A2535;
+    margin-top: 10px;
+    font-family: 'Source Sans 3', sans-serif;
+  }
+  .scaffold-counter {
     text-align: center;
     font-size: 13px;
     color: #64748B;
-    margin-top: 8px;
+    margin-top: 4px;
     font-family: 'Source Sans 3', sans-serif;
   }
 
@@ -141,9 +148,9 @@
     font-size: 18px;
     font-weight: 800;
     font-family: 'Nunito', sans-serif;
+    background: #DBEAFE;
+    color: #1D4ED8;
   }
-  .dot.keep   { background: #DBEAFE; color: #1D4ED8; }
-  .dot.remove { background: #FEE2E2; color: #DC2626; }
 
   /* Niveau 2 — Droite numérique */
   .numberline-wrap { overflow-x: auto; padding: 8px 4px 4px; }
@@ -167,7 +174,7 @@
     margin: 2px auto 0;
   }
   .nl-cell.nl-start  { color: #C0272D; }
-  .nl-cell.nl-result { color: #16A34A; }
+  .nl-cell.nl-target { color: #0F7860; }
   .nl-cell.nl-jump   { background: #FFF7ED; }
   .nl-jump-arc {
     position: absolute;
@@ -179,7 +186,7 @@
     color: #C0272D;
   }
 
-  /* Niveau 3 — Blocs dizaines */
+  /* Niveau 3 — Blocs dizaines interactifs */
   .tens-blocks { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
   .tens-block-col { display: flex; flex-direction: column; align-items: center; gap: 3px; }
   .tens-bar {
@@ -189,10 +196,14 @@
     border-radius: 6px;
     background: #DBEAFE;
     border: 2px solid #BFDBFE;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: background 0.15s, border-color 0.15s;
   }
-  .tens-bar.removed { background: #FEE2E2; border-color: #FECACA; opacity: 0.6; }
+  .tens-bar:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 2px; }
+  .tens-bar.crossed { background: #FEE2E2; border-color: #FECACA; }
   .tens-unit { width: 10px; height: 22px; background: #3B7DD8; border-radius: 2px; }
-  .tens-bar.removed .tens-unit { background: #DC2626; }
+  .tens-bar.crossed .tens-unit { background: #DC2626; }
   .tens-bar-label { font-size: 11px; font-family: 'Source Sans 3', sans-serif; font-weight: 600; color: #64748B; }
 </style>
 </head>
@@ -330,54 +341,97 @@
   }
 
   function buildHint(a, b) {
-    const correct = a - b;
     if (currentLevel === 1) {
       const dots = [];
       for (let i = 0; i < a; i++) {
-        const keep = i < correct;
-        dots.push(`<div class="dot ${keep ? 'keep' : 'remove'}" aria-hidden="true">${keep ? '●' : '✕'}</div>`);
+        dots.push(`<div class="dot" aria-hidden="true">●</div>`);
       }
       scaffoldEl.innerHTML =
         `<div class="dots-strip">${dots.join('')}</div>` +
-        `<p class="scaffold-legend">` +
-          `<span style="color:#1D4ED8">●</span> ${correct} qui restent &nbsp;·&nbsp; ` +
-          `<span style="color:#DC2626">✕</span> ${b} qui partent` +
-        `</p>`;
+        `<p class="scaffold-instruction">Barre les <strong>${b}</strong> points.</p>`;
+
     } else if (currentLevel === 2) {
-      const lo = Math.max(0, correct - 1);
-      const hi = Math.min(20, a + 1);
-      const cells = [];
-      for (let i = lo; i <= hi; i++) {
-        let cls = '';
-        if (i === a)       cls = 'nl-start';
-        else if (i === correct) cls = 'nl-result';
-        else if (i > correct && i < a) cls = 'nl-jump';
-        const arc = (i === a) ? `<span class="nl-jump-arc" aria-hidden="true">↩</span>` : '';
-        cells.push(`<div class="nl-cell ${cls}">${arc}${i}</div>`);
+      const correct = a - b;
+      // Use whichever strategy requires fewer jumps
+      const useCountBack = b <= correct;
+
+      if (useCountBack) {
+        // Count back b steps from a (b jumps)
+        const lo = Math.max(0, a - b - 1);
+        const hi = Math.min(20, a + 1);
+        const cells = [];
+        for (let i = lo; i <= hi; i++) {
+          let cls = '';
+          if (i === a) cls = 'nl-start';
+          else if (i > a - b && i < a) cls = 'nl-jump';
+          const arc = (i === a) ? `<span class="nl-jump-arc" aria-hidden="true">↩</span>` : '';
+          cells.push(`<div class="nl-cell ${cls}">${arc}${i}</div>`);
+        }
+        scaffoldEl.innerHTML =
+          `<div class="numberline-wrap"><div class="numberline">${cells.join('')}</div></div>` +
+          `<p class="scaffold-instruction">Pars de <strong>${a}</strong>, recule <strong>${b}</strong> fois.</p>`;
+      } else {
+        // Count up from b to a (correct jumps — fewer than b)
+        const lo = Math.max(0, b - 1);
+        const hi = Math.min(20, a + 1);
+        const cells = [];
+        for (let i = lo; i <= hi; i++) {
+          let cls = '';
+          if (i === b) cls = 'nl-start';
+          else if (i === a) cls = 'nl-target';
+          else if (i > b && i < a) cls = 'nl-jump';
+          cells.push(`<div class="nl-cell ${cls}">${i}</div>`);
+        }
+        scaffoldEl.innerHTML =
+          `<div class="numberline-wrap"><div class="numberline">${cells.join('')}</div></div>` +
+          `<p class="scaffold-instruction">Pars de <strong>${b}</strong>, avance jusqu'à <strong>${a}</strong> : combien de sauts ?</p>`;
       }
-      scaffoldEl.innerHTML =
-        `<div class="numberline-wrap"><div class="numberline">${cells.join('')}</div></div>` +
-        `<p class="scaffold-legend">` +
-          `Pars de <span style="color:#C0272D">${a}</span>, recule de ${b} → ` +
-          `tu arrives à <span style="color:#16A34A">${correct}</span>` +
-        `</p>`;
+
     } else {
       const tensA = a / 10;
       const tensB = b / 10;
+      let crossedCount = 0;
+
       const bars = [];
       for (let i = 0; i < tensA; i++) {
-        const removed = i >= tensA - tensB;
-        const units   = Array(10).fill('<div class="tens-unit"></div>').join('');
+        const units = Array(10).fill('<div class="tens-unit"></div>').join('');
         bars.push(
           `<div class="tens-block-col">` +
-            `<div class="tens-bar ${removed ? 'removed' : ''}">${units}</div>` +
-            `<div class="tens-bar-label">${removed ? '−10' : '10'}</div>` +
+            `<div class="tens-bar" data-bar-idx="${i}" role="button" tabindex="0" ` +
+            `aria-pressed="false" aria-label="Dizaine ${i + 1}">${units}</div>` +
+            `<div class="tens-bar-label">10</div>` +
           `</div>`
         );
       }
       scaffoldEl.innerHTML =
         `<div class="tens-blocks">${bars.join('')}</div>` +
-        `<p class="scaffold-legend">${tensA} dizaines − ${tensB} dizaines = <strong>${correct}</strong></p>`;
+        `<p class="scaffold-instruction">Barre les <strong>${tensB}</strong> ` +
+        `dizaine${tensB > 1 ? 's' : ''} à enlever.</p>` +
+        `<p class="scaffold-counter" id="tens-counter">0 / ${tensB} barrée${tensB > 1 ? 's' : ''}</p>`;
+
+      scaffoldEl.querySelectorAll('.tens-bar').forEach(bar => {
+        const toggle = () => {
+          const pressed = bar.getAttribute('aria-pressed') === 'true';
+          if (pressed) {
+            bar.setAttribute('aria-pressed', 'false');
+            bar.classList.remove('crossed');
+            bar.nextElementSibling.textContent = '10';
+            crossedCount--;
+          } else {
+            bar.setAttribute('aria-pressed', 'true');
+            bar.classList.add('crossed');
+            bar.nextElementSibling.textContent = '✕';
+            crossedCount++;
+          }
+          const counter = document.getElementById('tens-counter');
+          if (counter) counter.textContent =
+            `${crossedCount} / ${tensB} barrée${tensB > 1 ? 's' : ''}`;
+        };
+        bar.addEventListener('click', toggle);
+        bar.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+        });
+      });
     }
   }
 
