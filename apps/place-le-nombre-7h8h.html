@@ -347,6 +347,18 @@
     }
   }
 
+  // ── Feedback didactique sur erreur ────────────────────────────────────────
+  // Pattern inspiré de place-le-nombre-5h6h : ancre sur le repère gradué
+  // juste avant la cible, puis indique la stratégie de comptage.
+  function errorFeedback(target, cfg) {
+    const lower = cfg.ticks.reduce((best, t) => t <= target ? t : best, cfg.ticks[0]);
+    const dist = target - lower;
+    if (dist === 0) {
+      return `C'est l'une des graduations — repère directement ${fmt(target)} sur la droite.`;
+    }
+    return `Repère ${fmt(lower)} sur la droite, puis compte les intervalles de ${fmt(cfg.step)} jusqu'à ${fmt(target)}.`;
+  }
+
   // ── Vérification de la réponse ─────────────────────────────────────────────
   function verify() {
     if (state.placed === null || state.placed === undefined) return;
@@ -355,11 +367,10 @@
 
     if (diff <= cfg.tolerance) {
       showFeedback(true,
-        `Bravo ! ${fmt(state.target)} est bien à cette position sur la droite.`);
+        `Bravo ! ${fmt(state.target)} est bien placé sur la droite.`);
     } else {
-      const dir = state.placed < state.target ? 'trop à gauche' : 'trop à droite';
       showFeedback(false,
-        `Pas tout à fait ! Tu es un peu ${dir}. La position correcte est en vert. Réessaie !`);
+        `Pas tout à fait ! ${errorFeedback(state.target, cfg)}`);
     }
   }
 
