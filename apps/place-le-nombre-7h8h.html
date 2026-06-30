@@ -11,9 +11,6 @@
 <style>
   :root {
     --app-header-bg: #C0272D;
-    --color-units:    #3B7DD8;
-    --color-tens:     #D64045;
-    --color-hundreds: #3A9E6F;
   }
 
   .line-wrap {
@@ -35,6 +32,7 @@
   }
 
   /* Focus visible sur la droite (navigation clavier) */
+  #number-line:focus,
   #number-line:focus-visible {
     outline: 3px solid var(--app-header-bg);
     outline-offset: 4px;
@@ -285,14 +283,15 @@
     placedInfo.textContent = `Tu as placé : ${fmt(val)}`;
 
     svgEl.setAttribute('aria-valuenow', val);
+    svgEl.setAttribute('aria-valuetext', fmt(val));
     verifyBtn.disabled = false;
-    verifyBtn.focus();
   }
 
   // Clic souris
   svgEl.addEventListener('click', e => {
     const { svgX, value } = clientXToValue(e.clientX, LEVELS[currentLevel]);
     placeAt(svgX, value);
+    verifyBtn.focus();
   });
 
   // Toucher (iPad) — touchstart pour éviter le délai de 300 ms
@@ -300,6 +299,7 @@
     e.preventDefault();
     const { svgX, value } = clientXToValue(e.touches[0].clientX, LEVELS[currentLevel]);
     placeAt(svgX, value);
+    verifyBtn.focus();
   }, { passive: false });
 
   // Clavier — flèches gauche / droite (WCAG 2.1.1)
@@ -377,6 +377,7 @@
     correctMarker.setAttribute('visibility', 'hidden');
     placedInfo.className = 'placed-info';
     placedInfo.textContent = 'Appuie sur la droite pour placer le nombre';
+    if (state) state.answered = false;
   }
 
   // ── Génération du nombre cible ─────────────────────────────────────────────
@@ -422,6 +423,7 @@
       btn.classList.add('active');
       btn.setAttribute('aria-pressed', 'true');
       newExercise();
+      svgEl.focus();
     });
   });
 
