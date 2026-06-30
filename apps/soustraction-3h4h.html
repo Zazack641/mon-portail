@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>La soustraction — Maths 3H-4H</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-base.css">
+<style>
+  :root {
+    --app-header-bg: #C0272D;
+  }
+
+  /* ── Affichage de l'équation ─────────────────────────────────────────────── */
+  .equation {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(8px, 2.5vw, 20px);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: clamp(38px, 10vw, 68px);
+    margin: 8px auto;
+    flex-wrap: wrap;
+    line-height: 1.1;
+  }
+
+  .eq-operator {
+    color: #64748B;
+    font-weight: 700;
+  }
+
+  .eq-unknown {
+    color: #94A3B8;
+  }
+
+  /* ── Grille de réponses ──────────────────────────────────────────────────── */
+  .choices {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-width: 320px;
+    margin: 12px auto 8px;
+    padding: 0 8px;
+    width: 100%;
+  }
+
+  .choice-btn {
+    min-height: 72px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: clamp(28px, 7vw, 44px);
+    border-radius: 16px;
+    border: 3px solid var(--app-border, #E2E8F0);
+    background: #fff;
+    color: #1A1A2E;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+
+  .choice-btn.correct {
+    background: var(--app-correct-bg);
+    border-color: var(--app-correct-fg);
+    color: var(--app-correct-fg);
+  }
+
+  .choice-btn.wrong {
+    background: var(--app-wrong-bg);
+    border-color: var(--app-wrong-fg);
+    color: var(--app-wrong-fg);
+  }
+
+  .choice-btn:disabled { cursor: default; }
+
+  .choice-btn:not(:disabled):hover {
+    background: #F8FAFC;
+    border-color: #94A3B8;
+  }
+
+  .choice-btn:focus-visible {
+    outline: 3px solid var(--app-header-bg);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .choice-btn:not(:disabled):active { transform: scale(0.94); }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header" role="banner">
+  <a href="../index.html" class="back-link">← Retour</a>
+  <h1>➖ La soustraction</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1 · Jusqu'à 10</button>
+  <button class="level-btn"        data-level="2" aria-pressed="false">Niveau 2 · Jusqu'à 18</button>
+  <button class="level-btn"        data-level="3" aria-pressed="false">Niveau 3 · Dizaines</button>
+</div>
+
+<main>
+  <div class="question-box" id="question-box">Chargement…</div>
+
+  <div class="equation" id="equation" aria-hidden="true"></div>
+
+  <div class="choices" id="choices" role="group" aria-label="Choisir la réponse"></div>
+
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="action-row">
+    <button class="new-btn" id="new-btn"><span aria-hidden="true">▶</span> Nouvel exercice</button>
+  </div>
+</main>
+
+<script src="appUtils.js"></script>
+<script>
+  // 'drill' : la soustraction en calcul mental — l'erreur clôt l'item sans retry.
+  const TYPE_TACHE = 'drill';
+
+  const questionBox = document.getElementById('question-box');
+  const equationEl  = document.getElementById('equation');
+  const feedbackEl  = document.getElementById('feedback');
+  const choicesEl   = document.getElementById('choices');
+  const newBtn      = document.getElementById('new-btn');
+
+  let currentLevel = 1;
+  let state = {};
+
+  // ── Feedback unifié ─────────────────────────────────────────────────────────
+  function showFeedback(correct, msg) {
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = msg;
+    if (correct) {
+      playCorrect();
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) launchConfetti();
+    } else {
+      playIncorrect();
+    }
+    newBtn.classList.add('visible');
+    newBtn.focus();
+  }
+
+  // ── Génération des distracteurs ─────────────────────────────────────────────
+  function makeDistractors(correct, maxVal, count) {
+    const used = new Set([correct]);
+    const result = [];
+    const nearby = shuffle([correct - 1, correct + 1, correct - 2, correct + 2, correct + 3, correct - 3]);
+    for (const v of nearby) {
+      if (!used.has(v) && v >= 0 && v <= maxVal) {
+        used.add(v);
+        result.push(v);
+        if (result.length >= count) break;
+      }
+    }
+    for (let v = 0; result.length < count; v++) {
+      if (!used.has(v) && v >= 0) { used.add(v); result.push(v); }
+    }
+    return result;
+  }
+
+  // ── Construction des boutons-réponses ───────────────────────────────────────
+  function buildChoices(options) {
+    choicesEl.innerHTML = '';
+    options.forEach((val, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.textContent = val;
+      btn.setAttribute('aria-label', `Réponse : ${val}`);
+      btn.setAttribute('tabindex', idx === 0 ? '0' : '-1');
+      btn.addEventListener('click', () => {
+        if (state.answered) return;
+        state.answered = true;
+        choicesEl.querySelectorAll('.choice-btn').forEach(b => { b.disabled = true; });
+        const isCorrect = (val === state.correctAnswer);
+        btn.classList.add(isCorrect ? 'correct' : 'wrong');
+        showFeedback(isCorrect, isCorrect ? state.msgCorrect : state.msgWrong);
+      });
+      choicesEl.appendChild(btn);
+    });
+    const first = choicesEl.querySelector('.choice-btn');
+    if (first) { first.setAttribute('tabindex', '0'); first.focus(); }
+  }
+
+  // ── Contextes variés pour le Niveau 1 ──────────────────────────────────────
+  const CONTEXTES_N1 = [
+    (a, b) => `Tu avais ${a} billes. Tu en donnes ${b}. Combien t'en reste-t-il ?`,
+    (a, b) => `Il y a ${a} oiseaux. ${b} s'envolent. Combien en reste-t-il ?`,
+    (a, b) => `Tu as ${a} bonbons. Tu en partages ${b}. Combien t'en reste-t-il ?`,
+    (a, b) => `Il y avait ${a} enfants. ${b} sont rentrés. Combien en reste-t-il ?`,
+    (a, b) => `Tu cueilles ${a} pommes. Tu en manges ${b}. Combien t'en reste-t-il ?`,
+    (a, b) => `Il y a ${a} poissons dans l'aquarium. ${b} sont retirés. Combien en reste-t-il ?`,
+  ];
+
+  // ── Exercice Niveau 1 : soustractions jusqu'à 10 ────────────────────────────
+  function setupLevel1() {
+    const a = randInt(2, 10);
+    const b = randInt(0, a);
+    const correct = a - b;
+    const distractors = makeDistractors(correct, 12, 3);
+    const options = shuffle([correct, ...distractors]);
+
+    const contexte = pick(CONTEXTES_N1, 1)[0];
+    questionBox.textContent = contexte(a, b);
+    equationEl.innerHTML =
+      `<span>${a}</span>` +
+      `<span class="eq-operator">−</span>` +
+      `<span>${b}</span>` +
+      `<span class="eq-operator">=</span>` +
+      `<span class="eq-unknown">?</span>`;
+
+    state = {
+      answered: false,
+      correctAnswer: correct,
+      msgCorrect: `Bravo ! ${a} − ${b} = ${correct}.`,
+      msgWrong:   `Pas tout à fait. ${a} − ${b} = ${correct}. Appuie sur « Nouvel exercice » pour continuer.`,
+    };
+    buildChoices(options);
+  }
+
+  // ── Exercice Niveau 2 : répertoire de soustraction jusqu'à 18 ───────────────
+  function setupLevel2() {
+    const a = randInt(5, 18);
+    const b = randInt(1, Math.min(a, 9));
+    const correct = a - b;
+    const distractors = makeDistractors(correct, 18, 3);
+    const options = shuffle([correct, ...distractors]);
+
+    questionBox.textContent = `Calcule en tête : ${a} − ${b} = ?`;
+    equationEl.innerHTML =
+      `<span>${a}</span>` +
+      `<span class="eq-operator">−</span>` +
+      `<span>${b}</span>` +
+      `<span class="eq-operator">=</span>` +
+      `<span class="eq-unknown">?</span>`;
+
+    state = {
+      answered: false,
+      correctAnswer: correct,
+      msgCorrect: `Exact ! ${a} − ${b} = ${correct}.`,
+      msgWrong:   `Pas tout à fait. ${a} − ${b} = ${correct}. Appuie sur « Nouvel exercice » pour continuer.`,
+    };
+    buildChoices(options);
+  }
+
+  // ── Exercice Niveau 3 : soustraction de dizaines entières jusqu'à 100 ────────
+  function setupLevel3() {
+    const tensA = randInt(2, 10);
+    const a = tensA * 10;
+    const tensB = randInt(1, tensA - 1);
+    const b = tensB * 10;
+    const correct = a - b;
+    const distractors = makeDistractors(correct / 10, 9, 3).map(v => v * 10);
+    const options = shuffle([correct, ...distractors]);
+
+    questionBox.textContent = `Soustrais les dizaines : ${a} − ${b} = ?`;
+    equationEl.innerHTML =
+      `<span>${a}</span>` +
+      `<span class="eq-operator">−</span>` +
+      `<span>${b}</span>` +
+      `<span class="eq-operator">=</span>` +
+      `<span class="eq-unknown">?</span>`;
+
+    state = {
+      answered: false,
+      correctAnswer: correct,
+      msgCorrect: `Exact ! ${a} − ${b} = ${correct}.`,
+      msgWrong:   `Pas tout à fait. ${a} − ${b} = ${correct}. Appuie sur « Nouvel exercice » pour continuer.`,
+    };
+    buildChoices(options);
+  }
+
+  // ── Nouvelle question ────────────────────────────────────────────────────────
+  function newExercise() {
+    feedbackEl.className = 'feedback';
+    feedbackEl.textContent = '';
+    newBtn.classList.remove('visible');
+    state = { answered: false };
+
+    if (currentLevel === 1)      setupLevel1();
+    else if (currentLevel === 2) setupLevel2();
+    else                         setupLevel3();
+  }
+
+  // ── Sélecteur de niveau ─────────────────────────────────────────────────────
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLevel = parseInt(btn.dataset.level);
+      document.querySelectorAll('.level-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+      newExercise();
+    });
+  });
+
+  newBtn.addEventListener('click', newExercise);
+
+  // ── Navigation clavier : flèches entre les choix ────────────────────────────
+  choicesEl.addEventListener('keydown', e => {
+    const btns = Array.from(choicesEl.querySelectorAll('.choice-btn:not(:disabled)'));
+    const cur = btns.indexOf(document.activeElement);
+    if (cur === -1) return;
+    let next = -1;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') next = (cur + 1) % btns.length;
+    if (e.key === 'ArrowUp'   || e.key === 'ArrowLeft')  next = (cur - 1 + btns.length) % btns.length;
+    if (next !== -1) {
+      e.preventDefault();
+      btns.forEach(b => b.setAttribute('tabindex', '-1'));
+      btns[next].setAttribute('tabindex', '0');
+      btns[next].focus();
+    }
+  });
+
+  // ── Raccourcis clavier : 1–4 sélectionnent le bouton correspondant ──────────
+  document.addEventListener('keydown', e => {
+    if (state.answered) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); newBtn.click(); }
+      return;
+    }
+    const idx = parseInt(e.key, 10);
+    if (idx >= 1 && idx <= 4) {
+      const btns = choicesEl.querySelectorAll('.choice-btn:not(:disabled)');
+      if (btns[idx - 1]) btns[idx - 1].click();
+    }
+  });
+
+  newExercise();
+</script>
+<script src="feedbackUtils.js"></script>
+</body>
+</html>
