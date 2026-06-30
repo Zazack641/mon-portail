@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Place le nombre (7H-8H)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-base.css">
+<style>
+  :root {
+    --app-header-bg: #C0272D;
+  }
+
+  .line-wrap {
+    width: 100%;
+    background: #fff;
+    border: 1px solid var(--app-border);
+    border-radius: 16px;
+    padding: 16px 8px 8px;
+    cursor: crosshair;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+
+  #number-line {
+    width: 100%;
+    height: auto;
+    display: block;
+    outline: none;
+  }
+
+  /* Focus visible sur la droite (navigation clavier) */
+  #number-line:focus,
+  #number-line:focus-visible {
+    outline: 3px solid var(--app-header-bg);
+    outline-offset: 4px;
+    border-radius: 8px;
+  }
+
+  .placed-info {
+    text-align: center;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 18px;
+    color: #94A3B8;
+    min-height: 28px;
+    margin-top: 4px;
+    margin-bottom: 8px;
+    line-height: 1.5;
+  }
+
+  .placed-info.active {
+    color: #1A3A5C;
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────────── -->
+<header class="app-header" role="banner">
+  <a href="../index.html" class="back-link">← Retour</a>
+  <h1>📍 Place le nombre (7H-8H)</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<!-- ── Sélecteur de niveau ─────────────────────────────────────────────────── -->
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1</button>
+  <button class="level-btn"        data-level="2" aria-pressed="false">Niveau 2</button>
+  <button class="level-btn"        data-level="3" aria-pressed="false">Niveau 3</button>
+</div>
+
+<!-- ── Contenu principal ───────────────────────────────────────────────────── -->
+<main>
+  <div class="question-box" id="question-box">Chargement…</div>
+
+  <!-- Droite graduée -->
+  <div class="line-wrap">
+    <!--
+      SVG viewBox 600 × 120.
+      Droite : y = 66, x de 50 à 554.
+      Zone labels ticks : y ≈ 66 + 30 = 96.
+      Marqueurs élève/correct : triangle pointe vers le bas, pointe à y = 66.
+      Label du marqueur : y = 66 − 30 = 36 (au-dessus du triangle).
+    -->
+    <svg id="number-line"
+         viewBox="0 0 600 120"
+         role="slider"
+         aria-label="Droite graduée — utilise les flèches gauche/droite pour déplacer le marqueur"
+         aria-valuemin="0"
+         aria-valuemax="10000"
+         aria-valuenow="0"
+         tabindex="0">
+
+      <defs>
+        <marker id="arrow-end" markerWidth="9" markerHeight="7"
+                refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 9 3.5, 0 7" fill="#475569"/>
+        </marker>
+      </defs>
+
+      <!-- Ligne principale -->
+      <line x1="50" y1="66" x2="558" y2="66"
+            stroke="#475569" stroke-width="3"
+            marker-end="url(#arrow-end)"/>
+
+      <!-- Graduations et étiquettes (générées par JS) -->
+      <g id="ticks-group"></g>
+
+      <!--
+        Marqueur bleu = position choisie par l'élève.
+        Triangle pointe vers le bas (pointe à y=66), base à y=46.
+        Étiquette du nombre au-dessus.
+      -->
+      <g id="student-marker" visibility="hidden" aria-hidden="true">
+        <polygon id="sm-shape" fill="#1A3A5C"/>
+        <text id="sm-label"
+              text-anchor="middle"
+              font-family="Nunito, sans-serif"
+              font-weight="800"
+              font-size="15"
+              fill="#1A3A5C"></text>
+      </g>
+
+      <!--
+        Marqueur vert = position correcte, affiché uniquement après une mauvaise réponse.
+        Tiret vertical + cercle sur la droite.
+        Pas d'étiquette : le feedback textuel suffit.
+      -->
+      <g id="correct-marker" visibility="hidden" aria-hidden="true">
+        <line id="cm-line"
+              stroke="#065F46" stroke-width="3" stroke-dasharray="5 3"/>
+        <circle id="cm-dot" r="6" fill="#065F46"/>
+      </g>
+    </svg>
+
+    <p class="placed-info" id="placed-info">
+      Appuie sur la droite pour placer le nombre
+    </p>
+  </div>
+
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="action-row">
+    <button class="verify-btn" id="verify-btn" disabled>Vérifier</button>
+    <button class="new-btn"    id="new-btn">
+      <span aria-hidden="true">▶</span> Nouvel exercice
+    </button>
+  </div>
+</main>
+
+<!-- ── Scripts ──────────────────────────────────────────────────────────────── -->
+<script src="appUtils.js"></script>
+<script>
+  // ── Type de tâche ──────────────────────────────────────────────────────────
+  // 'instance' : l'erreur est exploitable — le feedback montre la position correcte
+  // et l'élève peut repositionner et revérifier sur la même instance.
+  const TYPE_TACHE = 'instance';
+
+  // ── Géométrie SVG (cohérente avec le viewBox 600 × 120) ───────────────────
+  const SVG_W   = 600;
+  const LINE_X1 = 50;
+  const LINE_X2 = 550;   // légèrement avant la pointe de flèche (x=558)
+  const LINE_Y  = 66;    // ordonnée de la droite dans le viewBox
+
+  // ── Références DOM ─────────────────────────────────────────────────────────
+  const questionBox   = document.getElementById('question-box');
+  const feedbackEl    = document.getElementById('feedback');
+  const verifyBtn     = document.getElementById('verify-btn');
+  const newBtn        = document.getElementById('new-btn');
+  const svgEl         = document.getElementById('number-line');
+  const ticksGroup    = document.getElementById('ticks-group');
+  const studentMarker = document.getElementById('student-marker');
+  const correctMarker = document.getElementById('correct-marker');
+  const placedInfo    = document.getElementById('placed-info');
+
+  // ── Configuration des niveaux ──────────────────────────────────────────────
+  // N1 : 0–10 000  (entrée dans les grands nombres, transition depuis 5H-6H)
+  // N2 : 0–100 000 (nombres au programme 7H-8H)
+  // N3 : 0–100 000 avec des nombres non multiples de 5 000 (estimation plus fine)
+  const LEVELS = {
+    1: {
+      min: 0, max: 10000, step: 500, tolerance: 500,
+      ticks: [0, 2500, 5000, 7500, 10000]
+    },
+    2: {
+      min: 0, max: 100000, step: 5000, tolerance: 5000,
+      ticks: [0, 25000, 50000, 75000, 100000]
+    },
+    3: {
+      min: 0, max: 100000, step: 1000, tolerance: 2000,
+      ticks: [0, 25000, 50000, 75000, 100000]
+    }
+  };
+
+  // ── État ───────────────────────────────────────────────────────────────────
+  let currentLevel = 1;
+  let state = {};
+
+  // ── Utilitaires ────────────────────────────────────────────────────────────
+  function fmt(n) {
+    return n.toLocaleString('fr-CH');
+  }
+
+  function valueToX(val, cfg) {
+    return LINE_X1 + ((val - cfg.min) / (cfg.max - cfg.min)) * (LINE_X2 - LINE_X1);
+  }
+
+  function clientXToValue(clientX, cfg) {
+    const rect = svgEl.getBoundingClientRect();
+    const svgX = ((clientX - rect.left) / rect.width) * SVG_W;
+    const clamped = Math.max(LINE_X1, Math.min(LINE_X2, svgX));
+    return {
+      svgX: clamped,
+      value: Math.round(cfg.min + ((clamped - LINE_X1) / (LINE_X2 - LINE_X1)) * (cfg.max - cfg.min))
+    };
+  }
+
+  // ── Construction des graduations ───────────────────────────────────────────
+  function buildTicks(cfg) {
+    ticksGroup.innerHTML = '';
+    cfg.ticks.forEach(val => {
+      const x = valueToX(val, cfg);
+
+      const tick = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      tick.setAttribute('x1', x); tick.setAttribute('y1', LINE_Y - 12);
+      tick.setAttribute('x2', x); tick.setAttribute('y2', LINE_Y + 12);
+      tick.setAttribute('stroke', '#475569');
+      tick.setAttribute('stroke-width', '2');
+      ticksGroup.appendChild(tick);
+
+      const lbl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      lbl.setAttribute('x', x);
+      lbl.setAttribute('y', LINE_Y + 32);
+      lbl.setAttribute('text-anchor', 'middle');
+      lbl.setAttribute('font-family', 'Source Sans 3, sans-serif');
+      lbl.setAttribute('font-size', '13');
+      lbl.setAttribute('fill', '#475569');
+      lbl.textContent = fmt(val);
+      ticksGroup.appendChild(lbl);
+    });
+  }
+
+  // ── Affichage du marqueur élève (triangle bleu, pointe vers la droite) ─────
+  function showStudentAt(svgX, val) {
+    // Triangle pointant vers le bas : base à (y = LINE_Y - 20), pointe à LINE_Y
+    document.getElementById('sm-shape').setAttribute(
+      'points',
+      `${svgX - 8},${LINE_Y - 20} ${svgX + 8},${LINE_Y - 20} ${svgX},${LINE_Y}`
+    );
+    const lbl = document.getElementById('sm-label');
+    lbl.setAttribute('x', svgX);
+    lbl.setAttribute('y', LINE_Y - 26);
+    lbl.textContent = fmt(val);
+    studentMarker.setAttribute('visibility', 'visible');
+  }
+
+  // ── Affichage du marqueur correct (vert, sans étiquette) ──────────────────
+  function showCorrectAt(val, cfg) {
+    const x = valueToX(val, cfg);
+    const ln = document.getElementById('cm-line');
+    ln.setAttribute('x1', x); ln.setAttribute('y1', LINE_Y - 20);
+    ln.setAttribute('x2', x); ln.setAttribute('y2', LINE_Y + 10);
+    const dot = document.getElementById('cm-dot');
+    dot.setAttribute('cx', x);
+    dot.setAttribute('cy', LINE_Y);
+    correctMarker.setAttribute('visibility', 'visible');
+  }
+
+  // ── Placement d'un marqueur (clic / toucher / clavier) ────────────────────
+  function placeAt(svgX, val) {
+    if (state.answered) return;
+
+    state.placed  = val;
+    state.placedX = svgX;
+
+    correctMarker.setAttribute('visibility', 'hidden');
+    showStudentAt(svgX, val);
+
+    placedInfo.className = 'placed-info active';
+    placedInfo.textContent = `Tu as placé : ${fmt(val)}`;
+
+    svgEl.setAttribute('aria-valuenow', val);
+    svgEl.setAttribute('aria-valuetext', fmt(val));
+    verifyBtn.disabled = false;
+  }
+
+  // Clic souris
+  svgEl.addEventListener('click', e => {
+    const { svgX, value } = clientXToValue(e.clientX, LEVELS[currentLevel]);
+    placeAt(svgX, value);
+    verifyBtn.focus();
+  });
+
+  // Toucher (iPad) — touchstart pour éviter le délai de 300 ms
+  svgEl.addEventListener('touchstart', e => {
+    e.preventDefault();
+    const { svgX, value } = clientXToValue(e.touches[0].clientX, LEVELS[currentLevel]);
+    placeAt(svgX, value);
+    verifyBtn.focus();
+  }, { passive: false });
+
+  // Clavier — flèches gauche / droite (WCAG 2.1.1)
+  svgEl.addEventListener('keydown', e => {
+    if (state.answered) return;
+    if (!['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp'].includes(e.key)) return;
+    e.preventDefault();
+
+    const cfg = LEVELS[currentLevel];
+    const base = (state.placed !== null && state.placed !== undefined)
+      ? state.placed
+      : Math.round((cfg.min + cfg.max) / 2);
+    const delta = (e.key === 'ArrowRight' || e.key === 'ArrowUp') ? cfg.step : -cfg.step;
+    const newVal = Math.max(cfg.min, Math.min(cfg.max, base + delta));
+    placeAt(valueToX(newVal, cfg), newVal);
+  });
+
+  // ── Feedback unifié ────────────────────────────────────────────────────────
+  function showFeedback(correct, msg) {
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = msg;
+
+    if (correct) {
+      playCorrect();
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        launchConfetti();
+      }
+    } else {
+      playIncorrect();
+    }
+
+    if (correct || TYPE_TACHE === 'drill') {
+      verifyBtn.style.display = 'none';
+      newBtn.classList.add('visible');
+      newBtn.focus();
+      state.answered = true;
+    } else {
+      // instance + incorrect : montrer la position correcte, laisser l'élève réessayer
+      showCorrectAt(state.target, LEVELS[currentLevel]);
+      verifyBtn.style.display = '';
+      verifyBtn.disabled = false;
+      newBtn.classList.remove('visible');
+      feedbackEl.setAttribute('tabindex', '-1');
+      feedbackEl.focus();
+    }
+  }
+
+  // ── Feedback didactique sur erreur ────────────────────────────────────────
+  // Pattern inspiré de place-le-nombre-5h6h : ancre sur le repère gradué
+  // juste avant la cible, puis indique la stratégie de comptage.
+  function errorFeedback(target, cfg) {
+    const lower = cfg.ticks.reduce((best, t) => t <= target ? t : best, cfg.ticks[0]);
+    const dist = target - lower;
+    if (dist === 0) {
+      return `C'est l'une des graduations — repère directement ${fmt(target)} sur la droite.`;
+    }
+    return `Repère ${fmt(lower)} sur la droite, puis compte les intervalles de ${fmt(cfg.step)} jusqu'à ${fmt(target)}.`;
+  }
+
+  // ── Vérification de la réponse ─────────────────────────────────────────────
+  function verify() {
+    if (state.placed === null || state.placed === undefined) return;
+    const cfg = LEVELS[currentLevel];
+    const diff = Math.abs(state.placed - state.target);
+
+    if (diff <= cfg.tolerance) {
+      showFeedback(true,
+        `Bravo ! ${fmt(state.target)} est bien placé sur la droite.`);
+    } else {
+      showFeedback(false,
+        `Pas tout à fait ! ${errorFeedback(state.target, cfg)}`);
+    }
+  }
+
+  verifyBtn.addEventListener('click', verify);
+
+  // ── Réinitialisation ───────────────────────────────────────────────────────
+  function resetFeedback() {
+    feedbackEl.className = 'feedback';
+    feedbackEl.textContent = '';
+    feedbackEl.removeAttribute('tabindex');
+    verifyBtn.style.display = '';
+    verifyBtn.disabled = true;
+    newBtn.classList.remove('visible');
+    studentMarker.setAttribute('visibility', 'hidden');
+    correctMarker.setAttribute('visibility', 'hidden');
+    placedInfo.className = 'placed-info';
+    placedInfo.textContent = 'Appuie sur la droite pour placer le nombre';
+    if (state) state.answered = false;
+  }
+
+  // ── Génération du nombre cible ─────────────────────────────────────────────
+  function pickTarget(cfg, level) {
+    const slots = (cfg.max - cfg.min) / cfg.step;
+    let val;
+    if (level === 3) {
+      // Multiples de 1 000 qui ne sont pas multiples de 5 000 (estimation plus fine)
+      do {
+        val = (randInt(1, slots - 1) * cfg.step) + cfg.min;
+      } while (val % 5000 === 0);
+    } else {
+      val = (randInt(1, slots - 1) * cfg.step) + cfg.min;
+    }
+    return val;
+  }
+
+  // ── Nouvel exercice ────────────────────────────────────────────────────────
+  function newExercise() {
+    const cfg = LEVELS[currentLevel];
+    resetFeedback();
+    state = {
+      target:   pickTarget(cfg, currentLevel),
+      placed:   null,
+      placedX:  null,
+      answered: false
+    };
+    buildTicks(cfg);
+    svgEl.setAttribute('aria-valuemin', cfg.min);
+    svgEl.setAttribute('aria-valuemax', cfg.max);
+    svgEl.setAttribute('aria-valuenow', cfg.min);
+    questionBox.textContent = `Place ${fmt(state.target)} sur la droite graduée.`;
+  }
+
+  // ── Sélecteur de niveau (convention partagée — ne pas modifier) ────────────
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLevel = parseInt(btn.dataset.level);
+      document.querySelectorAll('.level-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+      newExercise();
+      svgEl.focus();
+    });
+  });
+
+  newBtn.addEventListener('click', newExercise);
+
+  // ── Démarrage ───────────────────────────────────────────────────────────────
+  newExercise();
+</script>
+<script src="feedbackUtils.js"></script>
+</body>
+</html>
