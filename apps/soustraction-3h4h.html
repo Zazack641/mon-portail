@@ -150,7 +150,12 @@
     font-family: 'Nunito', sans-serif;
     background: #DBEAFE;
     color: #1D4ED8;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: background 0.12s, color 0.12s;
   }
+  .dot.crossed { background: #FEE2E2; color: #DC2626; }
+  .dot:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 2px; }
 
   /* Niveau 2 — Droite numérique */
   .numberline-wrap { overflow-x: auto; padding: 8px 4px 4px; }
@@ -344,11 +349,30 @@
     if (currentLevel === 1) {
       const dots = [];
       for (let i = 0; i < a; i++) {
-        dots.push(`<div class="dot" aria-hidden="true">●</div>`);
+        dots.push(`<div class="dot" role="button" tabindex="0" aria-pressed="false" aria-label="Point ${i + 1}">●</div>`);
       }
       scaffoldEl.innerHTML =
         `<div class="dots-strip">${dots.join('')}</div>` +
-        `<p class="scaffold-instruction">Barre les <strong>${b}</strong> points.</p>`;
+        `<p class="scaffold-instruction">Barre les <strong>${b}</strong> points.<br>Puis compte combien il en reste.</p>`;
+
+      scaffoldEl.querySelectorAll('.dot').forEach(dot => {
+        const toggle = () => {
+          const pressed = dot.getAttribute('aria-pressed') === 'true';
+          if (pressed) {
+            dot.setAttribute('aria-pressed', 'false');
+            dot.classList.remove('crossed');
+            dot.textContent = '●';
+          } else {
+            dot.setAttribute('aria-pressed', 'true');
+            dot.classList.add('crossed');
+            dot.textContent = '✕';
+          }
+        };
+        dot.addEventListener('click', toggle);
+        dot.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+        });
+      });
 
     } else if (currentLevel === 2) {
       const correct = a - b;
@@ -406,8 +430,7 @@
       scaffoldEl.innerHTML =
         `<div class="tens-blocks">${bars.join('')}</div>` +
         `<p class="scaffold-instruction">Barre les <strong>${tensB}</strong> ` +
-        `dizaine${tensB > 1 ? 's' : ''} à enlever.</p>` +
-        `<p class="scaffold-counter" id="tens-counter">0 / ${tensB} barrée${tensB > 1 ? 's' : ''}</p>`;
+        `dizaine${tensB > 1 ? 's' : ''} à enlever.<br>Puis compte combien il en reste.</p>`;
 
       scaffoldEl.querySelectorAll('.tens-bar').forEach(bar => {
         const toggle = () => {
@@ -416,16 +439,11 @@
             bar.setAttribute('aria-pressed', 'false');
             bar.classList.remove('crossed');
             bar.nextElementSibling.textContent = '10';
-            crossedCount--;
           } else {
             bar.setAttribute('aria-pressed', 'true');
             bar.classList.add('crossed');
             bar.nextElementSibling.textContent = '✕';
-            crossedCount++;
           }
-          const counter = document.getElementById('tens-counter');
-          if (counter) counter.textContent =
-            `${crossedCount} / ${tensB} barrée${tensB > 1 ? 's' : ''}`;
         };
         bar.addEventListener('click', toggle);
         bar.addEventListener('keydown', e => {
