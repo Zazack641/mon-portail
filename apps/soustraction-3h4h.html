@@ -88,6 +88,112 @@
   @media (prefers-reduced-motion: no-preference) {
     .choice-btn:not(:disabled):active { transform: scale(0.94); }
   }
+
+  /* ── Bouton d'aide ──────────────────────────────────────────────────────────── */
+  .hint-btn {
+    display: block;
+    margin: 6px auto 0;
+    padding: 6px 20px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #64748B;
+    background: transparent;
+    border: 2px solid #CBD5E1;
+    border-radius: 999px;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    min-height: 44px;
+  }
+  .hint-btn:hover { background: #F8FAFC; border-color: #94A3B8; }
+  .hint-btn[aria-expanded="true"] { color: #1A1A2E; border-color: #94A3B8; background: #F1F5F9; }
+  .hint-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 2px; }
+
+  /* ── Zone d'étayage ─────────────────────────────────────────────────────────── */
+  .scaffold {
+    display: none;
+    margin: 10px auto 4px;
+    padding: 12px 8px;
+    max-width: 360px;
+    background: #F8FAFC;
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
+  }
+  .scaffold.visible { display: block; }
+  .scaffold-legend {
+    text-align: center;
+    font-size: 13px;
+    color: #64748B;
+    margin-top: 8px;
+    font-family: 'Source Sans 3', sans-serif;
+  }
+
+  /* Niveau 1 — Bande de points */
+  .dots-strip { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .dot {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 800;
+    font-family: 'Nunito', sans-serif;
+  }
+  .dot.keep   { background: #DBEAFE; color: #1D4ED8; }
+  .dot.remove { background: #FEE2E2; color: #DC2626; }
+
+  /* Niveau 2 — Droite numérique */
+  .numberline-wrap { overflow-x: auto; padding: 8px 4px 4px; }
+  .numberline { display: flex; align-items: flex-end; min-width: max-content; }
+  .nl-cell {
+    width: 28px;
+    flex: 0 0 28px;
+    text-align: center;
+    font-size: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    color: #94A3B8;
+    padding-top: 24px;
+    position: relative;
+  }
+  .nl-cell::after {
+    content: '';
+    display: block;
+    height: 8px;
+    border-left: 2px solid #CBD5E1;
+    margin: 2px auto 0;
+  }
+  .nl-cell.nl-start  { color: #C0272D; }
+  .nl-cell.nl-result { color: #16A34A; }
+  .nl-cell.nl-jump   { background: #FFF7ED; }
+  .nl-jump-arc {
+    position: absolute;
+    top: 4px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 16px;
+    color: #C0272D;
+  }
+
+  /* Niveau 3 — Blocs dizaines */
+  .tens-blocks { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .tens-block-col { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .tens-bar {
+    display: flex;
+    gap: 2px;
+    padding: 4px 3px;
+    border-radius: 6px;
+    background: #DBEAFE;
+    border: 2px solid #BFDBFE;
+  }
+  .tens-bar.removed { background: #FEE2E2; border-color: #FECACA; opacity: 0.6; }
+  .tens-unit { width: 10px; height: 22px; background: #3B7DD8; border-radius: 2px; }
+  .tens-bar.removed .tens-unit { background: #DC2626; }
+  .tens-bar-label { font-size: 11px; font-family: 'Source Sans 3', sans-serif; font-weight: 600; color: #64748B; }
 </style>
 </head>
 <body>
@@ -109,6 +215,11 @@
 
   <div class="equation" id="equation" aria-hidden="true"></div>
 
+  <div style="text-align:center;">
+    <button class="hint-btn" id="hint-btn" aria-expanded="false" aria-controls="scaffold">Aide ?</button>
+  </div>
+  <div class="scaffold" id="scaffold" role="region" aria-label="Aide visuelle" aria-live="polite"></div>
+
   <div class="choices" id="choices" role="group" aria-label="Choisir la réponse"></div>
 
   <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
@@ -128,6 +239,8 @@
   const feedbackEl  = document.getElementById('feedback');
   const choicesEl   = document.getElementById('choices');
   const newBtn      = document.getElementById('new-btn');
+  const hintBtn     = document.getElementById('hint-btn');
+  const scaffoldEl  = document.getElementById('scaffold');
 
   let currentLevel = 1;
   let state = {};
@@ -201,11 +314,83 @@
   function applyState(a, b, correct, msgCorrect) {
     state = {
       answered: false,
+      a, b,
       correctAnswer: correct,
       msgCorrect,
       msgWrong: `Pas tout à fait. ${a} − ${b} = ${correct}. Appuie sur « Nouvel exercice » pour continuer.`,
     };
   }
+
+  // ── Étayage visuel (aide optionnelle) ────────────────────────────────────────
+  function hideHint() {
+    scaffoldEl.classList.remove('visible');
+    scaffoldEl.innerHTML = '';
+    hintBtn.setAttribute('aria-expanded', 'false');
+    hintBtn.textContent = 'Aide ?';
+  }
+
+  function buildHint(a, b) {
+    const correct = a - b;
+    if (currentLevel === 1) {
+      const dots = [];
+      for (let i = 0; i < a; i++) {
+        const keep = i < correct;
+        dots.push(`<div class="dot ${keep ? 'keep' : 'remove'}" aria-hidden="true">${keep ? '●' : '✕'}</div>`);
+      }
+      scaffoldEl.innerHTML =
+        `<div class="dots-strip">${dots.join('')}</div>` +
+        `<p class="scaffold-legend">` +
+          `<span style="color:#1D4ED8">●</span> ${correct} qui restent &nbsp;·&nbsp; ` +
+          `<span style="color:#DC2626">✕</span> ${b} qui partent` +
+        `</p>`;
+    } else if (currentLevel === 2) {
+      const lo = Math.max(0, correct - 1);
+      const hi = Math.min(20, a + 1);
+      const cells = [];
+      for (let i = lo; i <= hi; i++) {
+        let cls = '';
+        if (i === a)       cls = 'nl-start';
+        else if (i === correct) cls = 'nl-result';
+        else if (i > correct && i < a) cls = 'nl-jump';
+        const arc = (i === a) ? `<span class="nl-jump-arc" aria-hidden="true">↩</span>` : '';
+        cells.push(`<div class="nl-cell ${cls}">${arc}${i}</div>`);
+      }
+      scaffoldEl.innerHTML =
+        `<div class="numberline-wrap"><div class="numberline">${cells.join('')}</div></div>` +
+        `<p class="scaffold-legend">` +
+          `Pars de <span style="color:#C0272D">${a}</span>, recule de ${b} → ` +
+          `tu arrives à <span style="color:#16A34A">${correct}</span>` +
+        `</p>`;
+    } else {
+      const tensA = a / 10;
+      const tensB = b / 10;
+      const bars = [];
+      for (let i = 0; i < tensA; i++) {
+        const removed = i >= tensA - tensB;
+        const units   = Array(10).fill('<div class="tens-unit"></div>').join('');
+        bars.push(
+          `<div class="tens-block-col">` +
+            `<div class="tens-bar ${removed ? 'removed' : ''}">${units}</div>` +
+            `<div class="tens-bar-label">${removed ? '−10' : '10'}</div>` +
+          `</div>`
+        );
+      }
+      scaffoldEl.innerHTML =
+        `<div class="tens-blocks">${bars.join('')}</div>` +
+        `<p class="scaffold-legend">${tensA} dizaines − ${tensB} dizaines = <strong>${correct}</strong></p>`;
+    }
+  }
+
+  hintBtn.addEventListener('click', () => {
+    if (scaffoldEl.classList.contains('visible')) {
+      hideHint();
+    } else {
+      buildHint(state.a, state.b);
+      scaffoldEl.classList.add('visible');
+      hintBtn.setAttribute('aria-expanded', 'true');
+      hintBtn.textContent = 'Masquer l\'aide';
+    }
+  });
 
   // ── Contextes variés pour le Niveau 1 ──────────────────────────────────────
   const CONTEXTES_N1 = [
@@ -267,6 +452,7 @@
     feedbackEl.className = 'feedback';
     feedbackEl.textContent = '';
     newBtn.classList.remove('visible');
+    hideHint();
     state = { answered: false };
 
     if (currentLevel === 1)      setupLevel1();
