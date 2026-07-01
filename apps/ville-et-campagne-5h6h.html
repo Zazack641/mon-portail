@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Entraînement — La ville</title>
+<title>Ville et campagne</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
@@ -53,6 +53,7 @@
   }
   .exercise-card:hover { border-color: #1A6B4A; box-shadow: 0 2px 12px rgba(26,107,74,0.12); }
   .exercise-card:active { transform: scale(0.99); }
+  .exercise-card:focus-visible { outline: 3px solid #1A6B4A; outline-offset: 2px; }
   .exercise-card.done { border-color: #10B981; }
   .exercise-card-icon {
     font-size: 32px;
@@ -69,18 +70,19 @@
   .exercise-card-body { flex: 1; }
   .exercise-card-title {
     font-family: 'Nunito', sans-serif;
-    font-size: 18px;
+    font-size: 22px;
     font-weight: 800;
     color: #1A1A2E;
     margin-bottom: 3px;
   }
   .exercise-card-desc {
-    font-size: 14px;
-    color: #64748B;
+    font-size: 18px;
+    color: #475569;
+    line-height: 1.5;
   }
   .exercise-card-badge {
     font-family: 'Nunito', sans-serif;
-    font-size: 13px;
+    font-size: 18px;
     font-weight: 800;
     padding: 4px 12px;
     border-radius: 999px;
@@ -99,8 +101,8 @@
     text-align: center;
   }
   .home-desc {
-    font-size: 15px;
-    color: #64748B;
+    font-size: 18px;
+    color: #475569;
     text-align: center;
     line-height: 1.6;
     margin-top: -12px;
@@ -113,9 +115,9 @@
     gap: 6px;
   }
   .progress-label {
-    font-size: 13px;
+    font-size: 18px;
     font-weight: 700;
-    color: #94A3B8;
+    color: #475569;
     text-align: right;
   }
   .progress-bar-bg {
@@ -143,60 +145,37 @@
   }
 
   /* ── Boutons ── */
-  /* Bouton primaire « Vérifier » : .verify-btn fourni par app-base.css
-     (vert via --app-header-bg). .next-btn et .home-btn ci-dessous sont
-     propres à la navigation multi-phases de ce module. */
+  /* .verify-btn fourni par app-base.css. .next-btn et .home-btn étendent
+     .new-btn (app-base.css) en ne déclarant que leurs propriétés distinctes. */
 
   .next-btn {
     padding: 14px 28px;
     background: #1A3A5C;
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    font-family: 'Nunito', sans-serif;
-    font-size: 16px;
-    font-weight: 800;
-    cursor: pointer;
-    min-height: 52px;
-    touch-action: manipulation;
-    -webkit-appearance: none;
-    transition: all 0.15s;
     align-self: flex-end;
-    display: none;
   }
-  .next-btn.visible { display: block; }
   .next-btn:hover { background: #253F63; }
   .next-btn:active { transform: scale(0.98); }
+  .next-btn:focus-visible { outline: 3px solid rgba(255,255,255,0.9); outline-offset: 3px; }
 
   .home-btn {
-    padding: 16px 32px;
     background: #1A6B4A;
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    font-family: 'Nunito', sans-serif;
-    font-size: 17px;
-    font-weight: 800;
-    cursor: pointer;
-    min-height: 56px;
-    touch-action: manipulation;
-    -webkit-appearance: none;
-    transition: all 0.15s;
+    display: block;
   }
   .home-btn:hover { background: #115C3A; }
+  .home-btn:focus-visible { outline: 3px solid rgba(255,255,255,0.9); outline-offset: 3px; }
 
   /* ── Exercice 1 : Classement ── */
   .sort-question {
     font-family: 'Nunito', sans-serif;
-    font-size: clamp(17px, 3.5vw, 20px);
+    font-size: clamp(18px, 3.5vw, 21px);
     font-weight: 800;
     color: #1A1A2E;
-    line-height: 1.4;
+    line-height: 1.5;
   }
   .pool-label {
-    font-size: 13px;
+    font-size: 18px;
     font-weight: 700;
-    color: #94A3B8;
+    color: #475569;
     text-transform: uppercase;
     letter-spacing: 0.06em;
   }
@@ -211,11 +190,11 @@
     border: 2px solid #E2E8F0;
     border-radius: 10px;
     font-family: 'Source Sans 3', sans-serif;
-    font-size: 15px;
+    font-size: 22px;
     font-weight: 600;
     color: #1A1A2E;
     cursor: pointer;
-    min-height: 48px;
+    min-height: 64px;
     touch-action: manipulation;
     -webkit-appearance: none;
     transition: all 0.15s;
@@ -224,6 +203,7 @@
   }
   .sort-item:hover:not(.placed-v):not(.placed-c) { background: #E6F2ED; border-color: #1A6B4A; }
   .sort-item.selected { outline: 3px solid #1A6B4A; outline-offset: 1px; }
+  .sort-item:focus-visible { outline: 3px solid #1A6B4A; outline-offset: 2px; }
   .sort-item.placed-v { background: #EBF3FC; border-color: #7BB8F5; color: #185FA5; }
   .sort-item.placed-c { background: #EAF3DE; border-color: #A0C96A; color: #3B6D11; }
 
@@ -244,9 +224,10 @@
   .drop-zone.drop-ville:hover { background: #EBF3FC; border-color: #5A9ED6; }
   .drop-zone.drop-camp  { border-color: #A0C96A; }
   .drop-zone.drop-camp:hover  { background: #EAF3DE; border-color: #7BB240; }
+  .drop-zone[role="button"]:focus-visible { outline: 3px solid #1A6B4A; outline-offset: 2px; }
   .drop-zone-label {
     font-family: 'Nunito', sans-serif;
-    font-size: 14px;
+    font-size: 18px;
     font-weight: 800;
     padding: 6px 10px;
     border-radius: 8px;
@@ -258,26 +239,17 @@
   .drop-zone-items { display: flex; flex-direction: column; gap: 6px; }
 
   /* ── Feedback ── */
-  .feedback {
-    font-family: 'Source Sans 3', sans-serif;
-    font-size: 15px;
-    font-weight: 600;
-    padding: 12px 16px;
-    border-radius: 10px;
-    line-height: 1.5;
-    display: none;
-  }
-  .feedback.correct { background: #D1FAE5; color: #065F46; display: block; }
-  .feedback.wrong   { background: #FEE2E2; color: #991B1B; display: block; }
+  /* Les règles .feedback, .feedback.correct, .feedback.wrong sont fournies
+     par app-base.css. Seul .feedback.warning (état d'avertissement) est ajouté ici. */
   .feedback.warning { background: #FEF3C7; color: #92400E; display: block; }
 
   /* ── QCM ── */
   .question-text {
     font-family: 'Nunito', sans-serif;
-    font-size: clamp(17px, 3.5vw, 20px);
+    font-size: clamp(18px, 3.5vw, 21px);
     font-weight: 800;
     color: #1A1A2E;
-    line-height: 1.4;
+    line-height: 1.5;
   }
   .answer-list { display: flex; flex-direction: column; gap: 10px; }
   .answer-btn {
@@ -287,25 +259,26 @@
     border: 2px solid #E2E8F0;
     border-radius: 12px;
     font-family: 'Source Sans 3', sans-serif;
-    font-size: clamp(15px, 2.5vw, 17px);
+    font-size: 22px;
     font-weight: 600;
     color: #1A1A2E;
     cursor: pointer;
-    min-height: 52px;
+    min-height: 64px;
     touch-action: manipulation;
     -webkit-appearance: none;
     text-align: left;
     transition: all 0.15s;
-    line-height: 1.4;
+    line-height: 1.5;
   }
   .answer-btn:hover { background: #E6F2ED; border-color: #1A6B4A; }
   .answer-btn:active { transform: scale(0.99); }
+  .answer-btn:focus-visible { outline: 3px solid #1A6B4A; outline-offset: 2px; }
   .answer-btn.correct { background: #D1FAE5; border-color: #10B981; color: #065F46; font-weight: 700; }
-  .answer-btn.wrong   { background: #FEE2E2; border-color: #EF4444; color: #991B1B; }
+  .answer-btn.wrong   { background: #FEE2E2; border-color: #EF4444; color: var(--app-wrong-fg); }
   .answer-btn:disabled { cursor: default; }
   .score-badge {
     font-family: 'Nunito', sans-serif;
-    font-size: 14px;
+    font-size: 18px;
     font-weight: 800;
     color: #0D4A30;
     background: #E6F2ED;
@@ -325,7 +298,7 @@
     gap: 12px;
   }
   .gap-sentence-text {
-    font-size: clamp(15px, 2.5vw, 17px);
+    font-size: clamp(18px, 2.5vw, 20px);
     color: #1A1A2E;
     line-height: 1.8;
   }
@@ -345,11 +318,11 @@
     border-radius: 999px;
     background: #F8FAFC;
     font-family: 'Source Sans 3', sans-serif;
-    font-size: 14px;
+    font-size: 22px;
     font-weight: 700;
     color: #1A1A2E;
     cursor: pointer;
-    min-height: 44px;
+    min-height: 64px;
     touch-action: manipulation;
     -webkit-appearance: none;
     transition: all 0.15s;
@@ -358,6 +331,7 @@
   }
   .gap-option:hover { background: #E6F2ED; border-color: #1A6B4A; }
   .gap-option.selected { background: #E6F2ED; border-color: #1A6B4A; color: #0D4A30; }
+  .gap-option:focus-visible { outline: 3px solid #1A6B4A; outline-offset: 2px; }
 
   /* ── Résultat par exercice ── */
   .mini-result {
@@ -375,8 +349,8 @@
     color: #1A6B4A;
   }
   .mini-result-msg {
-    font-size: clamp(15px, 2.5vw, 17px);
-    color: #64748B;
+    font-size: clamp(18px, 2.5vw, 20px);
+    color: #475569;
     line-height: 1.6;
   }
 
@@ -397,7 +371,7 @@
 
 <header class="app-header" role="banner">
   <a href="../index.html" class="back-link" aria-label="Retour au portail">← Retour</a>
-  <h1>🏙️ Entraînement — La ville</h1>
+  <h1>🏙️ Ville et campagne</h1>
   <div class="header-spacer" aria-hidden="true"></div>
 </header>
 
@@ -443,7 +417,7 @@
 <div class="phase" id="phase-sort">
   <div class="phase-inner">
     <div class="content-card">
-      <div class="sort-question">Place chaque élément dans la bonne colonne.<br><span style="font-size:14px;font-weight:600;color:#64748B;">Clique sur un élément, puis sur la colonne.</span></div>
+      <div class="sort-question">Place chaque élément dans la bonne colonne.<br><span style="font-size:18px;font-weight:600;color:#475569;">Clique sur un élément, puis sur la colonne.</span></div>
       <div class="pool-label" aria-label="Éléments à classer">Éléments à classer</div>
       <div class="card-pool" id="card-pool" role="list"></div>
       <div class="drop-zones" role="group" aria-label="Colonnes de classement">
@@ -456,10 +430,10 @@
           <div class="drop-zone-items" id="placed-camp"></div>
         </div>
       </div>
-      <div class="feedback" id="fb-sort" role="status" aria-live="polite"></div>
+      <div class="feedback" id="fb-sort" role="status" aria-live="polite" aria-atomic="true"></div>
       <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
         <button class="verify-btn" id="check-sort-btn">Vérifier mes réponses</button>
-        <button class="next-btn" id="next-sort-btn">Voir mon résultat →</button>
+        <button class="new-btn next-btn" id="next-sort-btn">Voir mon résultat →</button>
       </div>
     </div>
   </div>
@@ -474,7 +448,7 @@
         <div class="mini-result-score" id="sort-result-score"></div>
         <div class="mini-result-msg" id="sort-result-msg"></div>
       </div>
-      <button class="home-btn" id="sort-home-btn" style="align-self:center;">← Retour aux exercices</button>
+      <button class="new-btn home-btn" id="sort-home-btn" style="align-self:center;">← Retour aux exercices</button>
     </div>
   </div>
 </div>
@@ -490,8 +464,8 @@
       <div class="score-badge" id="qcm-score-badge" aria-live="polite" aria-atomic="true">0 / 5</div>
       <div class="question-text" id="qcm-question"></div>
       <div class="answer-list" id="qcm-answers" role="list"></div>
-      <div class="feedback" id="fb-qcm" role="status" aria-live="polite"></div>
-      <button class="next-btn" id="next-qcm-btn">Question suivante →</button>
+      <div class="feedback" id="fb-qcm" role="status" aria-live="polite" aria-atomic="true"></div>
+      <button class="new-btn next-btn" id="next-qcm-btn">Question suivante →</button>
     </div>
   </div>
 </div>
@@ -505,7 +479,7 @@
         <div class="mini-result-score" id="qcm-result-score"></div>
         <div class="mini-result-msg" id="qcm-result-msg"></div>
       </div>
-      <button class="home-btn" id="qcm-home-btn" style="align-self:center;">← Retour aux exercices</button>
+      <button class="new-btn home-btn" id="qcm-home-btn" style="align-self:center;">← Retour aux exercices</button>
     </div>
   </div>
 </div>
@@ -516,10 +490,10 @@
     <div class="content-card">
       <div class="question-text">Clique sur le bon mot pour compléter chaque phrase.</div>
       <div id="gap-sentences" style="display:flex;flex-direction:column;gap:12px;"></div>
-      <div class="feedback" id="fb-gap" role="status" aria-live="polite"></div>
+      <div class="feedback" id="fb-gap" role="status" aria-live="polite" aria-atomic="true"></div>
       <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
         <button class="verify-btn" id="check-gap-btn">Vérifier</button>
-        <button class="next-btn" id="next-gap-btn">Voir mon résultat →</button>
+        <button class="new-btn next-btn" id="next-gap-btn">Voir mon résultat →</button>
       </div>
     </div>
   </div>
@@ -534,13 +508,17 @@
         <div class="mini-result-score" id="gap-result-score"></div>
         <div class="mini-result-msg" id="gap-result-msg"></div>
       </div>
-      <button class="home-btn" id="gap-home-btn" style="align-self:center;">← Retour aux exercices</button>
+      <button class="new-btn home-btn" id="gap-home-btn" style="align-self:center;">← Retour aux exercices</button>
     </div>
   </div>
 </div>
 
 <script src="appUtils.js"></script>
 <script>
+  /* ── Type de tâche ──
+     sort  = instance signifiante : le feedback liste les erreurs → retry sur la même instance
+     qcm   = drill : une réponse par question, l'erreur clôt l'item
+     gap   = instance signifiante : le feedback indique les mots corrects → retry sur la même instance */
   /* ── Données ── */
   const SORT_ITEMS = [
     { label: 'Un hôpital',          cat: 'v' },
@@ -616,6 +594,8 @@
   function goHome() {
     updateHomeBadges();
     showPhase('phase-home');
+    const firstCard = document.querySelector('#phase-home .exercise-card');
+    if (firstCard) firstCard.focus();
   }
 
   function updateHomeBadges() {
@@ -640,7 +620,6 @@
     let emoji, msg;
     if (pct === 100) {
       emoji = '🏆'; msg = 'Parfait ! Tu as tout réussi.';
-      launchConfetti(); playCorrect();
     } else if (pct >= 60) {
       emoji = '👍'; msg = 'Bien joué ! Tu peux recommencer pour t\'améliorer.';
     } else {
@@ -651,15 +630,34 @@
     showPhase(phaseId);
   }
 
+  function showFeedback(fb, state, msg) {
+    fb.className = 'feedback ' + state;
+    fb.innerHTML = msg;
+    if (state === 'correct') { playCorrect(); launchConfetti(); }
+    else if (state === 'wrong') { playIncorrect(); }
+  }
+
+  function focusFeedback(fb) {
+    fb.setAttribute('tabindex', '-1');
+    fb.focus();
+  }
+
+  function focusFirstAnswer() {
+    const firstAnswer = document.querySelector('#qcm-answers .answer-btn');
+    if (firstAnswer) firstAnswer.focus();
+  }
+
   /* ════════════════════════════════
-     EXERCICE 1 — Classement
+     EXERCICE 1 — Classement (instance signifiante)
   ════════════════════════════════ */
   function startSort() {
     const pool = document.getElementById('card-pool');
     pool.innerHTML = '';
     document.getElementById('placed-ville').innerHTML = '';
     document.getElementById('placed-camp').innerHTML = '';
-    document.getElementById('fb-sort').className = 'feedback';
+    const fb = document.getElementById('fb-sort');
+    fb.className = 'feedback';
+    fb.removeAttribute('tabindex');
     document.getElementById('next-sort-btn').classList.remove('visible');
     document.getElementById('check-sort-btn').style.display = '';
     sortDone = false; sortSelected = null;
@@ -681,10 +679,13 @@
     document.getElementById('col-camp').onkeydown  = e => { if (e.key === 'Enter' || e.key === ' ') onDropClick('col-camp'); };
 
     showPhase('phase-sort');
+    const firstItem = pool.querySelector('.sort-item');
+    if (firstItem) firstItem.focus();
   }
 
   function onItemClick(btn, idx) {
     if (sortDone) return;
+    if (btn.dataset.placed) return;
     if (sortSelected && sortSelected.btn === btn) {
       btn.classList.remove('selected'); sortSelected = null; return;
     }
@@ -702,7 +703,7 @@
     btn.classList.add(cat === 'v' ? 'placed-v' : 'placed-c');
     document.getElementById(cat === 'v' ? 'placed-ville' : 'placed-camp').appendChild(btn);
     sortSelected = null;
-    btn.addEventListener('click', () => returnToPool(btn, idx), { once: true });
+    btn.addEventListener('click', (e) => { e.stopPropagation(); returnToPool(btn, idx); }, { once: true });
   }
 
   function returnToPool(btn, idx) {
@@ -710,7 +711,6 @@
     btn.dataset.placed = '';
     btn.classList.remove('placed-v', 'placed-c', 'selected');
     document.getElementById('card-pool').appendChild(btn);
-    btn.addEventListener('click', () => onItemClick(btn, idx));
   }
 
   document.getElementById('check-sort-btn').addEventListener('click', () => {
@@ -727,22 +727,22 @@
     });
     const fb = document.getElementById('fb-sort');
     if (total < SORT_ITEMS.length) {
-      fb.className = 'feedback warning';
-      fb.textContent = '⚠️ Il reste encore des éléments à placer ! Place-les tous avant de vérifier.';
+      showFeedback(fb, 'warning', '⚠️ Il reste encore des éléments à placer ! Place-les tous avant de vérifier.');
+      focusFeedback(fb);
       return;
     }
-    sortDone = true;
-    scores.sort = { got: correct, max: SORT_ITEMS.length };
-    document.getElementById('check-sort-btn').style.display = 'none';
-    document.getElementById('next-sort-btn').classList.add('visible');
     if (errors.length === 0) {
-      fb.className = 'feedback correct';
-      fb.textContent = '✅ Parfait ! Tous les éléments sont bien classés.';
-      launchConfetti(); playCorrect();
+      /* Instance signifiante — réussite totale : on clôt l'exercice */
+      sortDone = true;
+      scores.sort = { got: correct, max: SORT_ITEMS.length };
+      document.getElementById('check-sort-btn').style.display = 'none';
+      document.getElementById('next-sort-btn').classList.add('visible');
+      showFeedback(fb, 'correct', '✅ Parfait ! Tous les éléments sont bien classés.');
+      document.getElementById('next-sort-btn').focus();
     } else {
-      fb.className = 'feedback wrong';
-      fb.innerHTML = '❌ Quelques erreurs : <strong>' + errors.join(', ') + '</strong>.';
-      playIncorrect();
+      /* Instance signifiante — erreur : feedback formatif, retry sur la même instance */
+      showFeedback(fb, 'wrong', '❌ Quelques erreurs : <strong>' + errors.join(', ') + '</strong>. Corrige et revérifie.');
+      focusFeedback(fb);
     }
   });
 
@@ -754,12 +754,13 @@
   document.getElementById('sort-home-btn').addEventListener('click', goHome);
 
   /* ════════════════════════════════
-     EXERCICE 2 — QCM
+     EXERCICE 2 — QCM (drill)
   ════════════════════════════════ */
   function startQcm() {
     qcmIdx = 0; qcmOk = 0;
     renderQcm();
     showPhase('phase-qcm');
+    focusFirstAnswer();
   }
 
   function renderQcm() {
@@ -790,20 +791,21 @@
       else if (b === btn) b.classList.add('wrong');
     });
     const ok = i === q.correct;
-    if (ok) { qcmOk++; playCorrect(); launchConfetti(); } else { playIncorrect(); }
+    if (ok) qcmOk++;
     const fb = document.getElementById('fb-qcm');
-    fb.className = 'feedback ' + (ok ? 'correct' : 'wrong');
-    fb.textContent = ok ? q.fb_ok : q.fb_ko;
+    showFeedback(fb, ok ? 'correct' : 'wrong', ok ? q.fb_ok : q.fb_ko);
     document.getElementById('qcm-score-badge').textContent = qcmOk + ' / ' + (qcmIdx + 1);
     const nxt = document.getElementById('next-qcm-btn');
     nxt.textContent = qcmIdx < QCM.length - 1 ? 'Question suivante →' : 'Voir mon résultat →';
     nxt.classList.add('visible');
+    nxt.focus();
   }
 
   document.getElementById('next-qcm-btn').addEventListener('click', () => {
     qcmIdx++;
     if (qcmIdx < QCM.length) {
       renderQcm();
+      focusFirstAnswer();
     } else {
       scores.qcm = { got: qcmOk, max: QCM.length };
       miniResult('phase-qcm-result', 'qcm-result-emoji', 'qcm-result-score', 'qcm-result-msg', qcmOk, QCM.length);
@@ -813,12 +815,14 @@
   document.getElementById('qcm-home-btn').addEventListener('click', goHome);
 
   /* ════════════════════════════════
-     EXERCICE 3 — Définition à trous
+     EXERCICE 3 — Définition à trous (instance signifiante)
   ════════════════════════════════ */
   function startGap() {
     gapAnswers = new Array(GAP.length).fill(null);
     gapOk = 0;
-    document.getElementById('fb-gap').className = 'feedback';
+    const fbGap = document.getElementById('fb-gap');
+    fbGap.className = 'feedback';
+    fbGap.removeAttribute('tabindex');
     document.getElementById('next-gap-btn').classList.remove('visible');
     document.getElementById('check-gap-btn').style.display = '';
 
@@ -845,6 +849,7 @@
         const btn = document.createElement('button');
         btn.className = 'gap-option';
         btn.textContent = opt;
+        btn.setAttribute('aria-pressed', 'false');
         btn.addEventListener('click', () => pickGap(si, opt, btn, opts));
         opts.appendChild(btn);
       });
@@ -853,37 +858,42 @@
     });
 
     showPhase('phase-gap');
+    const firstOpt = document.querySelector('#gap-sentences .gap-option');
+    if (firstOpt) firstOpt.focus();
   }
 
   function pickGap(si, opt, btn, opts) {
-    opts.querySelectorAll('.gap-option').forEach(b => b.classList.remove('selected'));
+    opts.querySelectorAll('.gap-option').forEach(b => {
+      b.classList.remove('selected');
+      b.setAttribute('aria-pressed', 'false');
+    });
     btn.classList.add('selected');
+    btn.setAttribute('aria-pressed', 'true');
     gapAnswers[si] = opt;
     document.getElementById('blank-' + si).textContent = opt;
   }
 
   document.getElementById('check-gap-btn').addEventListener('click', () => {
+    const fb = document.getElementById('fb-gap');
     if (gapAnswers.some(a => a === null)) {
-      const fb = document.getElementById('fb-gap');
-      fb.className = 'feedback warning';
-      fb.textContent = '⚠️ Choisis un mot pour chaque phrase avant de vérifier.';
+      showFeedback(fb, 'warning', '⚠️ Choisis un mot pour chaque phrase avant de vérifier.');
+      focusFeedback(fb);
       return;
     }
     gapOk = 0;
     GAP.forEach((s, si) => { if (gapAnswers[si] === s.correct) gapOk++; });
-    const fb = document.getElementById('fb-gap');
     if (gapOk === GAP.length) {
-      fb.className = 'feedback correct';
-      fb.textContent = '✅ Toutes les phrases sont correctes !';
-      launchConfetti(); playCorrect();
+      /* Instance signifiante — réussite totale : on clôt l'exercice */
+      showFeedback(fb, 'correct', '✅ Toutes les phrases sont correctes !');
+      document.getElementById('check-gap-btn').style.display = 'none';
+      document.getElementById('next-gap-btn').classList.add('visible');
+      document.getElementById('next-gap-btn').focus();
     } else {
+      /* Instance signifiante — erreur : feedback formatif, retry sur la même instance */
       const corrections = GAP.filter((s, si) => gapAnswers[si] !== s.correct).map(s => '"' + s.correct + '"').join(', ');
-      fb.className = 'feedback wrong';
-      fb.textContent = '❌ Quelques corrections : ' + corrections + '.';
-      playIncorrect();
+      showFeedback(fb, 'wrong', '❌ Quelques corrections : ' + corrections + '. Corrige et revérifie.');
+      focusFeedback(fb);
     }
-    document.getElementById('check-gap-btn').style.display = 'none';
-    document.getElementById('next-gap-btn').classList.add('visible');
   });
 
   document.getElementById('next-gap-btn').addEventListener('click', () => {
