@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Pair ou impair ?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-base.css">
+<style>
+  :root {
+    --app-header-bg: #C0272D; /* Mathématiques */
+  }
+
+  .dot-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    background: #fff;
+    border: 1px solid var(--app-border);
+    border-radius: 16px;
+    padding: 20px;
+    width: 100%;
+    min-height: 120px;
+  }
+  .dot-pair {
+    display: flex;
+    gap: 6px;
+    padding: 8px;
+    border: 2px dashed var(--app-border);
+    border-radius: 10px;
+  }
+  .dot-pair.dot-lone { border-style: solid; border-color: var(--color-tens); }
+  .dot {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--color-units);
+  }
+  .dot-lone .dot { background: var(--color-tens); }
+
+  .number-display {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2px;
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(64px, 18vw, 96px);
+    font-weight: 900;
+    line-height: 1;
+    min-height: 110px;
+  }
+  .digit { color: var(--app-text); }
+
+  .answer-zone {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .parity-btn {
+    min-width: 130px;
+    min-height: 64px;
+    padding: 14px 32px;
+    border-radius: 14px;
+    border: 2.5px solid var(--app-border);
+    background: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--app-text);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+  .parity-btn:hover  { background: #EEF2F7; border-color: var(--color-units); }
+  .parity-btn:focus-visible { outline: 3px solid var(--color-units); outline-offset: 3px; }
+  .parity-btn.correct { background: var(--app-correct-bg); color: var(--app-correct-fg); border-color: #10B981; }
+  .parity-btn.wrong    { background: var(--app-wrong-bg);   color: var(--app-wrong-fg);   border-color: #EF4444; }
+  .parity-btn:disabled { cursor: default; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .parity-btn { transition: all 0.15s; }
+    .parity-btn:active { transform: scale(0.95); }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header" role="banner">
+  <a href="../index.html" class="back-link">← Retour</a>
+  <h1>2️⃣ Pair ou impair ?</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1 · avec points</button>
+  <button class="level-btn"        data-level="2" aria-pressed="false">Niveau 2 · jusqu'à 50</button>
+  <button class="level-btn"        data-level="3" aria-pressed="false">Niveau 3 · jusqu'à 100</button>
+</div>
+
+<main>
+  <div class="question-box" id="question-box">Ce nombre est-il pair ou impair ?</div>
+
+  <div id="display-zone"></div>
+
+  <div class="answer-zone" id="answer-zone"></div>
+
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="action-row">
+    <button class="new-btn" id="new-btn"><span aria-hidden="true">▶</span> Nouvel exercice</button>
+  </div>
+</main>
+
+<script src="appUtils.js"></script>
+<script>
+  // Reconnaissance de la parité : choix binaire tranché en un tap. Un retry sur
+  // la même instance reviendrait à toggler l'autre réponse au hasard (tâtonnement
+  // aveugle sans valeur pédagogique). L'erreur clôt donc l'item ; le feedback
+  // formatif explique la règle (dernier chiffre / groupement par deux) et
+  // l'élève passe à un nouvel exercice. Pas de bouton « Vérifier » : la réponse
+  // est saisie directement par le tap d'un bouton Pair/Impair.
+  const TYPE_TACHE = 'drill';
+
+  let currentLevel = 1;
+  let state = {};
+
+  const displayZone = document.getElementById('display-zone');
+  const answerZone  = document.getElementById('answer-zone');
+  const feedbackEl  = document.getElementById('feedback');
+  const newBtn      = document.getElementById('new-btn');
+
+  function makeDot() {
+    const dot = document.createElement('span');
+    dot.className = 'dot';
+    dot.setAttribute('aria-hidden', 'true');
+    return dot;
+  }
+
+  // Niveau 1 : représentation visuelle par groupement de deux — la manipulation/
+  // le visuel précède la symbolisation (skills/pedagogie-per/SKILL.md).
+  // aria-label sur le conteneur : les points seuls (aria-hidden) ne donneraient
+  // aucune information à un élève non-voyant. Annoncer le nombre équivaut à ce
+  // qu'un élève voyant perçoit avant de les compter — la parité reste à déduire.
+  function renderDots(n) {
+    displayZone.innerHTML = '';
+    const grid = document.createElement('div');
+    grid.className = 'dot-grid';
+    grid.setAttribute('role', 'img');
+    grid.setAttribute('aria-label', n + ' points');
+    const pairs = Math.floor(n / 2);
+    for (let p = 0; p < pairs; p++) {
+      const group = document.createElement('div');
+      group.className = 'dot-pair';
+      group.appendChild(makeDot());
+      group.appendChild(makeDot());
+      grid.appendChild(group);
+    }
+    if (n % 2 === 1) {
+      const group = document.createElement('div');
+      group.className = 'dot-pair dot-lone';
+      group.appendChild(makeDot());
+      grid.appendChild(group);
+    }
+    displayZone.appendChild(grid);
+  }
+
+  // Niveaux 2-3 : le chiffre des unités devient la clé de lecture de la parité,
+  // d'où sa mise en couleur (convention valeur de position, colorForRank).
+  function renderNumber(n) {
+    displayZone.innerHTML = '';
+    const wrap = document.createElement('div');
+    wrap.className = 'number-display';
+    const digits = String(n).split('');
+    digits.forEach((d, i) => {
+      const span = document.createElement('span');
+      span.className = 'digit';
+      if (i === digits.length - 1) span.style.color = colorForRank(0);
+      span.textContent = d;
+      wrap.appendChild(span);
+    });
+    displayZone.appendChild(wrap);
+  }
+
+  function buildMsg(correct, n, isPair) {
+    if (currentLevel === 1) {
+      return correct
+        ? (isPair
+            ? `Bravo ! ${n} est pair : tous les points vont par deux, aucun ne reste seul.`
+            : `Bravo ! ${n} est impair : un point reste tout seul, il n'a pas de paire.`)
+        : (isPair
+            ? `Pas tout à fait. Regarde bien : tous les points vont par deux, ${n} est pair. Appuie sur « Nouvel exercice » pour continuer.`
+            : `Pas tout à fait. Regarde bien : un point reste tout seul, ${n} est impair. Appuie sur « Nouvel exercice » pour continuer.`);
+    }
+    const parityWord = isPair ? 'pair' : 'impair';
+    const lastDigit = n % 10;
+    return correct
+      ? `Bravo ! ${n} est ${parityWord} : il se termine par ${lastDigit}.`
+      : `Pas tout à fait. ${n} est ${parityWord} car il se termine par ${lastDigit} (pair : 0, 2, 4, 6, 8 — impair : 1, 3, 5, 7, 9). Appuie sur « Nouvel exercice » pour continuer.`;
+  }
+
+  function showFeedback(correct, msg) {
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = msg;
+    if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+    if (correct || TYPE_TACHE === 'drill') {
+      newBtn.classList.add('visible');
+      newBtn.focus();
+    } else {
+      // 'instance' + incorrect : non applicable ici (tâche drill sans bouton
+      // Vérifier), conservé pour que showFeedback reste portable.
+      newBtn.classList.remove('visible');
+    }
+  }
+
+  function answer(isPair, btn) {
+    if (state.answered) return;
+    state.answered = true;
+    const correct = isPair === state.isPair;
+
+    document.querySelectorAll('.parity-btn').forEach(b => {
+      b.disabled = true;
+      const btnIsPair = b.dataset.parity === 'pair';
+      if (btnIsPair === state.isPair) {
+        b.classList.add('correct');
+        b.textContent = b.textContent + ' ✓';
+      } else if (b === btn) {
+        b.classList.add('wrong');
+        b.textContent = b.textContent + ' ✗';
+      }
+    });
+
+    showFeedback(correct, buildMsg(correct, state.n, state.isPair));
+  }
+
+  function newExercise() {
+    let n;
+    if (currentLevel === 1)      n = randInt(1, 20);
+    else if (currentLevel === 2) n = randInt(21, 50);
+    else                         n = randInt(51, 99);
+
+    const isPair = n % 2 === 0;
+    state = { n, isPair, answered: false };
+
+    if (currentLevel === 1) renderDots(n); else renderNumber(n);
+
+    answerZone.innerHTML = '';
+    [{ label: 'Pair', val: true }, { label: 'Impair', val: false }].forEach(({ label, val }, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'parity-btn';
+      btn.textContent = label;
+      btn.dataset.parity = val ? 'pair' : 'impair';
+      if (i === 0) btn.setAttribute('data-focus-target', '');
+      btn.addEventListener('click', () => answer(val, btn));
+      answerZone.appendChild(btn);
+    });
+    const firstBtn = answerZone.querySelector('[data-focus-target]');
+    if (firstBtn) firstBtn.focus();
+
+    feedbackEl.className = 'feedback';
+    newBtn.classList.remove('visible');
+  }
+
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLevel = parseInt(btn.dataset.level);
+      document.querySelectorAll('.level-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+      newExercise();
+    });
+  });
+
+  newBtn.addEventListener('click', newExercise);
+  newExercise();
+</script>
+<script src="feedbackUtils.js"></script>
+</body>
+</html>
