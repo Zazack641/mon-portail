@@ -71,9 +71,9 @@
 
   .sequence-title {
     font-family: 'Source Sans 3', sans-serif;
-    font-size: 13px;
+    font-size: 18px;
     font-weight: 700;
-    color: #94A3B8;
+    color: #475569;
     text-transform: uppercase;
     letter-spacing: 0.07em;
     margin-bottom: 8px;
@@ -105,9 +105,9 @@
 
   .sequence-num {
     font-family: 'Nunito', sans-serif;
-    font-size: 13px;
+    font-size: 18px;
     font-weight: 900;
-    color: #94A3B8;
+    color: #475569;
     line-height: 1;
   }
 
@@ -116,10 +116,15 @@
     line-height: 1;
   }
 
+  .sequence-error-icon {
+    font-size: 14px;
+    line-height: 1;
+  }
+
   .sequence-empty {
     font-family: 'Source Sans 3', sans-serif;
-    font-size: 15px;
-    color: #CBD5E0;
+    font-size: 18px;
+    color: #475569;
     font-style: italic;
     width: 100%;
     text-align: center;
@@ -143,7 +148,7 @@
     display: grid;
     grid-template-columns: repeat(3, 64px);
     grid-template-rows: repeat(3, 64px);
-    gap: 6px;
+    gap: 12px;
   }
 
   .dpad-btn {
@@ -165,6 +170,10 @@
   .dpad-btn:active:not(:disabled) { background: #CBD5E0; transform: scale(0.92); }
   .dpad-btn:disabled { opacity: 0.25; cursor: default; }
 
+  /* Verrouillage pendant l'animation de vérification (voir updateButtons()) : app-base.css ne
+     déclare pas d'état :disabled pour .level-btn, on l'ajoute ici sans y toucher. */
+  .level-btn:disabled { opacity: 0.45; cursor: default; }
+
   .dpad-center {
     grid-column: 2; grid-row: 2;
     background: #BFDBFE;
@@ -180,14 +189,14 @@
 
   .controls-secondary {
     display: flex;
-    gap: 10px;
+    gap: 12px;
     justify-content: center;
     flex-wrap: wrap;
   }
 
   .ctrl-btn {
     font-family: 'Source Sans 3', sans-serif;
-    font-size: 15px;
+    font-size: 22px;
     font-weight: 700;
     padding: 10px 20px;
     border-radius: 12px;
@@ -197,7 +206,8 @@
     cursor: pointer;
     touch-action: manipulation;
     -webkit-appearance: none;
-    min-height: 48px;
+    min-height: 64px;
+    min-width: 64px;
     transition: background 0.12s, opacity 0.15s;
   }
   .ctrl-btn:hover:not(:disabled)  { background: #EEF2F7; }
@@ -246,7 +256,7 @@
 
 <!-- ── Contenu principal ───────────────────────────────────────────────────── -->
 <main>
-  <div class="question-box" id="question-box">Chargement…</div>
+  <div class="question-box" id="question-box" tabindex="-1">Chargement…</div>
 
   <!-- Séquence construite par l'élève -->
   <div class="sequence-box" aria-label="Séquence d'instructions">
@@ -275,10 +285,10 @@
     </div>
   </div>
 
-  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true" tabindex="-1"></div>
 
   <div class="action-row">
-    <button class="new-btn" id="new-btn">Nouvel exercice</button>
+    <button class="new-btn" id="new-btn"><span aria-hidden="true">▶</span> Nouvel exercice</button>
   </div>
 </main>
 
@@ -298,6 +308,10 @@
   const btnDown        = document.getElementById('btn-down');
   const btnLeft        = document.getElementById('btn-left');
   const btnRight       = document.getElementById('btn-right');
+
+  // 'instance' : l'erreur est corrigeable — l'élève corrige sa séquence et revérifie
+  // la même instance jusqu'à réussite (retry déjà implémenté via verifySequence()).
+  const TYPE_TACHE = 'instance';
 
   // ── Constantes ───────────────────────────────────────────────────────────────
   const GRID   = 5;
@@ -391,8 +405,14 @@
   function showFeedback(correct, msg) {
     feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
     feedbackEl.textContent = msg;
-    if (correct) { newBtn.classList.add('visible'); playCorrect(); launchConfetti(); }
-    else { playIncorrect(); }
+    if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+
+    if (correct || TYPE_TACHE === 'drill') {
+      newBtn.classList.add('visible');
+      newBtn.focus();
+    } else {
+      feedbackEl.focus();
+    }
   }
 
   function resetFeedback() {
@@ -560,11 +580,14 @@
       return;
     }
 
+    let errorStepEl = null;
+
     state.sequence.forEach((arrow, i) => {
+      const isError = i === state.errorStep;
       const step = document.createElement('div');
-      step.className = 'sequence-step' + (i === state.errorStep ? ' error' : '');
+      step.className = 'sequence-step' + (isError ? ' error' : '');
       step.setAttribute('role', 'listitem');
-      step.setAttribute('aria-label', `Étape ${i + 1} : ${arrow}`);
+      step.setAttribute('aria-label', `Étape ${i + 1} : ${arrow}` + (isError ? ' — erreur, à corriger' : ''));
 
       const num = document.createElement('span');
       num.className = 'sequence-num';
@@ -578,10 +601,26 @@
 
       step.appendChild(num);
       step.appendChild(arrowEl);
+
+      if (isError) {
+        const errIcon = document.createElement('span');
+        errIcon.className = 'sequence-error-icon';
+        errIcon.setAttribute('aria-hidden', 'true');
+        errIcon.textContent = '⚠️';
+        step.appendChild(errIcon);
+        errorStepEl = step;
+      }
+
       sequenceList.appendChild(step);
     });
 
-    sequenceList.scrollLeft = sequenceList.scrollWidth;
+    // La séquence n'est jamais tronquée sur erreur : sans ceci, une erreur détectée avant
+    // la fin resterait scrollée hors champ derrière les étapes suivantes (non jouées).
+    if (errorStepEl) {
+      errorStepEl.scrollIntoView({ block: 'nearest', inline: 'center' });
+    } else {
+      sequenceList.scrollLeft = sequenceList.scrollWidth;
+    }
   }
 
   function updateButtons() {
@@ -593,6 +632,9 @@
     effacerBtn.disabled     = locked || state.sequence.length === 0;
     recommencerBtn.disabled = locked || state.sequence.length === 0;
     verifierBtn.disabled    = locked || state.sequence.length === 0;
+    // La séquence est animée de façon asynchrone (plusieurs `await sleep()`) : changer de
+    // niveau pendant l'animation remplacerait `state` sous les pieds de verifySequence().
+    document.querySelectorAll('.level-btn').forEach(b => { b.disabled = state.animating; });
   }
 
   // ── Ajout d'une instruction à la séquence ─────────────────────────────────────
@@ -646,6 +688,11 @@
   async function verifySequence() {
     if (state.answered || state.animating || !state.sequence.length) return;
 
+    // Capturé avant tout `await` : si `state` est remplacé pendant l'animation (nouvel
+    // exercice/changement de niveau), on le détecte après chaque pause et on abandonne
+    // cette exécution au lieu de continuer à modifier l'exercice qui l'a remplacée.
+    const runState = state;
+
     state.animating = true;
     state.animPath  = [];
     state.errorStep = -1;
@@ -659,6 +706,7 @@
     renderGrid();
     renderSequence();
     await sleep(300);
+    if (state !== runState) return;
 
     for (let i = 0; i < state.sequence.length; i++) {
       const [dr, dc] = DIRS[state.sequence[i]];
@@ -694,6 +742,7 @@
       state.animPath.push({ ...pos });
       renderGrid();
       await sleep(400);
+      if (state !== runState) return;
     }
 
     state.animating = false;
@@ -728,6 +777,7 @@
     updateButtons();
     questionBox.textContent =
       `Construis la séquence pour guider 🧒 jusqu'à ${NAMES[state.destEmoji]} ${state.destEmoji} !`;
+    questionBox.focus();
   }
 
   // ── Démarrage ─────────────────────────────────────────────────────────────────
