@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Le dénombrement (3H-4H)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-base.css">
+<style>
+  :root {
+    --app-header-bg:  #C0272D;
+    --color-units:    #3B7DD8; /* unités       — bleu  */
+    --color-tens:     #D64045; /* dizaines     — rouge */
+    --color-hundreds: #3A9E6F; /* centaines    — vert  */
+  }
+
+  /* Zone d'affichage de la collection, groupée en paquets de dix */
+  .objects-area {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    align-content: flex-start;
+    min-height: 150px;
+    padding: 16px;
+    background: #fff;
+    border-radius: 16px;
+    border: 2px solid var(--app-border);
+    width: 100%;
+  }
+
+  /* Paquet de dix affiché en rectangle 2 colonnes × 5 lignes (portrait) —
+     forme compacte et régulière, plus lisible qu'un flex-wrap qui coupait
+     les lignes de façon inégale (4-4-2) selon la largeur du conteneur. */
+  .ten-packet, .remainder-packet {
+    display: grid;
+    grid-template-columns: repeat(2, 24px);
+    gap: 4px;
+    align-content: start;
+    padding: 6px;
+    border-radius: 10px;
+    border: 2px solid var(--color-tens);
+  }
+
+  .remainder-packet { border-color: var(--color-units); }
+
+  .object-item {
+    font-size: 24px;
+    line-height: 1;
+    width: 24px;
+    text-align: center;
+    user-select: none;
+  }
+
+  /* Grille des 4 boutons de réponse */
+  .answers-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .answer-btn {
+    min-height: 72px;
+    font-size: 28px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    border: 3px solid transparent;
+    border-radius: 14px;
+    background: #EBF3FC;
+    color: #1A3A5C;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+
+  .answer-btn:hover         { background: #d4e8f8; }
+  .answer-btn:focus-visible { outline: 3px solid #C0272D; outline-offset: 2px; }
+  .answer-btn.selected      { border-color: #1A3A5C; }
+  .answer-btn:disabled      { opacity: 0.6; cursor: default; }
+  .answer-btn.correct       { background: var(--app-correct-bg); color: var(--app-correct-fg); border-color: #065F46; }
+  .answer-btn.wrong         { background: var(--app-wrong-bg);   color: var(--app-wrong-fg);   border-color: #991B1B; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .answer-btn { transition: background 0.15s; }
+    .answer-btn:active { transform: scale(0.97); }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header" role="banner">
+  <a href="../index.html" class="back-link">← Retour</a>
+  <h1>🧮 Le dénombrement (3H-4H)</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1 · jusqu'à 30</button>
+  <button class="level-btn"        data-level="2" aria-pressed="false">Niveau 2 · jusqu'à 60</button>
+  <button class="level-btn"        data-level="3" aria-pressed="false">Niveau 3 · jusqu'à 99</button>
+</div>
+
+<main>
+  <div class="question-box" id="question-box">Chargement…</div>
+
+  <div class="objects-area" id="objects-area" role="img" aria-label="objets à compter"></div>
+
+  <div class="answers-grid" id="answers-grid" role="group" aria-label="Choisir le nombre"></div>
+
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="action-row">
+    <button class="verify-btn" id="verify-btn" disabled>Vérifier</button>
+    <button class="new-btn" id="new-btn"><span aria-hidden="true">▶</span> Nouvel exercice</button>
+  </div>
+</main>
+
+<script src="appUtils.js"></script>
+<script>
+  // ── Références DOM ─────────────────────────────────────────────────────────
+  const questionBox = document.getElementById('question-box');
+  const feedbackEl  = document.getElementById('feedback');
+  const verifyBtn   = document.getElementById('verify-btn');
+  const newBtn      = document.getElementById('new-btn');
+  const objectsArea = document.getElementById('objects-area');
+  const answersGrid = document.getElementById('answers-grid');
+
+  // 'instance' : l'erreur est exploitable — l'objectif visé (MSN 12, attente
+  // fondamentale « dénombre une collection... par comptage organisé ») est une
+  // STRATÉGIE (grouper par dix) que l'élève doit pouvoir réappliquer sur la
+  // MÊME collection après une erreur, plutôt que de passer à une nouvelle
+  // collection sans avoir eu l'occasion de corriger sa démarche.
+  const TYPE_TACHE = 'instance';
+
+  // Plages de comptage par niveau (min et max inclus) — au-delà de la portée
+  // de denombrement-1h2h.html (2 à 12), progression vers l'attente
+  // fondamentale de fin de cycle 1 : dénombrer une collection inférieure à 100.
+  const RANGES = {
+    1: [15, 30],
+    2: [31, 60],
+    3: [61, 99],
+  };
+
+  const OBJECT_TYPES = [
+    { emoji: '🔵', name: 'jetons' },
+    { emoji: '🖍️', name: 'crayons' },
+    { emoji: '🎈', name: 'ballons' },
+    { emoji: '🍬', name: 'bonbons' },
+    { emoji: '🪙', name: 'pièces' },
+    { emoji: '🔴', name: 'billes' },
+    { emoji: '🐚', name: 'coquillages' },
+    { emoji: '🎴', name: 'cartes' },
+  ];
+
+  let currentLevel = 1;
+  let state = {};
+
+  // ── Feedback unifié ─────────────────────────────────────────────────────────
+  function showFeedback(correct, msg) {
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = msg;
+    if (correct) {
+      playCorrect();
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        launchConfetti();
+      }
+    } else {
+      playIncorrect();
+    }
+
+    if (correct) {
+      document.querySelectorAll('.answer-btn').forEach(b => b.disabled = true);
+      verifyBtn.style.display = 'none';
+      newBtn.classList.add('visible');
+      newBtn.focus();
+    } else {
+      // 'instance' : la collection reste affichée, groupée par paquets de dix.
+      // L'élève doit choisir une autre réponse (le bouton erroné est désactivé)
+      // avant de pouvoir revérifier — pas de nouvel exercice tant que ce n'est
+      // pas réussi.
+      verifyBtn.style.display = '';
+      verifyBtn.disabled = true;
+      newBtn.classList.remove('visible');
+      feedbackEl.setAttribute('tabindex', '-1');
+      feedbackEl.focus();
+    }
+  }
+
+  function resetFeedback() {
+    feedbackEl.className = 'feedback';
+    feedbackEl.textContent = '';
+    feedbackEl.removeAttribute('tabindex');
+    verifyBtn.style.display = '';
+    verifyBtn.disabled = true;
+    newBtn.classList.remove('visible');
+  }
+
+  // Génère 4 choix distincts : la bonne réponse + des distracteurs proches
+  // ciblant les deux erreurs typiques du dénombrement par dizaines — confondre
+  // une dizaine (±10) ou une unité (±1, ±2) — avec un repli aléatoire si la
+  // plage ne fournit pas assez de candidats valides.
+  function generateAnswers(correct) {
+    const raw = [correct - 10, correct + 10, correct - 1, correct + 1, correct - 2, correct + 2];
+    const seen = new Set([correct]);
+    const distractors = [];
+    shuffle(raw).forEach(v => {
+      if (distractors.length < 3 && v > 0 && !seen.has(v)) {
+        seen.add(v);
+        distractors.push(v);
+      }
+    });
+    while (distractors.length < 3) {
+      const v = correct + randInt(-20, 20);
+      if (v > 0 && !seen.has(v)) {
+        seen.add(v);
+        distractors.push(v);
+      }
+    }
+    return shuffle([correct, ...distractors]);
+  }
+
+  function renderObjects(count, objType) {
+    objectsArea.innerHTML = '';
+    objectsArea.setAttribute('aria-label', `${count} ${objType.name}, groupés par paquets de dix`);
+
+    function makeSpan() {
+      const span = document.createElement('span');
+      span.className = 'object-item';
+      span.setAttribute('aria-hidden', 'true');
+      span.textContent = objType.emoji;
+      return span;
+    }
+
+    const fullPackets = Math.floor(count / 10);
+    const remainder = count % 10;
+
+    for (let p = 0; p < fullPackets; p++) {
+      const packet = document.createElement('div');
+      packet.className = 'ten-packet';
+      packet.setAttribute('aria-hidden', 'true');
+      for (let i = 0; i < 10; i++) packet.appendChild(makeSpan());
+      objectsArea.appendChild(packet);
+    }
+    if (remainder > 0) {
+      const rest = document.createElement('div');
+      rest.className = 'remainder-packet';
+      rest.setAttribute('aria-hidden', 'true');
+      for (let i = 0; i < remainder; i++) rest.appendChild(makeSpan());
+      objectsArea.appendChild(rest);
+    }
+  }
+
+  function renderAnswers(correct) {
+    answersGrid.innerHTML = '';
+    const answers = generateAnswers(correct);
+    answers.forEach((num, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'answer-btn';
+      btn.textContent = num;
+      btn.dataset.value = num;
+      btn.setAttribute('aria-label', String(num));
+      btn.setAttribute('aria-pressed', 'false');
+      if (idx === 0) btn.setAttribute('data-focus-target', '');
+      btn.addEventListener('click', () => selectAnswer(num, btn));
+      answersGrid.appendChild(btn);
+    });
+    const firstBtn = answersGrid.querySelector('[data-focus-target]');
+    if (firstBtn) firstBtn.focus();
+  }
+
+  function selectAnswer(num, clickedBtn) {
+    if (clickedBtn.disabled) return;
+    document.querySelectorAll('.answer-btn').forEach(b => {
+      b.classList.remove('selected');
+      b.setAttribute('aria-pressed', 'false');
+    });
+    clickedBtn.classList.add('selected');
+    clickedBtn.setAttribute('aria-pressed', 'true');
+    state.selected = num;
+    verifyBtn.disabled = false;
+  }
+
+  function verify() {
+    if (state.selected == null || state.answered) return;
+    const correct = (state.selected === state.correct);
+    if (correct) state.answered = true;
+
+    const msg = correct
+      ? `Bravo ! Il y a bien ${state.correct} ${state.objType.name}.`
+      : `Pas tout à fait. Compte d'abord les paquets de dix, puis ajoute les unités.`;
+
+    if (!correct) {
+      const wrongBtn = answersGrid.querySelector(`[data-value="${state.selected}"]`);
+      if (wrongBtn) {
+        wrongBtn.classList.add('wrong');
+        wrongBtn.classList.remove('selected');
+        wrongBtn.disabled = true;
+      }
+      state.selected = null;
+    } else {
+      document.querySelectorAll('.answer-btn').forEach(b => {
+        if (Number(b.dataset.value) === state.correct) b.classList.add('correct');
+      });
+    }
+    showFeedback(correct, msg);
+  }
+
+  function setupExercise() {
+    resetFeedback();
+    const [minRange, maxRange] = RANGES[currentLevel];
+    const count   = randInt(minRange, maxRange);
+    const objType = pick(OBJECT_TYPES, 1)[0];
+    state = { correct: count, objType, selected: null, answered: false };
+
+    questionBox.textContent = `Combien y a-t-il de ${objType.name} ?`;
+    renderObjects(count, objType);
+    renderAnswers(count);
+  }
+
+  function newExercise() {
+    setupExercise();
+  }
+
+  // ── Sélecteur de niveau — NE PAS MODIFIER ce bloc ──────────────────────────
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLevel = parseInt(btn.dataset.level);
+      document.querySelectorAll('.level-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+      newExercise();
+    });
+  });
+
+  verifyBtn.addEventListener('click', verify);
+  newBtn.addEventListener('click', newExercise);
+
+  newExercise();
+</script>
+<script src="feedbackUtils.js"></script>
+</body>
+</html>
