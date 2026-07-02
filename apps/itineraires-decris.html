@@ -170,6 +170,10 @@
   .dpad-btn:active:not(:disabled) { background: #CBD5E0; transform: scale(0.92); }
   .dpad-btn:disabled { opacity: 0.25; cursor: default; }
 
+  /* Verrouillage pendant l'animation de vérification (voir updateButtons()) : app-base.css ne
+     déclare pas d'état :disabled pour .level-btn, on l'ajoute ici sans y toucher. */
+  .level-btn:disabled { opacity: 0.45; cursor: default; }
+
   .dpad-center {
     grid-column: 2; grid-row: 2;
     background: #BFDBFE;
@@ -401,12 +405,12 @@
   function showFeedback(correct, msg) {
     feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
     feedbackEl.textContent = msg;
-    if (correct) {
+    if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+
+    if (correct || TYPE_TACHE === 'drill') {
       newBtn.classList.add('visible');
-      playCorrect(); launchConfetti();
       newBtn.focus();
     } else {
-      playIncorrect();
       feedbackEl.focus();
     }
   }
@@ -576,6 +580,8 @@
       return;
     }
 
+    let errorStepEl = null;
+
     state.sequence.forEach((arrow, i) => {
       const isError = i === state.errorStep;
       const step = document.createElement('div');
@@ -602,12 +608,19 @@
         errIcon.setAttribute('aria-hidden', 'true');
         errIcon.textContent = '⚠️';
         step.appendChild(errIcon);
+        errorStepEl = step;
       }
 
       sequenceList.appendChild(step);
     });
 
-    sequenceList.scrollLeft = sequenceList.scrollWidth;
+    // La séquence n'est jamais tronquée sur erreur : sans ceci, une erreur détectée avant
+    // la fin resterait scrollée hors champ derrière les étapes suivantes (non jouées).
+    if (errorStepEl) {
+      errorStepEl.scrollIntoView({ block: 'nearest', inline: 'center' });
+    } else {
+      sequenceList.scrollLeft = sequenceList.scrollWidth;
+    }
   }
 
   function updateButtons() {
@@ -619,6 +632,9 @@
     effacerBtn.disabled     = locked || state.sequence.length === 0;
     recommencerBtn.disabled = locked || state.sequence.length === 0;
     verifierBtn.disabled    = locked || state.sequence.length === 0;
+    // La séquence est animée de façon asynchrone (plusieurs `await sleep()`) : changer de
+    // niveau pendant l'animation remplacerait `state` sous les pieds de verifySequence().
+    document.querySelectorAll('.level-btn').forEach(b => { b.disabled = state.animating; });
   }
 
   // ── Ajout d'une instruction à la séquence ─────────────────────────────────────
@@ -672,6 +688,11 @@
   async function verifySequence() {
     if (state.answered || state.animating || !state.sequence.length) return;
 
+    // Capturé avant tout `await` : si `state` est remplacé pendant l'animation (nouvel
+    // exercice/changement de niveau), on le détecte après chaque pause et on abandonne
+    // cette exécution au lieu de continuer à modifier l'exercice qui l'a remplacée.
+    const runState = state;
+
     state.animating = true;
     state.animPath  = [];
     state.errorStep = -1;
@@ -685,6 +706,7 @@
     renderGrid();
     renderSequence();
     await sleep(300);
+    if (state !== runState) return;
 
     for (let i = 0; i < state.sequence.length; i++) {
       const [dr, dc] = DIRS[state.sequence[i]];
@@ -720,6 +742,7 @@
       state.animPath.push({ ...pos });
       renderGrid();
       await sleep(400);
+      if (state !== runState) return;
     }
 
     state.animating = false;
