@@ -31,12 +31,14 @@
     width: 100%;
   }
 
+  /* Paquet de dix affiché en rectangle 2 colonnes × 5 lignes (portrait) —
+     forme compacte et régulière, plus lisible qu'un flex-wrap qui coupait
+     les lignes de façon inégale (4-4-2) selon la largeur du conteneur. */
   .ten-packet, .remainder-packet {
-    display: flex;
-    flex-wrap: wrap;
-    align-content: flex-start;
+    display: grid;
+    grid-template-columns: repeat(2, 24px);
     gap: 4px;
-    width: 96px;
+    align-content: start;
     padding: 6px;
     border-radius: 10px;
     border: 2px solid var(--color-tens);
