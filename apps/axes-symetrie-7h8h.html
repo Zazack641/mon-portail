@@ -198,9 +198,9 @@
         wrong: [0, 2, 3],
         feedbackOk: 'Bravo ! Ce triangle isocèle a 1 axe : la ligne reliant le sommet principal au milieu de la base.',
         feedbackKo: 'Pas tout à fait. Ce triangle isocèle a 1 axe : la ligne reliant le sommet principal au milieu de la base.',
-        // Sommet (200,70), base (60,300)-(340,300)
+        // Sommet (200,50), base (110,300)-(290,300)
         axesLines: [
-          [200, 55, 200, 315],
+          [200, 35, 200, 315],
         ],
       },
     ],
@@ -360,9 +360,9 @@
 
   function drawTriangleIsosc() {
     drawPoly([
-      [CX,       CY - 130],
-      [CX - 140, CY + 100],
-      [CX + 140, CY + 100],
+      [CX,       CY - 150],
+      [CX - 90,  CY + 100],
+      [CX + 90,  CY + 100],
     ]);
   }
 
