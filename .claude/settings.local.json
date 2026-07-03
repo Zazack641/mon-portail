@@ -42,7 +42,19 @@
       "Read(//Users/isaacferretti/.claude/projects/**)",
       "Read(//Users/isaacferretti/.claude/**)",
       "Bash(./save)",
-      "Bash(gh pr *)"
+      "Bash(gh pr *)",
+      "Bash(python3 -m http.server 8766)",
+      "Bash(echo \"OK pid=$!\")",
+      "mcp__Claude_in_Chrome__navigate",
+      "mcp__Claude_in_Chrome__javascript_tool",
+      "mcp__Claude_in_Chrome__read_console_messages",
+      "Bash(python3 -m http.server 8767)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:8767/apps/axes-symetrie-7h8h.html)",
+      "Bash(kill %1)",
+      "Read(//usr/local/bin/**)",
+      "Bash(command -v node)",
+      "mcp__visualize__read_me",
+      "mcp__visualize__show_widget"
     ]
   }
 }
