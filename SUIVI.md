@@ -54,3 +54,11 @@ Campagne audit accessibilité v2 démarrée le 2026-06-16
 | doubles-moities-3h4h.html | Doubles et moitiés | ✅ | ❌ | |
 | denombrement-1h2h.html | Le dénombrement (1H-2H) | ✅ | ❌ | |
 | complement-phrase-5h6h.html | Le complément de phrase | ✅ | ❌ | Nouvelle app (5H-6H, L1 26). Créée depuis `_template.html` (app-base.css + appUtils.js + feedbackUtils.js). `TYPE_TACHE='instance'` (identifier/manipuler le CP = tâche corrigeable). N1 repérer le CP · N2 enlever pour vérifier · N3 déplacer. Variables `--color-sujet/predicat/cp` propres à l'app (distinctes de la palette valeur-de-position). **Note d'arbitrage (accessibilité > design) :** le déplacement N3 est exposé au tap et au clavier (bouton réel), le glisser n'étant qu'un enrichissement — pas de drag-and-drop exclusif (skill accessibilité §1). Pas encore audité v2. |
+| addition-1h2h.html | Mes additions (1H-2H) | ✅ | ❌ | |
+| ou-est-il-1h2h.html | Où est-il ? (1H-2H) | ✅ | ❌ | |
+| bonne-operation-7h8h.html | La bonne opération (7H-8H) | ✅ | ❌ | |
+| axes-symetrie-7h8h.html | Les axes de symétrie (7H-8H) | ✅ | ❌ | |
+| conversions-mesures-7h8h.html | Les conversions de mesures (7H-8H) | ✅ | ❌ | |
+| tri-animaux-3h4h.html | Trie les animaux (3H-4H) | ✅ | ❌ | |
+| dizaines-unites-3h4h.html | Dizaines et unités | ✅ | ❌ | |
+| champ-lexical-5h6h.html | Le champ lexical | ✅ | ❌ | |
