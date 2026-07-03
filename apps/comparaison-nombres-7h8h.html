@@ -196,6 +196,9 @@
     feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
     feedbackEl.textContent = msg;
     if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+    // TYPE_TACHE === 'drill' inconditionnellement ici : l'app n'a pas de verify-btn
+    // (réponse directe au clic sur < ou >), donc l'item se clôt dans tous les cas,
+    // correct ou non. Pas de branche sur TYPE_TACHE à faire : il n'y a rien à retry.
     newBtn.classList.add('visible');
     newBtn.focus();
   }

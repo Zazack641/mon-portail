@@ -76,12 +76,13 @@ Toute animation CSS doit être enveloppée dans :
 ```
 
 Les confettis (`launchConfetti`) doivent être supprimés si
-`prefers-reduced-motion` est activé :
+`prefers-reduced-motion` est activé. Cette garde est **déjà intégrée dans
+`feedbackUtils.js`** (`launchConfetti()` retourne immédiatement si la
+préférence est active) — les apps appellent la fonction directement, sans
+garde externe à écrire :
 
 ```js
-if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-  launchConfetti();
-}
+if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
 ```
 
 Pas d'éléments animés en arrière-plan pendant qu'une tâche est en cours.

@@ -64,14 +64,6 @@
     font-style: italic;
     line-height: 1.5;
   }
-
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      transition-duration: 0.01ms !important;
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-    }
-  }
 </style>
 </head>
 <body>
@@ -145,14 +137,19 @@
   function showFeedback(correct, msg) {
     feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
     feedbackEl.textContent = msg;
+    if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+
     if (correct || TYPE_TACHE === 'drill') {
-      playCorrect();
-      launchConfetti();
       verifyBtn.style.display = 'none';
       newBtn.classList.add('visible');
       newBtn.focus();
     } else {
-      playIncorrect();
+      // 'instance' + incorrect : l'élève corrige le repère et revérifie.
+      verifyBtn.style.display = '';
+      verifyBtn.disabled = false;
+      newBtn.classList.remove('visible');
+      feedbackEl.setAttribute('tabindex', '-1');
+      feedbackEl.focus();
     }
   }
 

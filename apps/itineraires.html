@@ -270,6 +270,9 @@
       newBtn.focus();
     } else {
       playIncorrect();
+      // 'instance' + incorrect : aucun bouton d'action suivante visible, le focus suit le feedback.
+      feedbackEl.setAttribute('tabindex', '-1');
+      feedbackEl.focus();
     }
   }
 

@@ -305,19 +305,19 @@ Quand le coloriage s'applique, toutes les applications mathématiques qui affich
 
 Le cycle bleu → rouge → vert se répète indéfiniment vers les grands rangs.
 
-### Variables CSS à déclarer dans chaque app maths
+### Variables CSS de valeur de position
 
-Chaque application mathématique doit exposer ces trois variables CSS dans son `:root` :
+Ces trois variables sont **déjà déclarées dans `apps/app-base.css`** :
 
 ```css
-:root {
-  --color-units:    #3B7DD8; /* unités       — bleu  */
-  --color-tens:     #D64045; /* dizaines     — rouge */
-  --color-hundreds: #3A9E6F; /* centaines    — vert  */
-}
+--color-units:    #3B7DD8; /* unités       — bleu  */
+--color-tens:     #D64045; /* dizaines     — rouge */
+--color-hundreds: #3A9E6F; /* centaines    — vert  */
 ```
 
-Utiliser ensuite `var(--color-units)` etc. dans tout le CSS de l'app — jamais les valeurs hex en dur. Cela garantit qu'un futur changement de palette se propage partout en une seule modification.
+Toute app maths qui lie `app-base.css` en hérite automatiquement — **ne pas les redéclarer dans `:root`**. Une redéclaration n'est nécessaire que pour **surcharger** ces valeurs par une palette différente (cas non encore rencontré).
+
+Utiliser `var(--color-units)` etc. dans tout le CSS de l'app — jamais les valeurs hex en dur. Cela garantit qu'un futur changement de palette se propage partout en une seule modification.
 
 **Règle de correspondance rang → variable :**
 

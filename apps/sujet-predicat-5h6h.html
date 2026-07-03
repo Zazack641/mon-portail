@@ -201,6 +201,9 @@ function showFeedback(correct, msg) {
     // Instance : verifyBtn reste actif, l'élève corrige et revérifie.
     verifyBtn.disabled = false;
     newBtn.classList.remove('visible');
+    // Aucun bouton d'action suivante visible : le focus suit le feedback.
+    feedbackEl.setAttribute('tabindex', '-1');
+    feedbackEl.focus();
   }
 }
 
@@ -216,6 +219,8 @@ function setFeedback1(correct, msg) {
   } else {
     playIncorrect();
     // Instance : newBtn reste caché, l'élève corrige sur la même phrase.
+    // Focus déjà géré par l'appelant (handleBloc1) : il déplace le focus sur
+    // le bloc restant actif juste après cet appel.
   }
 }
 

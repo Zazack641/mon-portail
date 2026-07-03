@@ -309,10 +309,16 @@ même instance : on ne réinitialise pas l'exercice, on ne révèle pas « Nouve
 
 **Snippet `showFeedback` de référence (gère les deux types) :**
 
+`textContent` est la valeur par défaut. `innerHTML` reste acceptable quand
+le message contient du HTML sémantique volontaire (ex. `<strong>` pour
+mettre en relief un mot à mémoriser) **et** que la source est statique et
+interne à l'app (une constante du fichier, jamais une saisie élève) — donc
+sans risque XSS.
+
 ```js
 function showFeedback(correct, msg) {
   feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
-  feedbackEl.textContent = msg;
+  feedbackEl.textContent = msg; // ou innerHTML si msg est du HTML statique interne (voir note ci-dessus)
   if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
 
   if (correct || TYPE_TACHE === 'drill') {
@@ -330,6 +336,10 @@ function showFeedback(correct, msg) {
     verifyBtn.style.display = '';
     verifyBtn.disabled = false;
     newBtn.classList.remove('visible');
+    // Focus requis par skills/accessibilite/SKILL.md §6 : aucun bouton d'action
+    // suivante n'est visible ici, le focus doit donc suivre sur le feedback.
+    feedbackEl.setAttribute('tabindex', '-1');
+    feedbackEl.focus();
   }
 }
 ```
@@ -342,13 +352,15 @@ de référence pour une tâche à instance signifiante.
 
 **Colorier seulement quand la valeur de position est l'objet d'apprentissage** (numération, décomposition, complément, calcul en colonne…). Si les nombres ne sont que des quantités-support d'une autre tâche (ex. choisir l'opération qui modélise une situation), **ne pas colorier** : cela concurrencerait le point d'attention unique. L'accessibilité prime sur cette convention (hiérarchie des skills).
 
+`--color-units`, `--color-tens` et `--color-hundreds` sont **déjà déclarées dans `app-base.css`** :
+
 ```css
-:root {
-  --color-units:    #3B7DD8; /* unités    — bleu  */
-  --color-tens:     #D64045; /* dizaines  — rouge */
-  --color-hundreds: #3A9E6F; /* centaines — vert  */
-}
+--color-units:    #3B7DD8; /* unités    — bleu  */
+--color-tens:     #D64045; /* dizaines  — rouge */
+--color-hundreds: #3A9E6F; /* centaines — vert  */
 ```
+
+Ne pas les redéclarer dans `:root` — une app en hérite automatiquement en liant `app-base.css`. Ne redéclarer que pour **surcharger** ces valeurs par une palette différente (cas non encore rencontré).
 
 Cycle : bleu → rouge → vert → bleu… Utiliser `colorForRank(rank)` de appUtils.js.
 Ne jamais mettre les hex en dur : toujours `var(--color-units)` etc.
@@ -362,6 +374,7 @@ Ne jamais mettre les hex en dur : toujours `var(--color-units)` etc.
 --app-header-bg:  #1A3A5C  ← override avec la couleur de branche dans :root
 --app-correct-bg: #D1FAE5 / --app-correct-fg: #065F46
 --app-wrong-bg:   #FEE2E2   / --app-wrong-fg: #991B1B
+--color-units:    #3B7DD8 / --color-tens: #D64045 / --color-hundreds: #3A9E6F
 ```
 
 ### Accessibilité WCAG AA
@@ -415,6 +428,10 @@ function showFeedback(correct, msg) {
     verifyBtn.style.display = '';
     verifyBtn.disabled = false;
     newBtn.classList.remove('visible');
+    // Focus requis par skills/accessibilite/SKILL.md §6 : aucun bouton d'action
+    // suivante n'est visible ici, le focus doit donc suivre sur le feedback.
+    feedbackEl.setAttribute('tabindex', '-1');
+    feedbackEl.focus();
   }
 }
 
