@@ -14,10 +14,7 @@
 
   /* ── Grille ──────────────────────────────────────────────────────────────── */
   .grid-wrapper {
-    /* Le plancher de 390px garantit des cases ≥ 64px (seuil tactile, skills/accessibilite/SKILL.md §1)
-       même en multitâche iPad (Slide Over/Split View), au prix d'un débordement horizontal
-       acceptable sur les très petites largeurs plutôt que des cases sous le seuil. */
-    width: min(420px, max(390px, calc(100vw - 32px)));
+    width: min(420px, calc(100vw - 32px));
     background: #7A9FB5;
     border-radius: 18px;
     padding: 8px;
@@ -202,7 +199,7 @@
 
 <!-- ── Contenu principal ───────────────────────────────────────────────────── -->
 <main>
-  <div class="question-box" id="question-box" aria-live="polite" tabindex="-1">Où arrive 🧒 ?</div>
+  <div class="question-box" id="question-box" tabindex="-1">Où arrive 🧒 ?</div>
 
   <div class="grid-wrapper" role="group" aria-label="Plan de déplacement">
     <div class="grid-container" id="grid"></div>
@@ -266,7 +263,7 @@
   function showFeedback(correct, msg) {
     feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
     feedbackEl.textContent = msg;
-    if (correct) {
+    if (correct || TYPE_TACHE === 'drill') {
       newBtn.classList.add('visible');
       playCorrect();
       if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) { launchConfetti(); }
@@ -500,12 +497,10 @@
       showFeedback(true, `Bravo ! 🧒 est bien arrivé ${where} ! 🎉`);
     } else {
       state.attempts = (state.attempts || 0) + 1;
-      playIncorrect();
       cell.classList.add('wrong-answer');
-      feedbackEl.className = 'feedback wrong';
-      feedbackEl.textContent = state.attempts === 1
+      showFeedback(false, state.attempts === 1
         ? 'Pas tout à fait… relis chaque déplacement depuis le départ de 🧒.'
-        : 'Recompte pas à pas : pose ton doigt sur 🧒 et suis chaque flèche.';
+        : 'Recompte pas à pas : pose ton doigt sur 🧒 et suis chaque flèche.');
       setTimeout(() => cell.classList.remove('wrong-answer'), 1200);
     }
   }
