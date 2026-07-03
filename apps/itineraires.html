@@ -14,7 +14,10 @@
 
   /* ── Grille ──────────────────────────────────────────────────────────────── */
   .grid-wrapper {
-    width: min(420px, calc(100vw - 32px));
+    /* Le plancher de 390px garantit des cases ≥ 64px (seuil tactile, skills/accessibilite/SKILL.md §1)
+       même en multitâche iPad (Slide Over/Split View), au prix d'un débordement horizontal
+       acceptable sur les très petites largeurs plutôt que des cases sous le seuil. */
+    width: min(420px, max(390px, calc(100vw - 32px)));
     background: #7A9FB5;
     border-radius: 18px;
     padding: 8px;
@@ -199,7 +202,7 @@
 
 <!-- ── Contenu principal ───────────────────────────────────────────────────── -->
 <main>
-  <div class="question-box" id="question-box" aria-live="polite">Où arrive 🧒 ?</div>
+  <div class="question-box" id="question-box" aria-live="polite" tabindex="-1">Où arrive 🧒 ?</div>
 
   <div class="grid-wrapper" role="group" aria-label="Plan de déplacement">
     <div class="grid-container" id="grid"></div>
@@ -213,7 +216,7 @@
   <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
 
   <div class="action-row">
-    <button class="new-btn" id="new-btn">Nouvel exercice</button>
+    <button class="new-btn" id="new-btn"><span aria-hidden="true">▶</span> Nouvel exercice</button>
   </div>
 </main>
 
@@ -245,6 +248,11 @@
     { dr:  0, dc:  1, arrow: '➡️', label: 'à droite' },
   ];
 
+  // Type de tâche : l'erreur est exploitable (feedback formatif indiquant quoi refaire) et
+  // l'élève retente sur la même instance (candidats non désactivés, indice conservé) —
+  // voir skills/pedagogie-per/SKILL.md « Drill vs instance signifiante ».
+  const TYPE_TACHE = 'instance';
+
   // ── État ─────────────────────────────────────────────────────────────────────
   let currentLevel = 1;
   let state = {};
@@ -258,8 +266,14 @@
   function showFeedback(correct, msg) {
     feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
     feedbackEl.textContent = msg;
-    if (correct) { newBtn.classList.add('visible'); playCorrect(); if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) { launchConfetti(); } }
-    else { playIncorrect(); }
+    if (correct) {
+      newBtn.classList.add('visible');
+      playCorrect();
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) { launchConfetti(); }
+      newBtn.focus();
+    } else {
+      playIncorrect();
+    }
   }
 
   function resetFeedback() {
@@ -517,6 +531,9 @@
     renderGrid();
     renderInstructions();
     questionBox.textContent = 'Lis les déplacements, puis touche la bonne case jaune !';
+    // Le focus doit suivre le DOM reconstruit (skills/accessibilite/SKILL.md §6) : sans cela,
+    // il se perd quand "Nouvel exercice" se masque après avoir été cliqué.
+    questionBox.focus();
   }
 
   // ── Démarrage ─────────────────────────────────────────────────────────────────
