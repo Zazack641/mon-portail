@@ -13,47 +13,6 @@
      boutons primaires et niveau actif. */
   :root { --app-header-bg: #C0272D; }
 
-  .app-header {
-    background: #C0272D;
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  .back-link {
-    color: rgba(255,255,255,0.85);
-    text-decoration: none;
-    font-size: 15px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    white-space: nowrap;
-    touch-action: manipulation;
-  }
-  .back-link:hover { color: #fff; }
-  .app-header h1 {
-    font-family: 'Nunito', sans-serif;
-    font-size: clamp(18px, 4vw, 24px);
-    font-weight: 900;
-    color: #fff;
-    flex: 1;
-    text-align: center;
-  }
-  .header-spacer { width: 80px; }
-
-  main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 24px 16px 32px;
-    gap: 24px;
-    max-width: 700px;
-    margin: 0 auto;
-    width: 100%;
-  }
-
   .canvas-wrap {
     width: 100%;
     background: #fff;
@@ -85,7 +44,7 @@
     border: 2px solid #E2E8F0;
     border-radius: 14px;
     font-family: 'Nunito', sans-serif;
-    font-size: clamp(18px, 3vw, 21px);
+    font-size: 22px;
     font-weight: 800;
     color: #1A1A2E;
     cursor: pointer;
@@ -97,6 +56,7 @@
   }
   .choice-btn:hover { background: #EEF2F7; border-color: #3B7DD8; }
   .choice-btn:active { transform: scale(0.97); }
+  .choice-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; }
   .choice-btn.correct { background: #D1FAE5; border-color: #10B981; color: #065F46; }
   .choice-btn.wrong   { background: #FEE2E2; border-color: #EF4444; color: #991B1B; }
   .choice-btn:disabled { cursor: default; }
@@ -111,8 +71,8 @@
   .hint {
     width: 100%;
     text-align: center;
-    color: #94A3B8;
-    font-size: 14px;
+    color: #475569;
+    font-size: 18px;
     font-weight: 600;
     margin-top: -12px;
   }
@@ -140,20 +100,20 @@
 </div>
 
 <main>
-  <div class="question-box" id="question-box">Chargement…</div>
+  <div class="question-box" id="question-box" tabindex="-1">Chargement…</div>
 
   <div class="canvas-wrap">
-    <canvas id="length-canvas"></canvas>
+    <canvas id="length-canvas" aria-hidden="true"></canvas>
   </div>
 
   <p class="hint" id="hint" style="display:none"></p>
 
-  <div class="choices" id="choices"></div>
+  <div class="choices" id="choices" role="group"></div>
   <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
 
   <div class="action-row">
     <button class="verify-btn" id="verify-btn">Vérifier</button>
-    <button class="new-btn" id="new-btn">Nouvel exercice</button>
+    <button class="new-btn" id="new-btn"><span aria-hidden="true">▶</span> Nouvel exercice</button>
   </div>
 </main>
 
@@ -171,6 +131,13 @@
   let currentLevel = 1;
   let state = {};
 
+  // Cette app est mixte (voir skills/pedagogie-per/SKILL.md § « Drill vs instance
+  // signifiante ») : N1/N2 = 'drill' (choix parmi 2-3 barres — le retry serait un
+  // tâtonnement aveugle). N3 = 'instance' (classement de 4 barres — l'erreur est
+  // partiellement exploitable, certaines barres sont déjà bien placées : l'élève
+  // corrige et revérifie la MÊME instance jusqu'à réussite, voir verifyL3).
+  const TYPE_TACHE = { 1: 'drill', 2: 'drill', 3: 'instance' };
+
   const COLORS = ['#3B7DD8', '#D64045', '#3A9E6F', '#F59E0B'];
 
   // ── helpers ──────────────────────────────────────────────────────────────
@@ -179,6 +146,10 @@
   // d'appUtils.js (entier). Conservé volontairement.
   function randBetween(min, max) {
     return min + Math.random() * (max - min);
+  }
+
+  function ordinal(n) {
+    return n === 1 ? '1er' : n + 'e';
   }
 
   // shuffle : fourni par appUtils.js (chargé avant ce script). Utilisé ici sur
@@ -249,7 +220,7 @@
 
     resetUI();
     canvas.classList.add('clickable');
-    hintEl.textContent = 'Tape directement sur la barre.';
+    hintEl.textContent = 'Tape directement sur la barre, ou utilise les boutons ci-dessous.';
     hintEl.style.display = 'block';
   }
 
@@ -268,6 +239,7 @@
     if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
     newBtn.classList.add('visible');
     draw();
+    newBtn.focus();
   }
 
   // ── NIVEAU 2 : 3 barres dans des directions et positions variées ──────────
@@ -335,7 +307,7 @@
 
     resetUI();
     canvas.classList.add('clickable');
-    hintEl.textContent = 'Tape directement sur la barre.';
+    hintEl.textContent = 'Tape directement sur la barre, ou utilise les boutons ci-dessous.';
     hintEl.style.display = 'block';
   }
 
@@ -373,49 +345,107 @@
 
     resetUI();
     canvas.classList.add('clickable');
-    hintEl.textContent = 'Tape les barres une par une dans le bon ordre.';
+    hintEl.textContent = 'Tape les barres une par une dans le bon ordre, ou utilise les boutons ci-dessous.';
     hintEl.style.display = 'block';
   }
 
   function verifyL3() {
-    state.answered = true;
-    canvas.classList.remove('clickable');
-    verifyBtn.classList.remove('visible');
-    hintEl.style.display = 'none';
-
-    // Build expected order: rank 1 = smallest if sortAsc, largest if !sortAsc
+    // Ordre attendu : rang 1 = plus courte si sortAsc, plus longue sinon.
     const sorted = [...state.lines].sort((a, b) =>
       state.sortAsc ? a.len - b.len : b.len - a.len
     );
-    // sorted[0] should have rank 1, sorted[1] rank 2, etc.
-    let allCorrect = true;
-    sorted.forEach((line, i) => {
-      if (line.rank !== i + 1) allCorrect = false;
-    });
-
-    // Mark each line correct/wrong
+    const wrongNames = [];
     state.lines.forEach(line => {
       const expectedRank = sorted.findIndex(l => l === line) + 1;
       line.correct = line.rank === expectedRank;
-      if (!line.correct) allCorrect = false;
+      if (!line.correct) wrongNames.push(line.name);
     });
+    state.checked = true;
 
-    feedbackEl.className = 'feedback ' + (allCorrect ? 'correct' : 'wrong');
-    feedbackEl.textContent = allCorrect
-      ? '✅ Bravo ! Toutes les barres sont dans le bon ordre !'
-      : '❌ Pas tout à fait. Regarde l\'ordre correct en rouge/vert.';
-    if (allCorrect) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
-    newBtn.classList.add('visible');
-    draw();
+    if (wrongNames.length === 0) {
+      // Classement entièrement correct : l'exercice se clôt.
+      state.answered = true;
+      canvas.classList.remove('clickable');
+      verifyBtn.classList.remove('visible');
+      hintEl.style.display = 'none';
+      feedbackEl.className = 'feedback correct';
+      feedbackEl.textContent = '✅ Bravo ! Toutes les barres sont dans le bon ordre !';
+      playCorrect();
+      launchConfetti();
+      newBtn.classList.add('visible');
+      draw();
+      newBtn.focus();
+    } else {
+      // Instance signifiante : l'erreur est partiellement exploitable (certaines
+      // barres sont déjà bien placées). On ne révèle pas le rang exact attendu —
+      // cela donnerait directement la réponse — l'élève retire les barres citées,
+      // les replace, puis revérifie sur le même classement (verify-btn reste actif,
+      // contrat design-portail « instance, incorrect »).
+      feedbackEl.className = 'feedback wrong';
+      feedbackEl.textContent = wrongNames.length === 1
+        ? `❌ La barre ${wrongNames[0]} n'est pas à la bonne place. Retire-la, replace-la, puis vérifie à nouveau.`
+        : `❌ Les barres ${wrongNames.join(', ')} ne sont pas à la bonne place. Retire-les, replace-les, puis vérifie à nouveau.`;
+      playIncorrect();
+      draw();
+      feedbackEl.setAttribute('tabindex', '-1');
+      feedbackEl.focus();
+    }
   }
 
   // ── DESSIN ────────────────────────────────────────────────────────────────
 
   function draw() {
     if (!state.lines) return;
+    renderChoices();
     if (state.level === 1) drawL1();
     else if (state.level === 2) drawL2();
     else drawL3();
+  }
+
+  // ── Boutons accessibles (équivalent clavier du tap sur le canvas) ──────────
+  // Le canvas seul n'offre aucun moyen clavier de répondre (WCAG 2.1.1, exigence
+  // « clavier »). Ces boutons déclenchent exactement les mêmes actions que le tap
+  // sur le canvas : answerL12 aux niveaux 1 et 2, toggleRank au niveau 3.
+  // Reconstruits à chaque draw() pour rester synchronisés avec l'état ; le focus
+  // est restauré sur le bouton de la même barre après reconstruction, sinon le
+  // focus clavier se perdrait à chaque tap (le bouton cliqué est détruit et
+  // recréé).
+  function renderChoices() {
+    const focusedName = choicesDiv.querySelector(':focus')?.dataset.name;
+    choicesDiv.innerHTML = '';
+    choicesDiv.setAttribute('aria-label', state.level === 3 ? 'Classer les barres' : 'Choisir une barre');
+
+    state.lines.forEach(line => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'choice-btn';
+      btn.dataset.name = line.name;
+
+      if (state.level === 3) {
+        btn.textContent = line.rank !== null ? `Barre ${line.name} — ${ordinal(line.rank)}` : `Barre ${line.name}`;
+        btn.setAttribute('aria-label', line.rank !== null
+          ? `Barre ${line.name}, position ${ordinal(line.rank)} sur ${state.lines.length}`
+          : `Barre ${line.name}, pas encore classée`);
+        btn.addEventListener('click', () => toggleRankByName(line.name));
+        if (state.answered) btn.disabled = true;
+        if (state.checked && line.rank !== null) btn.classList.add(line.correct ? 'correct' : 'wrong');
+      } else {
+        btn.textContent = 'Barre ' + line.name;
+        btn.addEventListener('click', () => answerL12(line.name));
+        if (state.answered) {
+          btn.disabled = true;
+          if (line.name === state.correctName) btn.classList.add('correct');
+          else if (line.name === state.chosenName) btn.classList.add('wrong');
+        }
+      }
+
+      choicesDiv.appendChild(btn);
+    });
+
+    if (focusedName) {
+      const toFocus = choicesDiv.querySelector(`[data-name="${focusedName}"]`);
+      if (toFocus && !toFocus.disabled) toFocus.focus();
+    }
   }
 
   function drawL1() {
@@ -506,6 +536,17 @@
         ctx.textBaseline = 'middle';
         ctx.fillText('✓', ex + Math.cos(angle) * 18, ey + Math.sin(angle) * 18);
       }
+      // Marker on the chosen-wrong bar (ne pas communiquer par la couleur seule,
+      // cohérent avec drawL1 qui marque déjà le choix erroné d'une croix).
+      if (state.answered && state.chosenName === line.name && line.name !== state.correctName) {
+        const ex = sx + Math.cos(angle) * barPx;
+        const ey = sy + Math.sin(angle) * barPx;
+        ctx.font = `bold 18px 'Nunito', sans-serif`;
+        ctx.fillStyle = '#EF4444';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('✗', ex + Math.cos(angle) * 18, ey + Math.sin(angle) * 18);
+      }
     });
   }
 
@@ -529,9 +570,11 @@
       ctx.textBaseline = 'middle';
       ctx.fillText(line.name, padLeft - 10, y);
 
-      // Bar color based on answer state
+      // Couleur de la barre : neutre tant que non vérifiée, vert/rouge après
+      // chaque vérification (state.checked — distinct de state.answered, qui ne
+      // se fixe qu'à la réussite complète et verrouille l'exercice, voir verifyL3).
       let barColor = line.color;
-      if (state.answered) {
+      if (state.checked) {
         barColor = line.correct ? '#10B981' : '#EF4444';
       }
 
@@ -544,7 +587,7 @@
         const by = y;
         ctx.beginPath();
         ctx.arc(bx, by, badgeR, 0, Math.PI * 2);
-        ctx.fillStyle = state.answered
+        ctx.fillStyle = state.checked
           ? (line.correct ? '#10B981' : '#EF4444')
           : '#1A3A5C';
         ctx.fill();
@@ -553,22 +596,6 @@
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(String(line.rank), bx, by);
-      }
-
-      // After answer: show correct rank
-      if (state.answered) {
-        const sorted = [...state.lines].sort((a, b) =>
-          state.sortAsc ? a.len - b.len : b.len - a.len
-        );
-        const correctRank = sorted.findIndex(l => l === line) + 1;
-        if (!line.correct) {
-          const bx2 = padLeft + barPx + 16;
-          ctx.font = `bold 14px 'Nunito', sans-serif`;
-          ctx.fillStyle = '#10B981';
-          ctx.textAlign = 'left';
-          ctx.textBaseline = 'middle';
-          ctx.fillText('→ ' + correctRank, bx2, y);
-        }
       }
     });
   }
@@ -611,6 +638,7 @@
   function resetUI() {
     choicesDiv.innerHTML = '';
     feedbackEl.className = 'feedback';
+    feedbackEl.removeAttribute('tabindex');
     newBtn.classList.remove('visible');
     verifyBtn.classList.remove('visible');
     canvas.classList.remove('clickable');
@@ -667,6 +695,30 @@
     }
   }
 
+  // Bascule le rang d'une barre (retire son rang si elle est déjà classée, sinon
+  // lui attribue le prochain rang libre). Partagée par le tap sur le canvas et
+  // par les boutons accessibles au clavier (renderChoices) — un seul point de
+  // vérité, nécessaire pour corriger le classement après une vérification
+  // incorrecte (voir verifyL3, TYPE_TACHE[3] === 'instance').
+  function toggleRank(line) {
+    state.checked = false;
+    if (line.rank !== null) {
+      const removed = line.rank;
+      line.rank = null;
+      state.lines.forEach(l => { if (l.rank !== null && l.rank > removed) l.rank--; });
+    } else {
+      line.rank = state.lines.filter(l => l.rank !== null).length + 1;
+    }
+    verifyBtn.classList.toggle('visible', state.lines.every(l => l.rank !== null));
+    draw();
+  }
+
+  function toggleRankByName(name) {
+    if (state.answered) return;
+    const line = state.lines.find(l => l.name === name);
+    if (line) toggleRank(line);
+  }
+
   function handleL3Click(cx, cy) {
     if (state.answered) return;
     const W = canvas.width, H = canvas.height;
@@ -676,17 +728,7 @@
     const idx = Math.floor((cy - padV) / rowH);
     if (idx < 0 || idx >= n) return;
 
-    const line = state.lines[idx];
-    if (line.rank !== null) {
-      const removed = line.rank;
-      line.rank = null;
-      state.lines.forEach(l => { if (l.rank !== null && l.rank > removed) l.rank--; });
-    } else {
-      line.rank = state.lines.filter(l => l.rank !== null).length + 1;
-    }
-
-    verifyBtn.classList.toggle('visible', state.lines.every(l => l.rank !== null));
-    draw();
+    toggleRank(state.lines[idx]);
   }
 
   // ── Events ────────────────────────────────────────────────────────────────
@@ -718,6 +760,7 @@
     else if (currentLevel === 2) setupL2();
     else setupL3();
     resizeCanvas();
+    questionBox.focus();
   }
 
   window.addEventListener('resize', resizeCanvas);
