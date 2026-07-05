@@ -138,6 +138,17 @@
   // corrige et revérifie la MÊME instance jusqu'à réussite, voir verifyL3).
   const TYPE_TACHE = { 1: 'drill', 2: 'drill', 3: 'instance' };
 
+  // Garde-fou : chaque fonction de niveau suppose un type de tâche précis
+  // (answerL12 = 'drill', verifyL3 = 'instance'). Cet assert fait réellement
+  // consulter TYPE_TACHE par le code — si la table est modifiée un jour sans
+  // adapter le comportement correspondant, l'écart est signalé au lieu de
+  // rester silencieux.
+  function assertTypeTache(level, expected) {
+    if (TYPE_TACHE[level] !== expected) {
+      console.error(`longueurs-3h4h : TYPE_TACHE[${level}] vaut '${TYPE_TACHE[level]}' mais le code de ce niveau suppose '${expected}'.`);
+    }
+  }
+
   const COLORS = ['#3B7DD8', '#D64045', '#3A9E6F', '#F59E0B'];
   const KEYBOARD_HINT_SUFFIX = ' ou utilise les boutons ci-dessous.';
 
@@ -228,6 +239,7 @@
 
   function answerL12(name) {
     if (state.answered) return;
+    assertTypeTache(currentLevel, 'drill');
     state.answered = true;
     state.chosenName = name;
     canvas.classList.remove('clickable');
@@ -362,6 +374,7 @@
   }
 
   function verifyL3() {
+    assertTypeTache(3, 'instance');
     // Ordre attendu : rang 1 = plus courte si sortAsc, plus longue sinon.
     const sorted = [...state.lines].sort((a, b) =>
       state.sortAsc ? a.len - b.len : b.len - a.len
