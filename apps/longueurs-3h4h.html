@@ -383,6 +383,11 @@
     state.lines.forEach(line => {
       const expectedRank = sorted.findIndex(l => l === line) + 1;
       line.correct = line.rank === expectedRank;
+      // Mémorise le rang vérifié : le repère vert/rouge de cette barre ne reste
+      // affiché que tant que son rang n'a pas changé depuis (voir lineIsChecked).
+      // Sans ça, corriger UNE barre effaçait aussi le repère des barres déjà
+      // correctes que l'élève n'avait pas touchées.
+      line.rankAtLastCheck = line.rank;
       if (!line.correct) wrongNames.push(line.name);
     });
     state.checked = true;
@@ -448,7 +453,7 @@
           ? `Barre ${line.name}, position ${ordinal(line.rank)} sur ${state.lines.length}`
           : `Barre ${line.name}, pas encore classée`);
         btn.addEventListener('click', () => toggleRankByName(line.name));
-        if (state.checked && line.rank !== null) btn.classList.add(line.correct ? 'correct' : 'wrong');
+        if (lineIsChecked(line)) btn.classList.add(line.correct ? 'correct' : 'wrong');
       } else {
         btn.textContent = 'Barre ' + line.name;
         btn.addEventListener('click', () => answerL12(line.name));
@@ -592,11 +597,12 @@
       ctx.textBaseline = 'middle';
       ctx.fillText(line.name, padLeft - 10, y);
 
-      // Couleur de la barre : neutre tant que non vérifiée, vert/rouge après
-      // chaque vérification (state.checked — distinct de state.answered, qui ne
-      // se fixe qu'à la réussite complète et verrouille l'exercice, voir verifyL3).
+      // Couleur de la barre : neutre tant que non vérifiée ou si son rang a
+      // changé depuis la dernière vérification, vert/rouge sinon (voir
+      // lineIsChecked — state.answered ne se fixe qu'à la réussite complète et
+      // verrouille l'exercice, voir verifyL3).
       let barColor = line.color;
-      if (state.checked) {
+      if (lineIsChecked(line)) {
         barColor = line.correct ? '#10B981' : '#EF4444';
       }
 
@@ -609,7 +615,7 @@
         const by = y;
         ctx.beginPath();
         ctx.arc(bx, by, badgeR, 0, Math.PI * 2);
-        ctx.fillStyle = state.checked
+        ctx.fillStyle = lineIsChecked(line)
           ? (line.correct ? '#10B981' : '#EF4444')
           : '#1A3A5C';
         ctx.fill();
@@ -716,19 +722,36 @@
     }
   }
 
-  // Bascule le rang d'une barre (retire son rang si elle est déjà classée, sinon
-  // lui attribue le prochain rang libre). Partagée par le tap sur le canvas et
-  // par les boutons accessibles au clavier (renderChoices) — un seul point de
-  // vérité, nécessaire pour corriger le classement après une vérification
-  // incorrecte (voir verifyL3, TYPE_TACHE[3] === 'instance').
+  // Une barre reste « repère vert/rouge » tant que son rang n'a pas changé
+  // depuis la dernière vérification — voir le commentaire dans verifyL3.
+  function lineIsChecked(line) {
+    return state.checked && line.rank !== null && line.rank === line.rankAtLastCheck;
+  }
+
+  // Bascule le rang d'une barre (retire son rang si elle est déjà classée,
+  // sinon lui attribue le rang libre le plus bas). Partagée par le tap sur le
+  // canvas et par les boutons accessibles au clavier (renderChoices) — un seul
+  // point de vérité, nécessaire pour corriger le classement après une
+  // vérification incorrecte (voir verifyL3, TYPE_TACHE[3] === 'instance').
+  //
+  // Ne décale JAMAIS le rang des autres barres : au retrait, la barre libère
+  // simplement son rang (un « trou »), sans toucher aux autres. Une version
+  // précédente décalait les rangs suivants d'un cran — pratique pour annuler
+  // le dernier tap pendant la construction du classement, mais ça déplaçait
+  // silencieusement le rang de barres que l'élève n'avait pas touchées quand
+  // ça servait à corriger UNE barre au milieu d'un classement déjà complet
+  // (y compris des barres déjà correctes). Le prochain tap comble le rang
+  // libre le plus bas, ce qui reproduit un classement identique si l'élève ne
+  // retape que les barres visées, dans le même ordre — sans jamais perturber
+  // une barre qu'il n'a pas touchée.
   function toggleRank(line) {
-    state.checked = false;
     if (line.rank !== null) {
-      const removed = line.rank;
       line.rank = null;
-      state.lines.forEach(l => { if (l.rank !== null && l.rank > removed) l.rank--; });
     } else {
-      line.rank = state.lines.filter(l => l.rank !== null).length + 1;
+      const used = new Set(state.lines.map(l => l.rank).filter(r => r !== null));
+      let rank = 1;
+      while (used.has(rank)) rank++;
+      line.rank = rank;
     }
     verifyBtn.classList.toggle('visible', state.lines.every(l => l.rank !== null));
     renderChoices();
