@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Le saut de nombre (5H-6H)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-base.css">
+<style>
+  :root {
+    --app-header-bg: #C0272D; /* branche Mathématiques */
+  }
+  /* --color-units/tens/hundreds, .app-header, .back-link, .app-header h1,
+     .header-spacer et main sont fournis par app-base.css (déjà lié ci-dessus)
+     — ne pas les redéfinir inline (CLAUDE.md #2). */
+
+  /* Current number display */
+  .number-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .number-label {
+    font-size: 18px;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+  .current-number {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(56px, 14vw, 88px);
+    font-weight: 900;
+    line-height: 1;
+    display: flex;
+    gap: 2px;
+  }
+
+  /* Jump buttons grid — 6 boutons (±1, ±10, ±100) aux deux niveaux de cette app */
+  .jump-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .jump-btn {
+    padding: 18px 8px;
+    border-radius: 14px;
+    border: 2.5px solid;
+    background: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(22px, 4vw, 24px);
+    font-weight: 900;
+    cursor: pointer;
+    min-height: 64px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .jump-btn:active { transform: scale(0.95); }
+  .jump-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; }
+  .jump-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+
+  .jump-btn.units-pos  { color: var(--color-units);    border-color: var(--color-units);    }
+  .jump-btn.units-neg  { color: var(--color-units);    border-color: var(--color-units);    background: #EFF6FF; }
+  .jump-btn.tens-pos   { color: var(--color-tens);     border-color: var(--color-tens);     }
+  .jump-btn.tens-neg   { color: var(--color-tens);     border-color: var(--color-tens);     background: #FEF2F2; }
+  .jump-btn.hunds-pos  { color: var(--color-hundreds); border-color: var(--color-hundreds); }
+  .jump-btn.hunds-neg  { color: var(--color-hundreds); border-color: var(--color-hundreds); background: #ECFDF5; }
+
+  .jump-btn:not(:disabled):hover { filter: brightness(0.93); }
+
+  /* Target display */
+  .target-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    width: 100%;
+    background: #fff;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    padding: 16px 24px;
+    flex-wrap: wrap;
+  }
+  .target-label {
+    font-size: 18px;
+    font-weight: 700;
+    color: #64748B;
+  }
+  .target-number {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(28px, 6vw, 40px);
+    font-weight: 900;
+    color: #0F7860;
+    display: flex;
+    gap: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header" role="banner">
+  <a href="../index.html" class="back-link">← Retour</a>
+  <h1>🦘 Le saut de nombre (5H-6H)</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1 · jusqu'à 500</button>
+  <button class="level-btn" data-level="2" aria-pressed="false">Niveau 2 · jusqu'à 999</button>
+</div>
+
+<main>
+  <div class="question-box" id="question-box" tabindex="-1">Utilise les boutons pour atteindre le nombre cible.</div>
+
+  <div class="number-display">
+    <div class="number-label">Nombre actuel</div>
+    <div class="current-number" id="current-number"></div>
+  </div>
+
+  <div class="jump-grid" id="jump-grid"></div>
+
+  <div class="target-row">
+    <div class="target-label">Nombre à atteindre :</div>
+    <div class="target-number" id="target-number"></div>
+  </div>
+
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="action-row">
+    <button class="verify-btn" id="verify-btn">Vérifier</button>
+    <button class="new-btn" id="new-btn"><span aria-hidden="true">▶</span> Nouvel exercice</button>
+  </div>
+</main>
+
+<script src="appUtils.js"></script>
+<script>
+  // colorForRank : fourni par appUtils.js (chargé avant ce script).
+
+  // Type de tâche : l'élève peut corriger sa trajectoire de sauts et revérifier
+  // sur la même instance jusqu'à réussite (voir showFeedback : rien n'est
+  // verrouillé ni révélé tant que le nombre cible n'est pas atteint).
+  const TYPE_TACHE = 'instance';
+
+  // Sauts disponibles (identiques aux deux niveaux — seule la plage de
+  // nombres progresse) et définition des boutons correspondants.
+  const JUMPS = [1, 10, 100];
+  const BTN_DEFS = [
+    { delta: +1,   label: '+1',   cls: 'units-pos' },
+    { delta: -1,   label: '−1',   cls: 'units-neg' },
+    { delta: +10,  label: '+10',  cls: 'tens-pos'  },
+    { delta: -10,  label: '−10',  cls: 'tens-neg'  },
+    { delta: +100, label: '+100', cls: 'hunds-pos' },
+    { delta: -100, label: '−100', cls: 'hunds-neg' },
+  ];
+
+  // Progression par niveau : 1re partie du groupe d'années (plage restreinte)
+  // puis 2e partie (pleine plage 5H-6H, jusqu'à 999).
+  const LEVELS = {
+    1: { min: 100, max: 500 },
+    2: { min: 100, max: 999 },
+  };
+
+  let currentLevel = 1;
+  let state = {};
+
+  const currentNumberEl = document.getElementById('current-number');
+  const targetNumberEl  = document.getElementById('target-number');
+  const jumpGrid        = document.getElementById('jump-grid');
+  const feedbackEl      = document.getElementById('feedback');
+  const verifyBtn       = document.getElementById('verify-btn');
+  const newBtn          = document.getElementById('new-btn');
+  const questionBox     = document.getElementById('question-box');
+
+  // randInt : fourni par appUtils.js (chargé avant ce script).
+
+  // ── Contextes situés (PER : ancrer dans une situation concrète) ──
+  const CONTEXTS = [
+    (s, t) => `🦘 Le kangourou est sur la case ${s}. Fais-le sauter jusqu'à la case ${t} !`,
+    (s, t) => `🚂 Le train part de la gare n°${s}. Il doit rejoindre la gare n°${t}.`,
+    (s, t) => `🐸 La grenouille est au nénuphar ${s}. Elle veut atteindre le nénuphar ${t}.`,
+    (s, t) => `🚀 La fusée est au kilomètre ${s}. Elle doit atteindre le kilomètre ${t}.`,
+    (s, t) => `🎯 Le robot est à la position ${s}. Programme-le pour aller en ${t}.`,
+  ];
+
+  function renderColoredNumber(el, n) {
+    el.innerHTML = '';
+    const digits = String(n).split('');
+    const len = digits.length;
+    digits.forEach((d, i) => {
+      const rank = len - 1 - i;
+      const span = document.createElement('span');
+      span.style.color = colorForRank(rank);
+      span.textContent = d;
+      el.appendChild(span);
+    });
+  }
+
+  // ── Feedback unifié (point unique d'appel pour playCorrect/Incorrect/launchConfetti) ──
+  function showFeedback(correct, msg) {
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = msg;
+    if (correct) {
+      playCorrect(); launchConfetti();
+      state.answered = true;
+      state.jumpBtns.forEach(b => b.disabled = true);
+      newBtn.classList.add('visible');
+      verifyBtn.style.display = 'none';
+      feedbackEl.removeAttribute('tabindex');
+      // Priorité 1 (skill accessibilite §6) : un bouton d'action suivante
+      // vient d'apparaître.
+      newBtn.focus();
+    } else {
+      playIncorrect();
+      // TYPE_TACHE = 'instance' : rien ne se ferme, l'élève corrige ses sauts
+      // et revérifie sur la même instance. Aucun bouton d'action suivante
+      // n'apparaît ici (verify-btn était déjà visible) : priorité 2, le focus
+      // suit le feedback (skill accessibilite §6).
+      feedbackEl.setAttribute('tabindex', '-1');
+      feedbackEl.focus();
+    }
+  }
+
+  function updateCurrentDisplay() {
+    renderColoredNumber(currentNumberEl, state.current);
+    state.jumpBtns.forEach(btn => {
+      const delta = parseInt(btn.dataset.delta);
+      const next  = state.current + delta;
+      btn.disabled = next < 0 || next > state.max;
+    });
+    if (state.current === state.target && !state.answered) {
+      showFeedback(true, `Bravo ! Tu as atteint ${state.target} !`);
+    }
+  }
+
+  function newExercise() {
+    const { min, max } = LEVELS[currentLevel];
+    const steps = currentLevel === 1 ? [2, 3] : [3, 5];
+
+    let start, target;
+    do {
+      start  = randInt(min, max);
+      target = start;
+      const n = randInt(steps[0], steps[1]);
+      for (let i = 0; i < n; i++) {
+        const j    = JUMPS[Math.floor(Math.random() * JUMPS.length)];
+        const sign = Math.random() < 0.5 ? 1 : -1;
+        const next = target + sign * j;
+        if (next >= 0 && next <= max) target = next;
+      }
+    } while (start === target);
+
+    const ctx = CONTEXTS[randInt(0, CONTEXTS.length - 1)];
+    state = { start, current: start, target, max, answered: false };
+
+    questionBox.textContent = ctx(start, target);
+    renderColoredNumber(targetNumberEl, target);
+    feedbackEl.className = 'feedback';
+    feedbackEl.removeAttribute('tabindex');
+    verifyBtn.style.display = 'block';
+    newBtn.classList.remove('visible');
+
+    // Construction des boutons de saut
+    jumpGrid.innerHTML = '';
+    state.jumpBtns = BTN_DEFS.map(({ delta, label, cls }) => {
+      const btn = document.createElement('button');
+      btn.className = 'jump-btn ' + cls;
+      btn.textContent = label;
+      btn.dataset.delta = delta;
+      btn.addEventListener('click', () => {
+        if (state.answered) return;
+        state.current += delta;
+        updateCurrentDisplay();
+      });
+      jumpGrid.appendChild(btn);
+      return btn;
+    });
+
+    updateCurrentDisplay();
+
+    // La grille de sauts vient d'être reconstruite (les boutons précédents,
+    // potentiellement focalisés, ont disparu) : ramener le focus sur la
+    // consigne pour ne jamais le laisser se perdre (skill accessibilite §6).
+    questionBox.focus();
+  }
+
+  // ── Vérification manuelle ──
+  verifyBtn.addEventListener('click', () => {
+    if (state.answered) return;
+    const correct = state.current === state.target;
+    if (correct) {
+      showFeedback(true, `Bravo ! Tu as atteint ${state.target} !`);
+    } else {
+      const diff    = state.target - state.current;
+      const absDiff = Math.abs(diff);
+      const dir     = diff > 0 ? 'ajouter' : 'retirer';
+      let indice;
+      if      (absDiff >= 100) indice = `Commence par des sauts de ${diff > 0 ? '+' : '−'}100.`;
+      else if (absDiff >= 10)  indice = `Commence par des sauts de ${diff > 0 ? '+' : '−'}10.`;
+      else                     indice = `Il te reste ${absDiff} à ${dir} avec des sauts de ${diff > 0 ? '+' : '−'}1.`;
+      showFeedback(false, `Pas tout à fait. Tu es à ${state.current}, le but est ${state.target}. ${indice}`);
+    }
+  });
+
+  // ── Sélecteur de niveau ──
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.level-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+      currentLevel = parseInt(btn.dataset.level);
+      newExercise();
+    });
+  });
+
+  newBtn.addEventListener('click', newExercise);
+  newExercise();
+</script>
+<script src="feedbackUtils.js"></script>
+</body>
+</html>

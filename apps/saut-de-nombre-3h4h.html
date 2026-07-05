@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Le saut de nombre</title>
+<title>Le saut de nombre (3H-4H)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
@@ -39,15 +39,13 @@
     gap: 2px;
   }
 
-  /* Jump buttons grid */
+  /* Jump buttons grid — 4 boutons (±1, ±10) aux deux niveaux de cette app */
   .jump-grid {
     display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 12px;
     width: 100%;
   }
-  .jump-grid.l1 { grid-template-columns: 1fr 1fr; }
-  .jump-grid.l2 { grid-template-columns: 1fr 1fr 1fr; }
-  .jump-grid.l3 { grid-template-columns: 1fr 1fr; }
 
   .jump-btn {
     padding: 18px 8px;
@@ -70,15 +68,10 @@
   .jump-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; }
   .jump-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
 
-  .jump-btn.units-pos  { color: var(--color-units);    border-color: var(--color-units);    }
-  .jump-btn.units-neg  { color: var(--color-units);    border-color: var(--color-units);    background: #EFF6FF; }
-  .jump-btn.tens-pos   { color: var(--color-tens);     border-color: var(--color-tens);     }
-  .jump-btn.tens-neg   { color: var(--color-tens);     border-color: var(--color-tens);     background: #FEF2F2; }
-  .jump-btn.hunds-pos  { color: var(--color-hundreds); border-color: var(--color-hundreds); }
-  .jump-btn.hunds-neg  { color: var(--color-hundreds); border-color: var(--color-hundreds); background: #ECFDF5; }
-  /* ±1000 : même teinte bleue que les unités (cycle), fond plus soutenu pour les distinguer visuellement */
-  .jump-btn.thous-pos  { color: var(--color-units);    border-color: var(--color-units);    background: #DBEAFE; }
-  .jump-btn.thous-neg  { color: var(--color-units);    border-color: var(--color-units);    background: #BFDBFE; }
+  .jump-btn.units-pos  { color: var(--color-units); border-color: var(--color-units); }
+  .jump-btn.units-neg  { color: var(--color-units); border-color: var(--color-units); background: #EFF6FF; }
+  .jump-btn.tens-pos   { color: var(--color-tens);  border-color: var(--color-tens);  }
+  .jump-btn.tens-neg   { color: var(--color-tens);  border-color: var(--color-tens);  background: #FEF2F2; }
 
   .jump-btn:not(:disabled):hover { filter: brightness(0.93); }
 
@@ -122,14 +115,13 @@
 
 <header class="app-header" role="banner">
   <a href="../index.html" class="back-link">← Retour</a>
-  <h1>🦘 Le saut de nombre</h1>
+  <h1>🦘 Le saut de nombre (3H-4H)</h1>
   <div class="header-spacer"></div>
 </header>
 
 <div class="level-bar" role="group" aria-label="Choisir le niveau">
-  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1 · ±1 et ±10</button>
-  <button class="level-btn" data-level="2" aria-pressed="false">Niveau 2 · ±1, ±10, ±100</button>
-  <button class="level-btn" data-level="3" aria-pressed="false">Niveau 3 · ±1 à ±1000</button>
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1 · jusqu'à 50</button>
+  <button class="level-btn" data-level="2" aria-pressed="false">Niveau 2 · jusqu'à 99</button>
 </div>
 
 <main>
@@ -140,7 +132,7 @@
     <div class="current-number" id="current-number"></div>
   </div>
 
-  <div class="jump-grid l1" id="jump-grid"></div>
+  <div class="jump-grid" id="jump-grid"></div>
 
   <div class="target-row">
     <div class="target-label">Nombre à atteindre :</div>
@@ -163,6 +155,23 @@
   // sur la même instance jusqu'à réussite (voir showFeedback : rien n'est
   // verrouillé ni révélé tant que le nombre cible n'est pas atteint).
   const TYPE_TACHE = 'instance';
+
+  // Sauts disponibles (identiques aux deux niveaux — seule la plage de
+  // nombres progresse) et définition des boutons correspondants.
+  const JUMPS = [1, 10];
+  const BTN_DEFS = [
+    { delta: +1,  label: '+1',  cls: 'units-pos' },
+    { delta: -1,  label: '−1',  cls: 'units-neg' },
+    { delta: +10, label: '+10', cls: 'tens-pos'  },
+    { delta: -10, label: '−10', cls: 'tens-neg'  },
+  ];
+
+  // Progression par niveau : 1re partie du groupe d'années (plage restreinte)
+  // puis 2e partie (pleine plage 3H-4H, jusqu'à 99).
+  const LEVELS = {
+    1: { min: 10, max: 50 },
+    2: { min: 10, max: 99 },
+  };
 
   let currentLevel = 1;
   let state = {};
@@ -237,20 +246,16 @@
   }
 
   function newExercise() {
-    const configs = {
-      1: { min: 10,   max: 99,   jumps: [1, 10] },
-      2: { min: 100,  max: 999,  jumps: [1, 10, 100] },
-      3: { min: 1000, max: 9999, jumps: [1, 10, 100, 1000] },
-    };
-    const { min, max, jumps } = configs[currentLevel];
+    const { min, max } = LEVELS[currentLevel];
+    const steps = currentLevel === 1 ? [2, 3] : [3, 5];
 
     let start, target;
     do {
       start  = randInt(min, max);
       target = start;
-      const steps = randInt(2, 5);
-      for (let i = 0; i < steps; i++) {
-        const j    = jumps[Math.floor(Math.random() * jumps.length)];
+      const n = randInt(steps[0], steps[1]);
+      for (let i = 0; i < n; i++) {
+        const j    = JUMPS[Math.floor(Math.random() * JUMPS.length)];
         const sign = Math.random() < 0.5 ? 1 : -1;
         const next = target + sign * j;
         if (next >= 0 && next <= max) target = next;
@@ -268,36 +273,8 @@
     newBtn.classList.remove('visible');
 
     // Construction des boutons de saut
-    const btnDefs = {
-      1: [
-        { delta: +1,  label: '+1',    cls: 'units-pos' },
-        { delta: -1,  label: '−1',    cls: 'units-neg' },
-        { delta: +10, label: '+10',   cls: 'tens-pos'  },
-        { delta: -10, label: '−10',   cls: 'tens-neg'  },
-      ],
-      2: [
-        { delta: +1,   label: '+1',    cls: 'units-pos' },
-        { delta: -1,   label: '−1',    cls: 'units-neg' },
-        { delta: +10,  label: '+10',   cls: 'tens-pos'  },
-        { delta: -10,  label: '−10',   cls: 'tens-neg'  },
-        { delta: +100, label: '+100',  cls: 'hunds-pos' },
-        { delta: -100, label: '−100',  cls: 'hunds-neg' },
-      ],
-      3: [
-        { delta: +1,    label: '+1',     cls: 'units-pos' },
-        { delta: -1,    label: '−1',     cls: 'units-neg' },
-        { delta: +10,   label: '+10',    cls: 'tens-pos'  },
-        { delta: -10,   label: '−10',    cls: 'tens-neg'  },
-        { delta: +100,  label: '+100',   cls: 'hunds-pos' },
-        { delta: -100,  label: '−100',   cls: 'hunds-neg' },
-        { delta: +1000, label: '+1000',  cls: 'thous-pos' },
-        { delta: -1000, label: '−1000',  cls: 'thous-neg' },
-      ],
-    };
-
-    jumpGrid.className = 'jump-grid l' + currentLevel;
     jumpGrid.innerHTML = '';
-    state.jumpBtns = btnDefs[currentLevel].map(({ delta, label, cls }) => {
+    state.jumpBtns = BTN_DEFS.map(({ delta, label, cls }) => {
       const btn = document.createElement('button');
       btn.className = 'jump-btn ' + cls;
       btn.textContent = label;
@@ -330,10 +307,8 @@
       const absDiff = Math.abs(diff);
       const dir     = diff > 0 ? 'ajouter' : 'retirer';
       let indice;
-      if      (absDiff >= 1000) indice = `Commence par des sauts de ${diff > 0 ? '+' : '−'}1000.`;
-      else if (absDiff >= 100)  indice = `Commence par des sauts de ${diff > 0 ? '+' : '−'}100.`;
-      else if (absDiff >= 10)   indice = `Commence par des sauts de ${diff > 0 ? '+' : '−'}10.`;
-      else                      indice = `Il te reste ${absDiff} à ${dir} avec des sauts de ${diff > 0 ? '+' : '−'}1.`;
+      if      (absDiff >= 10) indice = `Commence par des sauts de ${diff > 0 ? '+' : '−'}10.`;
+      else                    indice = `Il te reste ${absDiff} à ${dir} avec des sauts de ${diff > 0 ? '+' : '−'}1.`;
       showFeedback(false, `Pas tout à fait. Tu es à ${state.current}, le but est ${state.target}. ${indice}`);
     }
   });
