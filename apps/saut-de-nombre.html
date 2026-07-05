@@ -12,15 +12,9 @@
   :root {
     --app-header-bg: #C0272D; /* branche Mathématiques */
   }
-  /* --color-units/tens/hundreds et .app-header, .back-link, .app-header h1,
-     .header-spacer sont fournis par app-base.css (déjà lié ci-dessus) —
-     ne pas les redéfinir inline (CLAUDE.md #2). */
-
-  main {
-    padding: 28px 16px 40px;
-    gap: 28px;
-    max-width: 640px;
-  }
+  /* --color-units/tens/hundreds, .app-header, .back-link, .app-header h1,
+     .header-spacer et main sont fournis par app-base.css (déjà lié ci-dessus)
+     — ne pas les redéfinir inline (CLAUDE.md #2). */
 
   /* Current number display */
   .number-display {
@@ -212,9 +206,10 @@
     if (correct) {
       playCorrect(); launchConfetti();
       state.answered = true;
-      document.querySelectorAll('.jump-btn').forEach(b => b.disabled = true);
+      state.jumpBtns.forEach(b => b.disabled = true);
       newBtn.classList.add('visible');
       verifyBtn.style.display = 'none';
+      feedbackEl.removeAttribute('tabindex');
       // Priorité 1 (skill accessibilite §6) : un bouton d'action suivante
       // vient d'apparaître.
       newBtn.focus();
@@ -231,7 +226,7 @@
 
   function updateCurrentDisplay() {
     renderColoredNumber(currentNumberEl, state.current);
-    document.querySelectorAll('.jump-btn').forEach(btn => {
+    state.jumpBtns.forEach(btn => {
       const delta = parseInt(btn.dataset.delta);
       const next  = state.current + delta;
       btn.disabled = next < 0 || next > state.max;
@@ -243,11 +238,11 @@
 
   function newExercise() {
     const configs = {
-      1: { min: 10,   max: 99,   jumps: [1, 10],         grid: 'l1' },
-      2: { min: 100,  max: 999,  jumps: [1, 10, 100],    grid: 'l2' },
-      3: { min: 1000, max: 9999, jumps: [1, 10, 100, 1000], grid: 'l3' },
+      1: { min: 10,   max: 99,   jumps: [1, 10] },
+      2: { min: 100,  max: 999,  jumps: [1, 10, 100] },
+      3: { min: 1000, max: 9999, jumps: [1, 10, 100, 1000] },
     };
-    const { min, max, jumps, grid } = configs[currentLevel];
+    const { min, max, jumps } = configs[currentLevel];
 
     let start, target;
     do {
@@ -300,9 +295,9 @@
       ],
     };
 
-    jumpGrid.className = 'jump-grid ' + grid;
+    jumpGrid.className = 'jump-grid l' + currentLevel;
     jumpGrid.innerHTML = '';
-    btnDefs[currentLevel].forEach(({ delta, label, cls }) => {
+    state.jumpBtns = btnDefs[currentLevel].map(({ delta, label, cls }) => {
       const btn = document.createElement('button');
       btn.className = 'jump-btn ' + cls;
       btn.textContent = label;
@@ -313,6 +308,7 @@
         updateCurrentDisplay();
       });
       jumpGrid.appendChild(btn);
+      return btn;
     });
 
     updateCurrentDisplay();
