@@ -56,7 +56,7 @@ co-visé. C'est ce double ancrage qui doit figurer dans `data-per` (deux codes) 
 | App | Objectif principal | Cycle |
 |-----|--------------------|-------|
 | balance.html | MSN 14 – Grandeurs et mesures (masse) | C1 |
-| longueurs.html | MSN 14 – Grandeurs et mesures (longueur) | C1 |
+| longueurs-3h4h.html | MSN 14 – Grandeurs et mesures (longueur) | C1 |
 | capacites-1h2h.html | MSN 14 – Grandeurs et mesures (capacité) | C1 |
 | capacites-3h4h.html | MSN 14 – Grandeurs et mesures (capacité) | C1 |
 | surfaces.html | MSN 14 – Grandeurs et mesures (aire, comparaison) | C1 |
