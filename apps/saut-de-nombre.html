@@ -10,48 +10,16 @@
 <link rel="stylesheet" href="app-base.css">
 <style>
   :root {
-    --color-units:    #3B7DD8;
-    --color-tens:     #D64045;
-    --color-hundreds: #3A9E6F;
-    --app-header-bg:  #C0272D; /* branche Mathématiques */
+    --app-header-bg: #C0272D; /* branche Mathématiques */
   }
-
-  .app-header {
-    background: #C0272D;
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  .back-link {
-    color: rgba(255,255,255,0.85);
-    text-decoration: none;
-    font-size: 15px;
-    font-weight: 600;
-    white-space: nowrap;
-    touch-action: manipulation;
-  }
-  .back-link:hover { color: #fff; }
-  .app-header h1 {
-    font-family: 'Nunito', sans-serif;
-    font-size: clamp(18px, 4vw, 24px);
-    font-weight: 900;
-    color: #fff;
-    flex: 1;
-    text-align: center;
-  }
-  .header-spacer { width: 80px; }
+  /* --color-units/tens/hundreds et .app-header, .back-link, .app-header h1,
+     .header-spacer sont fournis par app-base.css (déjà lié ci-dessus) —
+     ne pas les redéfinir inline (CLAUDE.md #2). */
 
   main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
     padding: 28px 16px 40px;
     gap: 28px;
     max-width: 640px;
-    margin: 0 auto;
-    width: 100%;
   }
 
   /* Current number display */
@@ -62,9 +30,9 @@
     gap: 8px;
   }
   .number-label {
-    font-size: 14px;
+    font-size: 18px;
     font-weight: 700;
-    color: #94A3B8;
+    color: #475569;
     text-transform: uppercase;
     letter-spacing: 0.8px;
   }
@@ -93,7 +61,7 @@
     border: 2.5px solid;
     background: #fff;
     font-family: 'Nunito', sans-serif;
-    font-size: clamp(18px, 4vw, 24px);
+    font-size: clamp(22px, 4vw, 24px);
     font-weight: 900;
     cursor: pointer;
     min-height: 64px;
@@ -105,6 +73,7 @@
     justify-content: center;
   }
   .jump-btn:active { transform: scale(0.95); }
+  .jump-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; }
   .jump-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
 
   .jump-btn.units-pos  { color: var(--color-units);    border-color: var(--color-units);    }
@@ -133,7 +102,7 @@
     flex-wrap: wrap;
   }
   .target-label {
-    font-size: 15px;
+    font-size: 18px;
     font-weight: 700;
     color: #64748B;
   }
@@ -170,7 +139,7 @@
 </div>
 
 <main>
-  <div class="question-box" id="question-box">Utilise les boutons pour atteindre le nombre cible.</div>
+  <div class="question-box" id="question-box" tabindex="-1">Utilise les boutons pour atteindre le nombre cible.</div>
 
   <div class="number-display">
     <div class="number-label">Nombre actuel</div>
@@ -188,14 +157,18 @@
 
   <div class="action-row">
     <button class="verify-btn" id="verify-btn">Vérifier</button>
-    <button class="new-btn" id="new-btn">Nouvel exercice</button>
+    <button class="new-btn" id="new-btn"><span aria-hidden="true">▶</span> Nouvel exercice</button>
   </div>
 </main>
 
 <script src="appUtils.js"></script>
 <script>
-  const PLACE_COLORS = ['--color-units', '--color-tens', '--color-hundreds'];
-  function colorForRank(rank) { return `var(${PLACE_COLORS[rank % 3]})`; }
+  // colorForRank : fourni par appUtils.js (chargé avant ce script).
+
+  // Type de tâche : l'élève peut corriger sa trajectoire de sauts et revérifier
+  // sur la même instance jusqu'à réussite (voir showFeedback : rien n'est
+  // verrouillé ni révélé tant que le nombre cible n'est pas atteint).
+  const TYPE_TACHE = 'instance';
 
   let currentLevel = 1;
   let state = {};
@@ -242,8 +215,17 @@
       document.querySelectorAll('.jump-btn').forEach(b => b.disabled = true);
       newBtn.classList.add('visible');
       verifyBtn.style.display = 'none';
+      // Priorité 1 (skill accessibilite §6) : un bouton d'action suivante
+      // vient d'apparaître.
+      newBtn.focus();
     } else {
       playIncorrect();
+      // TYPE_TACHE = 'instance' : rien ne se ferme, l'élève corrige ses sauts
+      // et revérifie sur la même instance. Aucun bouton d'action suivante
+      // n'apparaît ici (verify-btn était déjà visible) : priorité 2, le focus
+      // suit le feedback (skill accessibilite §6).
+      feedbackEl.setAttribute('tabindex', '-1');
+      feedbackEl.focus();
     }
   }
 
@@ -286,6 +268,7 @@
     questionBox.textContent = ctx(start, target);
     renderColoredNumber(targetNumberEl, target);
     feedbackEl.className = 'feedback';
+    feedbackEl.removeAttribute('tabindex');
     verifyBtn.style.display = 'block';
     newBtn.classList.remove('visible');
 
@@ -333,6 +316,11 @@
     });
 
     updateCurrentDisplay();
+
+    // La grille de sauts vient d'être reconstruite (les boutons précédents,
+    // potentiellement focalisés, ont disparu) : ramener le focus sur la
+    // consigne pour ne jamais le laisser se perdre (skill accessibilite §6).
+    questionBox.focus();
   }
 
   // ── Vérification manuelle ──
