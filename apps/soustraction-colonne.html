@@ -51,7 +51,7 @@
     .th-col {
       width: 72px;
       text-align: center;
-      font-size: 13px;
+      font-size: 18px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.6px;
@@ -63,7 +63,7 @@
       text-align: center;
       padding: 0 6px;
       vertical-align: middle;
-      height: 86px;
+      height: 96px;
     }
     /* Tappable columns get a pointer and subtle active state */
     .td-minuend.tappable {
@@ -83,14 +83,16 @@
       gap: 2px;
       transition: opacity 0.1s, transform 0.1s;
     }
-    /* "+10" label shown when the column receives a borrow */
+    /* "+10" label shown when the column receives a borrow — couleur neutre
+       (ni verte "réponse correcte", ni la palette valeur-de-position) pour ne
+       pas laisser croire à un jeune élève que l'emprunt est déjà "juste". */
     .plus10-label {
       font-family: 'Nunito', sans-serif;
-      font-size: 13px;
+      font-size: 18px;
       font-weight: 800;
-      color: #3A9E6F;
+      color: #475569;
       line-height: 1;
-      min-height: 16px;
+      min-height: 22px;
       visibility: hidden;
     }
     .plus10-label.visible { visibility: visible; }
@@ -124,10 +126,10 @@
     .digit-eff.visible { display: block; }
     /* Subtle tap affordance on tappable columns with no active borrow */
     .td-minuend.tappable .tap-hint {
-      font-size: 10px;
-      color: #CBD5E0;
+      font-size: 18px;
+      color: #475569;
       line-height: 1;
-      min-height: 14px;
+      min-height: 20px;
       font-family: 'Nunito', sans-serif;
       font-weight: 700;
     }
@@ -161,9 +163,20 @@
     }
 
     /* Result row */
-    .td-result { text-align: center; padding: 8px 6px 0; }
+    .td-result { text-align: center; padding: 8px 6px 0; position: relative; }
+    .td-result.ok::after,
+    .td-result.bad::after {
+      position: absolute;
+      top: 0;
+      right: 4px;
+      font-size: 18px;
+      font-weight: 900;
+      font-family: 'Nunito', sans-serif;
+    }
+    .td-result.ok::after  { content: '✓'; color: var(--app-correct-fg); }
+    .td-result.bad::after { content: '✗'; color: var(--app-wrong-fg); }
     .result-inp {
-      width: 62px; height: 70px;
+      width: 64px; height: 70px;
       border: 2.5px solid var(--border);
       border-radius: 10px;
       background: #F8FAFC;
@@ -177,11 +190,13 @@
       touch-action: manipulation;
       transition: border-color 0.15s, background 0.15s;
     }
-    .result-inp:focus { background: #EBF3FC; border-color: var(--color-units); }
-
     /* Verification states */
     .result-inp.ok  { border-color: #3A9E6F; background: #E6F5F0; color: #0A6048; }
     .result-inp.bad { border-color: #D64045; background: #FEE8E8; color: #C0282C; }
+    /* Déclaré après .ok/.bad (même spécificité 0,2,0) pour que l'anneau de
+       focus reste visible même sur un input marqué "faux" que l'élève rouvre
+       pour le corriger (retry sur la même instance) — skills/accessibilite. */
+    .result-inp:focus { background: #EBF3FC; border-color: var(--color-units); }
 
     /* Feedback et boutons d'action : .feedback / .action-row / .verify-btn /
        .new-btn fournis par app-base.css. */
@@ -189,7 +204,7 @@
     /* ── Responsive ── */
     @media (max-width: 400px) {
       .digit-orig, .td-sign { font-size: 36px; }
-      .result-inp { width: 52px; height: 60px; font-size: 34px; }
+      .result-inp { width: 64px; height: 64px; font-size: 34px; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
@@ -218,13 +233,14 @@
 <main class="app-main">
 
   <div class="exercise-card">
+    <div class="question-box" id="question-box"></div>
     <div class="calc-wrap">
       <table class="calc-table" id="calc-table" aria-label="Grille de soustraction en colonne"></table>
     </div>
-    <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
+    <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
     <div class="action-row">
-      <button class="verify-btn" id="btn-check">Vérifier ✓</button>
-      <button class="new-btn visible" id="btn-next">Nouvel exercice</button>
+      <button class="verify-btn" id="btn-check" disabled>Vérifier <span aria-hidden="true">✓</span></button>
+      <button class="new-btn" id="btn-next"><span aria-hidden="true">▶</span> Nouvel exercice</button>
     </div>
   </div>
 
@@ -233,6 +249,13 @@
 <script src="appUtils.js"></script>
 <script>
   // ── State ──────────────────────────────────────────────────────────────────
+  // 'instance' : une erreur est corrigeable — l'élève ajuste les emprunts/chiffres
+  // et revérifie sur la même soustraction jusqu'à réussite (voir skills/design-portail).
+  const TYPE_TACHE = 'instance';
+  const questionBox = document.getElementById('question-box');
+  const feedbackEl  = document.getElementById('feedback');
+  const checkBtn    = document.getElementById('btn-check');
+  const newBtn      = document.getElementById('btn-next');
   let level = 1;
   let minuend = 0;
   let subtrahend = 0;
@@ -258,6 +281,10 @@
   function colLabel(colIdx, totalCols) { return PLACE_LABELS[colIdx + (3 - totalCols)]; }
   function colName(colIdx, totalCols)  { return PLACE_NAMES [colIdx + (3 - totalCols)]; }
 
+  // Une colonne peut recevoir un tap d'emprunt à partir du niveau 3, sauf la
+  // dernière (unités) qui ne peut jamais emprunter à une colonne à sa droite.
+  function canBorrowCol(c) { return level >= 3 && c < cols - 1; }
+
   // Effective value for minuend column c given current borrows state.
   // receives borrow if gives[c-1]; gives borrow if gives[c].
   function effectiveDigit(origDigits, c) {
@@ -265,6 +292,12 @@
     const received = c > 0 && gives[c - 1] ? 10 : 0;
     const given    = c < cols - 1 && gives[c] ? 1 : 0;
     return base + received - given;
+  }
+
+  function updateInstructions() {
+    questionBox.textContent = level >= 3
+      ? 'Calcule chaque colonne. Touche un chiffre pour emprunter une dizaine.'
+      : 'Calcule chaque colonne, de droite à gauche.';
   }
 
   function countBorrows(a, b, c) {
@@ -341,13 +374,12 @@
     const origDigits = toDigits(minuend, cols).map(d => d ?? 0);
     html += '<tr><td class="td-sign"></td>';
     for (let c = 0; c < cols; c++) {
-      const isLast = c === cols - 1;
-      const canBorrow = level >= 3 && !isLast;
+      const canBorrow = canBorrowCol(c);
       const tappable = canBorrow ? 'tappable' : '';
       const tapHint  = canBorrow ? '<span class="tap-hint">tap ✎</span>' : '';
       html += `
         <td class="td-minuend ${tappable}" data-col="${c}"
-            ${!isLast ? `role="button" tabindex="0" aria-label="Emprunt ${colName(c, cols)}, chiffre ${origDigits[c]}"` : ''}>
+            ${canBorrow ? `role="button" tabindex="0" aria-pressed="false"` : ''}>
           <div class="minuend-wrap">
             <span class="plus10-label">+10</span>
             <div class="digit-row">
@@ -404,6 +436,7 @@
       const givesRight = c < cols - 1 && gives[c];
       const involved  = receives || givesRight;
       const eff       = effectiveDigit(origDigits, c);
+      const canBorrow = canBorrowCol(c);
 
       // "+10" label: shown when receiving a borrow
       plus10El.classList.toggle('visible', receives);
@@ -412,7 +445,7 @@
       origEl.classList.toggle('struck', givesRight);
 
       if (givesRight) {
-        effEl.textContent = effectiveDigit(origDigits, c);
+        effEl.textContent = eff;
         effEl.classList.add('visible');
       } else {
         effEl.textContent = '';
@@ -421,6 +454,14 @@
 
       // borrowed marker for tap-hint hide
       cell.classList.toggle('borrowed', givesRight);
+
+      // État accessible du bouton d'emprunt : reflète l'emprunt actif et sa valeur.
+      if (canBorrow) {
+        cell.setAttribute('aria-pressed', String(givesRight));
+        cell.setAttribute('aria-label',
+          `Emprunt ${colName(c, cols)}, chiffre ${origDigits[c]}` +
+          (givesRight ? `, emprunt actif, valeur actuelle ${eff}` : ''));
+      }
     }
   }
 
@@ -441,6 +482,20 @@
   }
 
   // ── Input wiring ───────────────────────────────────────────────────────────
+  function updateCheckState() {
+    const allFilled = [...document.querySelectorAll('.result-inp')].every(el => el.value !== '');
+    checkBtn.disabled = !allFilled;
+  }
+
+  // État "en cours de résolution" : verify-btn visible (dés/activé selon le
+  // remplissage), new-btn caché. Utilisé après une remise à zéro ou une
+  // réponse incorrecte sur une tâche 'instance'.
+  function resetButtons() {
+    checkBtn.style.display = '';
+    updateCheckState();
+    newBtn.classList.remove('visible');
+  }
+
   function wireInputs() {
     const resInps = [...document.querySelectorAll('.result-inp')];
 
@@ -450,6 +505,7 @@
         e.target.value = v ? v[v.length - 1] : '';
         if (v && i > 0) resInps[i - 1].focus();
         resetVerification();
+        updateCheckState();
       });
       inp.addEventListener('keydown', e => {
         if (e.key === 'Backspace' && !inp.value && i < resInps.length - 1) {
@@ -458,7 +514,31 @@
       });
     });
 
+    updateCheckState();
     resInps[resInps.length - 1]?.focus();
+  }
+
+  // ── Feedback ───────────────────────────────────────────────────────────────
+  // Point unique d'appel des feedbackUtils ; branche sur TYPE_TACHE (voir
+  // skills/design-portail/SKILL.md « Type de tâche »).
+  function showFeedback(correct, msg) {
+    feedbackEl.textContent = msg;
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+
+    if (correct || TYPE_TACHE === 'drill') {
+      // Item réussi : on propose la suite.
+      checkBtn.style.display = 'none';
+      checkBtn.disabled = true;
+      newBtn.classList.add('visible');
+      newBtn.focus();
+    } else {
+      // 'instance' + incorrect : l'élève corrige les chiffres/emprunts et
+      // revérifie la même soustraction — aucun bouton d'action suivante.
+      resetButtons();
+      feedbackEl.setAttribute('tabindex', '-1');
+      feedbackEl.focus();
+    }
   }
 
   // ── Verify ─────────────────────────────────────────────────────────────────
@@ -473,34 +553,37 @@
       const ok = inp.value !== '' && parseInt(inp.value) === expected[i];
       inp.classList.toggle('ok', ok);
       inp.classList.toggle('bad', !ok);
+      inp.setAttribute('aria-invalid', String(!ok));
+      const td = inp.closest('.td-result');
+      td.classList.toggle('ok', ok);
+      td.classList.toggle('bad', !ok);
       if (!ok) { allOk = false; wrongCols.push(colName(i, cols)); }
     });
 
-    const fb = document.getElementById('feedback');
-    if (allOk) {
-      fb.textContent = 'Bravo ! C\'est correct !';
-      fb.className = 'feedback correct';
-      playCorrect();
-      launchConfetti();
-    } else {
-      fb.textContent = `Pas tout à fait. Vérifie les ${wrongCols.join(', ')}.`;
-      fb.className = 'feedback wrong';
-      playIncorrect();
-    }
+    const msg = allOk
+      ? 'Bravo ! C\'est correct !'
+      : `Pas tout à fait. Vérifie les ${wrongCols.join(', ')}.`;
+    showFeedback(allOk, msg);
   }
 
   function resetVerification() {
     if (!isVerified) return;
     isVerified = false;
-    document.querySelectorAll('.result-inp').forEach(el => el.classList.remove('ok', 'bad'));
-    document.getElementById('feedback').className = 'feedback';
+    document.querySelectorAll('.result-inp').forEach(el => { el.classList.remove('ok', 'bad'); el.removeAttribute('aria-invalid'); });
+    document.querySelectorAll('.td-result').forEach(el => el.classList.remove('ok', 'bad'));
+    feedbackEl.className = 'feedback';
+    feedbackEl.removeAttribute('tabindex');
+    resetButtons();
   }
 
   // ── New exercise ───────────────────────────────────────────────────────────
   function newExercise() {
     isVerified = false;
     gives = [];
-    document.getElementById('feedback').className = 'feedback';
+    feedbackEl.className = 'feedback';
+    feedbackEl.removeAttribute('tabindex');
+    resetButtons();
+    updateInstructions();
     const [a, b] = generate(level);
     minuend = a;
     subtrahend = b;
@@ -522,8 +605,8 @@
     });
   });
 
-  document.getElementById('btn-check').addEventListener('click', verify);
-  document.getElementById('btn-next').addEventListener('click', newExercise);
+  checkBtn.addEventListener('click', verify);
+  newBtn.addEventListener('click', newExercise);
 
   // ── Init ───────────────────────────────────────────────────────────────────
   newExercise();
