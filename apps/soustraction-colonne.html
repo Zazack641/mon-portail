@@ -277,6 +277,10 @@
   function colLabel(colIdx, totalCols) { return PLACE_LABELS[colIdx + (3 - totalCols)]; }
   function colName(colIdx, totalCols)  { return PLACE_NAMES [colIdx + (3 - totalCols)]; }
 
+  // Une colonne peut recevoir un tap d'emprunt à partir du niveau 3, sauf la
+  // dernière (unités) qui ne peut jamais emprunter à une colonne à sa droite.
+  function canBorrowCol(c) { return level >= 3 && c < cols - 1; }
+
   // Effective value for minuend column c given current borrows state.
   // receives borrow if gives[c-1]; gives borrow if gives[c].
   function effectiveDigit(origDigits, c) {
@@ -366,13 +370,12 @@
     const origDigits = toDigits(minuend, cols).map(d => d ?? 0);
     html += '<tr><td class="td-sign"></td>';
     for (let c = 0; c < cols; c++) {
-      const isLast = c === cols - 1;
-      const canBorrow = level >= 3 && !isLast;
+      const canBorrow = canBorrowCol(c);
       const tappable = canBorrow ? 'tappable' : '';
       const tapHint  = canBorrow ? '<span class="tap-hint">tap ✎</span>' : '';
       html += `
         <td class="td-minuend ${tappable}" data-col="${c}"
-            ${canBorrow ? `role="button" tabindex="0" aria-pressed="false" aria-label="Emprunt ${colName(c, cols)}, chiffre ${origDigits[c]}"` : ''}>
+            ${canBorrow ? `role="button" tabindex="0" aria-pressed="false"` : ''}>
           <div class="minuend-wrap">
             <span class="plus10-label">+10</span>
             <div class="digit-row">
@@ -429,7 +432,7 @@
       const givesRight = c < cols - 1 && gives[c];
       const involved  = receives || givesRight;
       const eff       = effectiveDigit(origDigits, c);
-      const canBorrow = level >= 3 && c < cols - 1;
+      const canBorrow = canBorrowCol(c);
 
       // "+10" label: shown when receiving a borrow
       plus10El.classList.toggle('visible', receives);
@@ -438,7 +441,7 @@
       origEl.classList.toggle('struck', givesRight);
 
       if (givesRight) {
-        effEl.textContent = effectiveDigit(origDigits, c);
+        effEl.textContent = eff;
         effEl.classList.add('visible');
       } else {
         effEl.textContent = '';
@@ -480,6 +483,15 @@
     checkBtn.disabled = !allFilled;
   }
 
+  // État "en cours de résolution" : verify-btn visible (dés/activé selon le
+  // remplissage), new-btn caché. Utilisé après une remise à zéro ou une
+  // réponse incorrecte sur une tâche 'instance'.
+  function resetButtons() {
+    checkBtn.style.display = '';
+    updateCheckState();
+    newBtn.classList.remove('visible');
+  }
+
   function wireInputs() {
     const resInps = [...document.querySelectorAll('.result-inp')];
 
@@ -502,9 +514,30 @@
     resInps[resInps.length - 1]?.focus();
   }
 
-  // ── Verify ─────────────────────────────────────────────────────────────────
+  // ── Feedback ───────────────────────────────────────────────────────────────
   // Point unique d'appel des feedbackUtils ; branche sur TYPE_TACHE (voir
   // skills/design-portail/SKILL.md « Type de tâche »).
+  function showFeedback(correct, msg) {
+    feedbackEl.textContent = msg;
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+
+    if (correct || TYPE_TACHE === 'drill') {
+      // Item réussi : on propose la suite.
+      checkBtn.style.display = 'none';
+      checkBtn.disabled = true;
+      newBtn.classList.add('visible');
+      newBtn.focus();
+    } else {
+      // 'instance' + incorrect : l'élève corrige les chiffres/emprunts et
+      // revérifie la même soustraction — aucun bouton d'action suivante.
+      resetButtons();
+      feedbackEl.setAttribute('tabindex', '-1');
+      feedbackEl.focus();
+    }
+  }
+
+  // ── Verify ─────────────────────────────────────────────────────────────────
   function verify() {
     isVerified = true;
     const diff = minuend - subtrahend;
@@ -523,31 +556,10 @@
       if (!ok) { allOk = false; wrongCols.push(colName(i, cols)); }
     });
 
-    if (allOk) {
-      feedbackEl.textContent = 'Bravo ! C\'est correct !';
-      feedbackEl.className = 'feedback correct';
-      playCorrect();
-      launchConfetti();
-    } else {
-      feedbackEl.textContent = `Pas tout à fait. Vérifie les ${wrongCols.join(', ')}.`;
-      feedbackEl.className = 'feedback wrong';
-      playIncorrect();
-    }
-
-    if (allOk || TYPE_TACHE === 'drill') {
-      // Item réussi : on propose la suite.
-      checkBtn.style.display = 'none';
-      newBtn.classList.add('visible');
-      newBtn.focus();
-    } else {
-      // 'instance' + incorrect : l'élève corrige les chiffres/emprunts et
-      // revérifie la même soustraction — aucun bouton d'action suivante.
-      checkBtn.style.display = '';
-      checkBtn.disabled = false;
-      newBtn.classList.remove('visible');
-      feedbackEl.setAttribute('tabindex', '-1');
-      feedbackEl.focus();
-    }
+    const msg = allOk
+      ? 'Bravo ! C\'est correct !'
+      : `Pas tout à fait. Vérifie les ${wrongCols.join(', ')}.`;
+    showFeedback(allOk, msg);
   }
 
   function resetVerification() {
@@ -557,8 +569,7 @@
     document.querySelectorAll('.td-result').forEach(el => el.classList.remove('ok', 'bad'));
     feedbackEl.className = 'feedback';
     feedbackEl.removeAttribute('tabindex');
-    checkBtn.style.display = '';
-    newBtn.classList.remove('visible');
+    resetButtons();
   }
 
   // ── New exercise ───────────────────────────────────────────────────────────
@@ -567,8 +578,7 @@
     gives = [];
     feedbackEl.className = 'feedback';
     feedbackEl.removeAttribute('tabindex');
-    checkBtn.style.display = '';
-    newBtn.classList.remove('visible');
+    resetButtons();
     updateInstructions();
     const [a, b] = generate(level);
     minuend = a;
