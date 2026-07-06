@@ -83,12 +83,14 @@
       gap: 2px;
       transition: opacity 0.1s, transform 0.1s;
     }
-    /* "+10" label shown when the column receives a borrow */
+    /* "+10" label shown when the column receives a borrow — couleur neutre
+       (ni verte "réponse correcte", ni la palette valeur-de-position) pour ne
+       pas laisser croire à un jeune élève que l'emprunt est déjà "juste". */
     .plus10-label {
       font-family: 'Nunito', sans-serif;
       font-size: 18px;
       font-weight: 800;
-      color: var(--app-correct-fg);
+      color: #475569;
       line-height: 1;
       min-height: 22px;
       visibility: hidden;
@@ -165,9 +167,9 @@
     .td-result.ok::after,
     .td-result.bad::after {
       position: absolute;
-      top: 2px;
-      right: 8px;
-      font-size: 16px;
+      top: 0;
+      right: 4px;
+      font-size: 18px;
       font-weight: 900;
       font-family: 'Nunito', sans-serif;
     }
@@ -188,11 +190,13 @@
       touch-action: manipulation;
       transition: border-color 0.15s, background 0.15s;
     }
-    .result-inp:focus { background: #EBF3FC; border-color: var(--color-units); }
-
     /* Verification states */
     .result-inp.ok  { border-color: #3A9E6F; background: #E6F5F0; color: #0A6048; }
     .result-inp.bad { border-color: #D64045; background: #FEE8E8; color: #C0282C; }
+    /* Déclaré après .ok/.bad (même spécificité 0,2,0) pour que l'anneau de
+       focus reste visible même sur un input marqué "faux" que l'élève rouvre
+       pour le corriger (retry sur la même instance) — skills/accessibilite. */
+    .result-inp:focus { background: #EBF3FC; border-color: var(--color-units); }
 
     /* Feedback et boutons d'action : .feedback / .action-row / .verify-btn /
        .new-btn fournis par app-base.css. */
