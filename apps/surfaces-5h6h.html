@@ -113,10 +113,15 @@
   function showFeedback(correct, msg) {
     feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
     feedbackEl.textContent = msg;
-    newBtn.classList.add('visible');
     if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
-    verifyBtn.style.display = 'none';
-    newBtn.focus();
+
+    if (correct || TYPE_TACHE === 'drill') {
+      verifyBtn.style.display = 'none';
+      newBtn.classList.add('visible');
+      newBtn.focus();
+    }
+    // TYPE_TACHE est toujours 'drill' dans cette app (branche 'instance' inatteignable,
+    // conservée pour rester portable vers le patron canonique de showFeedback).
   }
 
   function buildExercise() {
@@ -297,6 +302,14 @@
     verifyBtn.disabled = false;
   }
 
+  // Marque une surface correcte/incorrecte sans jamais s'appuyer sur la couleur seule
+  // (icône + libellé accessible en plus de la bordure colorée).
+  function markOutcome(div, cls, symbol, ariaSuffix) {
+    div.classList.add(cls);
+    div.querySelector('.shape-label').insertAdjacentHTML('beforeend', ` <span aria-hidden="true">${symbol}</span>`);
+    div.setAttribute('aria-label', div.getAttribute('aria-label') + ariaSuffix);
+  }
+
   verifyBtn.addEventListener('click', () => {
     if (!state.selected || state.answered) return;
     state.answered = true;
@@ -306,15 +319,10 @@
 
     document.querySelectorAll('.shape-item').forEach((div, i) => {
       div.classList.remove('selected');
-      const lbl = div.querySelector('.shape-label');
       if (state.shapes[i].name === state.correctName) {
-        div.classList.add('correct');
-        lbl.insertAdjacentHTML('beforeend', ' <span aria-hidden="true">✓</span>');
-        div.setAttribute('aria-label', div.getAttribute('aria-label') + ' — bonne réponse');
+        markOutcome(div, 'correct', '✓', ' — bonne réponse');
       } else if (state.shapes[i].name === state.selected) {
-        div.classList.add('wrong');
-        lbl.insertAdjacentHTML('beforeend', ' <span aria-hidden="true">✗</span>');
-        div.setAttribute('aria-label', div.getAttribute('aria-label') + ' — mauvaise réponse');
+        markOutcome(div, 'wrong', '✗', ' — mauvaise réponse');
       }
     });
 
