@@ -28,43 +28,47 @@
     cursor: pointer;
     touch-action: manipulation;
     padding: 10px;
-    border: 3px solid #E2E8F0;
+    border: 3px solid var(--app-border);
     border-radius: 14px;
     background: #fff;
-    transition: border-color 0.15s, background 0.15s;
     min-height: 48px;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .shape-item { transition: border-color 0.15s, background 0.15s; }
   }
   .shape-item:hover  { border-color: #3B7DD8; background: #EFF6FF; }
   .shape-item.selected { border-color: #3B7DD8; background: #DBEAFE; }
-  .shape-item.correct  { border-color: #10B981; background: #D1FAE5; }
-  .shape-item.wrong    { border-color: #EF4444; background: #FEE2E2; }
+  .shape-item.correct  { border-color: #10B981; background: var(--app-correct-bg); }
+  .shape-item.wrong    { border-color: #EF4444; background: var(--app-wrong-bg); }
+  .shape-item:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; }
 
   .shape-label {
     font-family: 'Nunito', sans-serif;
-    font-size: 15px;
+    font-size: 22px;
     font-weight: 800;
     color: #64748B;
   }
 
   .dim-label {
     font-family: 'Nunito', sans-serif;
-    font-size: 17px;
+    font-size: 22px;
     font-weight: 900;
     color: #1A1A2E;
   }
 
   .grid-note {
     font-family: 'Source Sans 3', sans-serif;
-    font-size: 14px;
-    color: #94A3B8;
+    font-size: 18px;
+    color: #475569;
     font-style: italic;
     text-align: center;
+    line-height: 1.5;
   }
 </style>
 </head>
 <body>
 
-<header class="app-header">
+<header class="app-header" role="banner">
   <a href="../index.html" class="back-link">← Retour</a>
   <h1>📐 Les surfaces</h1>
   <div class="header-spacer"></div>
@@ -82,7 +86,7 @@
   <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
   <div class="action-row">
     <button class="verify-btn" id="verify-btn" disabled>Vérifier</button>
-    <button class="new-btn"    id="new-btn">Nouvel exercice</button>
+    <button class="new-btn"    id="new-btn"><span aria-hidden="true">▶</span> Nouvel exercice</button>
   </div>
 </main>
 
@@ -90,6 +94,10 @@
 <script>
   const COLORS = ['#3B7DD8', '#D64045', '#3A9E6F'];
   const NAMES  = ['A', 'B', 'C'];
+
+  // 'drill' : choisir parmi 3 surfaces est un jugement ponctuel — un retry
+  // reviendrait à deviner entre les 2 restantes (tâtonnement aveugle).
+  const TYPE_TACHE = 'drill';
 
   let currentLevel = 1;
   let state = {};
@@ -108,9 +116,10 @@
     newBtn.classList.add('visible');
     if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
     verifyBtn.style.display = 'none';
+    newBtn.focus();
   }
 
-  function newExercise() {
+  function buildExercise() {
     feedbackEl.className = 'feedback';
     feedbackEl.textContent = '';
     verifyBtn.style.display = '';
@@ -119,6 +128,12 @@
     state = {};
     if (currentLevel === 1) setupLevel1();
     else                    setupLevel2();
+  }
+
+  function newExercise() {
+    buildExercise();
+    const first = shapesRow.querySelector('.shape-item');
+    if (first) first.focus();
   }
 
   // ── Génération de rectangles avec aires distinctes ─────────────────────────
@@ -291,8 +306,16 @@
 
     document.querySelectorAll('.shape-item').forEach((div, i) => {
       div.classList.remove('selected');
-      if (state.shapes[i].name === state.correctName) div.classList.add('correct');
-      else if (state.shapes[i].name === state.selected) div.classList.add('wrong');
+      const lbl = div.querySelector('.shape-label');
+      if (state.shapes[i].name === state.correctName) {
+        div.classList.add('correct');
+        lbl.insertAdjacentHTML('beforeend', ' <span aria-hidden="true">✓</span>');
+        div.setAttribute('aria-label', div.getAttribute('aria-label') + ' — bonne réponse');
+      } else if (state.shapes[i].name === state.selected) {
+        div.classList.add('wrong');
+        lbl.insertAdjacentHTML('beforeend', ' <span aria-hidden="true">✗</span>');
+        div.setAttribute('aria-label', div.getAttribute('aria-label') + ' — mauvaise réponse');
+      }
     });
 
     let msg;
@@ -326,7 +349,7 @@
 
   newBtn.addEventListener('click', newExercise);
 
-  newExercise();
+  buildExercise();
 </script>
 <script src="feedbackUtils.js"></script>
 </body>
