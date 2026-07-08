@@ -6,11 +6,15 @@
 <title>Dictée DéCoDi — Modules 11-15</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app-base.css">
 <style>
   :root {
-    --app-header-bg: #7A6200;
+    /* Domaine : Français */
+    --app-accent:      #7A6200;
+    --app-accent-dark: #5C4A00;
+    --app-tint-bg:     #FBF5D6;
+    --app-tint-fg:     #7A6200;
   }
 
   /* ── Navigation contextuelle (remplace level-bar) ────────────────── */
@@ -48,7 +52,7 @@
   }
   .nav-back-btn:hover  { background: #EEF2F7; }
   .nav-back-btn:active { background: #E2EAF4; }
-  .nav-back-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; }
+  .nav-back-btn:focus-visible { outline: 3px solid var(--app-accent); outline-offset: 3px; }
 
   /* ── Grilles de sélection ────────────────────────────────────────── */
   .select-grid {
@@ -64,7 +68,7 @@
     border: 2px solid var(--app-border);
     background: #fff;
     color: var(--app-text);
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: 22px;
     font-weight: 800;
     cursor: pointer;
@@ -72,9 +76,9 @@
     touch-action: manipulation;
     -webkit-appearance: none;
   }
-  .select-btn:hover  { background: #FBF5D6; border-color: var(--app-header-bg); color: var(--app-header-bg); }
+  .select-btn:hover  { background: #FBF5D6; border-color: var(--app-accent); color: var(--app-accent); }
   .select-btn:active { background: #F5ECC0; }
-  .select-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; }
+  .select-btn:focus-visible { outline: 3px solid var(--app-accent); outline-offset: 3px; }
 
   .select-section-title {
     font-family: 'Source Sans 3', sans-serif;
@@ -123,7 +127,7 @@
     padding: 16px 20px;
     border: 2px solid var(--app-border);
     border-radius: 12px;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: clamp(20px, 5vw, 26px);
     font-weight: 800;
     text-align: center;
@@ -134,15 +138,15 @@
     -webkit-appearance: none;
     outline: none;
   }
-  .word-input:focus { border-color: var(--app-header-bg); outline: 3px solid var(--app-header-bg); outline-offset: 2px; }
+  .word-input:focus { border-color: var(--app-accent); outline: 3px solid var(--app-accent); outline-offset: 2px; }
 
   .listen-btn {
     padding: 14px 28px;
-    background: var(--app-header-bg);
+    background: var(--app-accent);
     color: #fff;
     border: none;
     border-radius: 12px;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: 22px;
     font-weight: 800;
     cursor: pointer;
@@ -175,7 +179,7 @@
     padding: 14px 20px;
     border: 2px solid #FECACA;
     border-radius: 12px;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: clamp(20px, 5vw, 26px);
     font-weight: 800;
     text-align: center;
@@ -188,7 +192,7 @@
   }
   .recopy-input:focus { border-color: #D64045; outline: 3px solid #D64045; outline-offset: 2px; }
   .recopy-ok {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: 18px;
     font-weight: 800;
     color: var(--app-correct-fg);
@@ -206,9 +210,9 @@
     width: 100%;
   }
   .recap-score {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: clamp(22px, 5vw, 28px);
-    font-weight: 900;
+    font-weight: 800;
     color: var(--app-text);
     margin-bottom: 8px;
   }
@@ -239,7 +243,7 @@
 
 <header class="app-header" role="banner">
   <a href="../index.html" class="back-link">← Retour</a>
-  <h1>✍️ Dictée DéCoDi</h1>
+  <h1>Dictée DéCoDi</h1>
   <div class="header-spacer"></div>
 </header>
 
