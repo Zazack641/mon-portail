@@ -6,11 +6,17 @@
 <title>Décris le trajet</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app-base.css">
 <style>
   /* Couleur de branche : maths rouge PER */
-  :root { --app-header-bg: #C0272D; }
+  :root {
+    /* Domaine : Mathématiques */
+    --app-accent:      #C0272D;
+    --app-accent-dark: #A01F23;
+    --app-tint-bg:     #FDECEA;
+    --app-tint-fg:     #8B0000;
+  }
 
   /* ── Grille (identique à itineraires.html) ───────────────────────────────── */
   .grid-wrapper {
@@ -95,7 +101,7 @@
     flex-direction: column;
     align-items: center;
     background: #F1F5F9;
-    border: 2px solid #E2E8F0;
+    border: 2px solid #DFE6EE;
     border-radius: 10px;
     padding: 4px 10px 6px;
     min-width: 46px;
@@ -104,9 +110,9 @@
   }
 
   .sequence-num {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: 18px;
-    font-weight: 900;
+    font-weight: 800;
     color: #475569;
     line-height: 1;
   }
@@ -154,7 +160,7 @@
   .dpad-btn {
     font-size: 28px;
     background: #F1F5F9;
-    border: 2px solid #E2E8F0;
+    border: 2px solid #DFE6EE;
     border-radius: 12px;
     cursor: pointer;
     touch-action: manipulation;
@@ -166,7 +172,7 @@
     justify-content: center;
     transition: background 0.1s, transform 0.1s, opacity 0.18s;
   }
-  .dpad-btn:hover:not(:disabled)  { background: #E2E8F0; }
+  .dpad-btn:hover:not(:disabled)  { background: #DFE6EE; }
   .dpad-btn:active:not(:disabled) { background: #CBD5E0; transform: scale(0.92); }
   .dpad-btn:disabled { opacity: 0.25; cursor: default; }
 
@@ -200,7 +206,7 @@
     font-weight: 700;
     padding: 10px 20px;
     border-radius: 12px;
-    border: 2px solid #E2E8F0;
+    border: 2px solid #DFE6EE;
     background: #F8FAFC;
     color: #475569;
     cursor: pointer;
@@ -211,7 +217,7 @@
     transition: background 0.12s, opacity 0.15s;
   }
   .ctrl-btn:hover:not(:disabled)  { background: #EEF2F7; }
-  .ctrl-btn:active:not(:disabled) { background: #E2E8F0; }
+  .ctrl-btn:active:not(:disabled) { background: #DFE6EE; }
   .ctrl-btn:disabled { opacity: 0.35; cursor: default; }
   .grid-cell.obstacle { background: #94A3B8; }
 
@@ -227,7 +233,7 @@
   }
   .ctrl-btn.verify:hover:not(:disabled)  { background: #A01F24; }
   .ctrl-btn.verify:active:not(:disabled) { background: #8B1A1E; }
-  .ctrl-btn.verify:disabled { background: #F8FAFC; color: #94A3B8; border-color: #E2E8F0; }
+  .ctrl-btn.verify:disabled { background: #F8FAFC; color: #94A3B8; border-color: #DFE6EE; }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
@@ -243,7 +249,7 @@
 <!-- ── Header ──────────────────────────────────────────────────────────────── -->
 <header class="app-header">
   <a href="../index.html" class="back-link">← Retour</a>
-  <h1>🗺️ Décris le trajet</h1>
+  <h1>Décris le trajet</h1>
   <div class="header-spacer"></div>
 </header>
 
