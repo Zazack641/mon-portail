@@ -6,11 +6,15 @@
 <title>Compréhension DéCoDi (5H-6H)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app-base.css">
 <style>
   :root {
-    --app-header-bg: #7A6200;
+    /* Domaine : Français */
+    --app-accent:      #7A6200;
+    --app-accent-dark: #5C4A00;
+    --app-tint-bg:     #FBF5D6;
+    --app-tint-fg:     #7A6200;
   }
 
   /* ── Views & phases ─────────────────────────────────────────────────────── */
@@ -21,7 +25,7 @@
 
   /* ── Vue 1 — Sélection du module ────────────────────────────────────────── */
   .vue-intro {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: clamp(18px, 3.5vw, 22px);
     font-weight: 800;
     color: var(--app-text);
@@ -37,7 +41,7 @@
     background: #fff;
     border: 2px solid var(--app-border);
     border-radius: 14px;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: 22px;
     font-weight: 800;
     color: var(--app-text);
@@ -48,7 +52,7 @@
     text-align: center;
   }
   .module-btn:hover { background: #FBF5D6; border-color: #7A6200; }
-  .module-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; border-radius: 14px; }
+  .module-btn:focus-visible { outline: 3px solid var(--app-accent); outline-offset: 3px; border-radius: 14px; }
 
   /* ── Vue 2 — Sélection du texte ─────────────────────────────────────────── */
   .vue-nav {
@@ -72,10 +76,10 @@
     -webkit-appearance: none;
     white-space: nowrap;
   }
-  .back-nav-btn:hover { background: #E2E8F0; }
-  .back-nav-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; border-radius: 10px; }
+  .back-nav-btn:hover { background: #DFE6EE; }
+  .back-nav-btn:focus-visible { outline: 3px solid var(--app-accent); outline-offset: 3px; border-radius: 10px; }
   .vue-titre {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: clamp(18px, 3vw, 19px);
     font-weight: 800;
     color: var(--app-text);
@@ -103,7 +107,7 @@
     text-align: left;
   }
   .texte-btn:hover { background: #FBF5D6; border-color: #7A6200; }
-  .texte-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; border-radius: 14px; }
+  .texte-btn:focus-visible { outline: 3px solid var(--app-accent); outline-offset: 3px; border-radius: 14px; }
 
   /* ── Phase 1 — Lecture ──────────────────────────────────────────────────── */
   .text-card {
@@ -114,9 +118,9 @@
     width: 100%;
   }
   .text-titre {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: clamp(20px, 4vw, 26px);
-    font-weight: 900;
+    font-weight: 800;
     color: #7A6200;
     margin-bottom: 16px;
   }
@@ -132,7 +136,7 @@
     color: #fff;
     border: none;
     border-radius: 12px;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: 22px;
     font-weight: 800;
     cursor: pointer;
@@ -149,7 +153,7 @@
     color: #fff;
     border: none;
     border-radius: 12px;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: 22px;
     font-weight: 800;
     cursor: pointer;
@@ -205,7 +209,7 @@
     gap: 8px;
   }
   .accordion-btn:hover { background: #F1F5F9; }
-  .accordion-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: -3px; }
+  .accordion-btn:focus-visible { outline: 3px solid var(--app-accent); outline-offset: -3px; }
   .accordion-btn .chevron { font-style: normal; }
   .accordion-btn[aria-expanded="true"] .chevron { transform: rotate(180deg); }
   .accordion-body {
@@ -245,7 +249,7 @@
   .q-type-badge.implicite { background: #EDE9FE; color: #5B21B6; }
   .q-type-badge.opinion   { background: #FEF3C7; color: #92400E; }
   .q-text {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: clamp(18px, 3.5vw, 20px);
     font-weight: 800;
     color: var(--app-text);
@@ -279,7 +283,7 @@
   .answer-btn.correct  { background: var(--app-correct-bg); border-color: #10B981; color: var(--app-correct-fg); font-weight: 700; }
   .answer-btn.wrong    { background: var(--app-wrong-bg);   border-color: #EF4444; color: var(--app-wrong-fg); }
   .answer-btn:disabled { cursor: default; }
-  .answer-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; }
+  .answer-btn:focus-visible { outline: 3px solid var(--app-accent); outline-offset: 3px; }
 
   /* Feedback QCM */
   .q-feedback {
@@ -323,7 +327,7 @@
     color: #fff;
     border: none;
     border-radius: 12px;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: 22px;
     font-weight: 800;
     cursor: pointer;
@@ -367,7 +371,7 @@
     color: #fff;
     border: none;
     border-radius: 12px;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: 22px;
     font-weight: 800;
     cursor: pointer;
@@ -396,7 +400,7 @@
   }
   .result-emoji { font-size: 64px; line-height: 1; }
   .result-msg {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: clamp(18px, 3.5vw, 21px);
     font-weight: 800;
     color: var(--app-text);
@@ -429,7 +433,7 @@
 
 <header class="app-header" role="banner">
   <a href="../index.html" class="back-link">← Retour</a>
-  <h1>📖 Compréhension DéCoDi (5H–6H)</h1>
+  <h1>Compréhension DéCoDi (5H–6H)</h1>
   <div class="header-spacer"></div>
 </header>
 
