@@ -6,11 +6,15 @@
 <title>La bonne opération — Maths 3H-4H</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app-base.css">
 <style>
   :root {
-    --app-header-bg: #C0272D; /* branche Mathématiques (CIIP) */
+    /* Domaine : Mathématiques */
+    --app-accent:      #C0272D;
+    --app-accent-dark: #A01F23;
+    --app-tint-bg:     #FDECEA;
+    --app-tint-fg:     #8B0000;
   }
 
   /* Carte de l'histoire (situation à modéliser) */
@@ -34,7 +38,7 @@
     line-height: 1.5;
   }
   .story-question {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-weight: 800;
     font-size: clamp(18px, 3.6vw, 22px);
     line-height: 1.5;
@@ -56,13 +60,13 @@
     max-width: 240px;
     min-height: 80px;
     padding: 12px 18px;
-    font-family: 'Nunito', sans-serif;
-    font-weight: 900;
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 800;
     font-size: clamp(30px, 7vw, 46px);
     border-radius: 16px;
     border: 3px solid var(--app-border);
     background: #fff;
-    color: #1A1A2E;
+    color: #1A2535;
     cursor: pointer;
     touch-action: manipulation;
     -webkit-appearance: none;
@@ -79,7 +83,7 @@
   }
   .choice-btn:disabled { cursor: default; }
   .choice-btn:focus-visible {
-    outline: 3px solid var(--app-header-bg);
+    outline: 3px solid var(--app-accent);
     outline-offset: 3px;
   }
 
@@ -93,7 +97,7 @@
 
 <header class="app-header">
   <a href="../index.html" class="back-link">← Retour</a>
-  <h1>🧩 La bonne opération</h1>
+  <h1>La bonne opération</h1>
   <div class="header-spacer"></div>
 </header>
 

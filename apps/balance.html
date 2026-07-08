@@ -6,35 +6,19 @@
 <title>La balance</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app-base.css">
 <style>
   /* Couleur de branche (Mathématiques) — pilote header, .level-btn.active et .verify-btn d'app-base.css */
-  :root { --app-header-bg: #C0272D; }
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { -webkit-text-size-adjust: 100%; }
-  body {
-    font-family: 'Source Sans 3', sans-serif;
-    background: #F7F8FA;
-    color: #1A1A2E;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    -webkit-tap-highlight-color: transparent;
+  :root {
+    /* Domaine : Mathématiques */
+    --app-accent:      #C0272D;
+    --app-accent-dark: #A01F23;
+    --app-tint-bg:     #FDECEA;
+    --app-tint-fg:     #8B0000;
   }
 
-  .app-header {
-    background: #C0272D;
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  .back-link { color: rgba(255,255,255,0.92); text-decoration: none; font-size: 15px; font-weight: 600; white-space: nowrap; touch-action: manipulation; display: inline-flex; align-items: center; min-height: 44px; }
-  .back-link:hover { color: #fff; }
-  .app-header h1 { font-family: 'Nunito', sans-serif; font-size: clamp(18px,4vw,24px); font-weight: 900; color: #fff; flex: 1; text-align: center; }
-  .header-spacer { width: 80px; }
+  /* Reset, .app-header, .back-link : fournis par app-base.css */
 
   /* .level-bar / .level-btn : fournis par app-base.css */
 
@@ -46,7 +30,7 @@
   .click-hint { font-size: 16px; color: #475569; text-align: center; font-style: italic; }
 
   /* SVG */
-  .svg-wrap { width: 100%; background: #fff; border: 1px solid #E2E8F0; border-radius: 16px; padding: 8px; }
+  .svg-wrap { width: 100%; background: #fff; border: 1px solid #DFE6EE; border-radius: 16px; padding: 8px; }
   #balance-svg { width: 100%; height: auto; display: block; overflow: visible; }
 
   /* Panneau UI */
@@ -54,7 +38,7 @@
   .ui-panel.active { display: flex; }
 
   /* Bouton Égal (N2 uniquement) */
-  .egal-btn { padding: 16px 40px; background: #fff; border: 2px solid #E2E8F0; border-radius: 14px; font-family: 'Nunito', sans-serif; font-size: clamp(18px,3vw,22px); font-weight: 800; color: #1A1A2E; cursor: pointer; min-height: 64px; min-width: 64px; touch-action: manipulation; -webkit-appearance: none; transition: all 0.15s; }
+  .egal-btn { padding: 16px 40px; background: #fff; border: 2px solid #DFE6EE; border-radius: 14px; font-family: 'Baloo 2', sans-serif; font-size: clamp(18px,3vw,22px); font-weight: 800; color: #1A2535; cursor: pointer; min-height: 64px; min-width: 64px; touch-action: manipulation; -webkit-appearance: none; transition: all 0.15s; }
   .egal-btn:not(:disabled):hover { background: #EEF2F7; border-color: #3B7DD8; }
   .egal-btn.correct { background: #D1FAE5; border-color: #10B981; color: #065F46; }
   .egal-btn.wrong   { background: #FEE2E2; border-color: #EF4444; color: #991B1B; }
@@ -63,15 +47,15 @@
   /* Contrôles N3 */
   .n3-sides { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; width: 100%; }
   .n3-side { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-  .n3-side-label { font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 800; color: #4A5568; text-transform: uppercase; letter-spacing: 0.5px; }
+  .n3-side-label { font-family: 'Baloo 2', sans-serif; font-size: 14px; font-weight: 800; color: #4A5568; text-transform: uppercase; letter-spacing: 0.5px; }
   .n3-side-btns { display: flex; gap: 12px; }
-  .ctrl-btn { padding: 14px 18px; border-radius: 12px; border: 2px solid; background: #fff; font-family: 'Nunito', sans-serif; font-size: 20px; font-weight: 900; cursor: pointer; min-height: 64px; min-width: 64px; touch-action: manipulation; -webkit-appearance: none; transition: all 0.15s; }
+  .ctrl-btn { padding: 14px 18px; border-radius: 12px; border: 2px solid; background: #fff; font-family: 'Baloo 2', sans-serif; font-size: 20px; font-weight: 800; cursor: pointer; min-height: 64px; min-width: 64px; touch-action: manipulation; -webkit-appearance: none; transition: all 0.15s; }
   .ctrl-btn.add    { border-color: #3B7DD8; color: #3B7DD8; }
   .ctrl-btn.add:not(:disabled):hover    { background: #EFF6FF; }
   .ctrl-btn.remove { border-color: #D64045; color: #D64045; }
   .ctrl-btn.remove:not(:disabled):hover { background: #FEF2F2; }
   .ctrl-btn:disabled { opacity: 0.3; cursor: default; }
-  .n3-count { font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 700; color: #4A5568; }
+  .n3-count { font-family: 'Baloo 2', sans-serif; font-size: 15px; font-weight: 700; color: #4A5568; }
 
   /* .feedback / .action-row / .verify-btn / .new-btn : fournis par app-base.css */
 
@@ -105,7 +89,7 @@
 
 <header class="app-header" role="banner">
   <a href="../index.html" class="back-link">← Retour</a>
-  <h1>⚖️ La balance</h1>
+  <h1>La balance</h1>
   <div class="header-spacer"></div>
 </header>
 
