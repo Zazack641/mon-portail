@@ -6,17 +6,23 @@
 <title>Les longueurs — Comparer des longueurs</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app-base.css">
 <style>
   /* Couleur de branche (Mathématiques) — app-base.css s'en sert pour header,
      boutons primaires et niveau actif. */
-  :root { --app-header-bg: #C0272D; }
+  :root {
+    /* Domaine : Mathématiques */
+    --app-accent:      #C0272D;
+    --app-accent-dark: #A01F23;
+    --app-tint-bg:     #FDECEA;
+    --app-tint-fg:     #8B0000;
+  }
 
   .canvas-wrap {
     width: 100%;
     background: #fff;
-    border: 1px solid #E2E8F0;
+    border: 1px solid #DFE6EE;
     border-radius: 16px;
     overflow: hidden;
   }
@@ -41,12 +47,12 @@
     max-width: 200px;
     padding: 16px 12px;
     background: #fff;
-    border: 2px solid #E2E8F0;
+    border: 2px solid #DFE6EE;
     border-radius: 14px;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: 22px;
     font-weight: 800;
-    color: #1A1A2E;
+    color: #1A2535;
     cursor: pointer;
     min-height: 64px;
     touch-action: manipulation;
@@ -56,7 +62,7 @@
   }
   .choice-btn:hover { background: #EEF2F7; border-color: #3B7DD8; }
   .choice-btn:active { transform: scale(0.97); }
-  .choice-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; }
+  .choice-btn:focus-visible { outline: 3px solid var(--app-accent); outline-offset: 3px; }
   .choice-btn.correct { background: #D1FAE5; border-color: #10B981; color: #065F46; }
   .choice-btn.wrong   { background: #FEE2E2; border-color: #EF4444; color: #991B1B; }
   .choice-btn:disabled { cursor: default; }
@@ -89,7 +95,7 @@
 
 <header class="app-header" role="banner">
   <a href="../index.html" class="back-link">← Retour</a>
-  <h1>📏 Les longueurs</h1>
+  <h1>Les longueurs</h1>
   <div class="header-spacer"></div>
 </header>
 
@@ -489,7 +495,7 @@
       const barPx = line.len * availW;
 
       // Label
-      ctx.font = `bold 18px 'Nunito', sans-serif`;
+      ctx.font = `bold 18px 'Baloo 2', sans-serif`;
       ctx.fillStyle = line.color;
       ctx.textAlign = 'right';
       ctx.textBaseline = 'middle';
@@ -503,7 +509,7 @@
 
       // Checkmark on correct bar after answer
       if (state.answered && line.name === state.correctName) {
-        ctx.font = `bold 16px 'Nunito', sans-serif`;
+        ctx.font = `bold 16px 'Baloo 2', sans-serif`;
         ctx.fillStyle = '#10B981';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
@@ -511,7 +517,7 @@
       }
       // Cross on chosen-wrong bar
       if (state.answered && state.chosenName === line.name && line.name !== state.correctName) {
-        ctx.font = `bold 16px 'Nunito', sans-serif`;
+        ctx.font = `bold 16px 'Baloo 2', sans-serif`;
         ctx.fillStyle = '#EF4444';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
@@ -545,7 +551,7 @@
 
       // Label near start of bar
       const labelOff = 14;
-      ctx.font = `bold 17px 'Nunito', sans-serif`;
+      ctx.font = `bold 17px 'Baloo 2', sans-serif`;
       ctx.fillStyle = state.answered
         ? (line.name === state.correctName ? '#10B981' : line.color + '99')
         : line.color;
@@ -557,7 +563,7 @@
       if (state.answered && line.name === state.correctName) {
         const ex = sx + Math.cos(angle) * barPx;
         const ey = sy + Math.sin(angle) * barPx;
-        ctx.font = `bold 18px 'Nunito', sans-serif`;
+        ctx.font = `bold 18px 'Baloo 2', sans-serif`;
         ctx.fillStyle = '#10B981';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -568,7 +574,7 @@
       if (state.answered && state.chosenName === line.name && line.name !== state.correctName) {
         const ex = sx + Math.cos(angle) * barPx;
         const ey = sy + Math.sin(angle) * barPx;
-        ctx.font = `bold 18px 'Nunito', sans-serif`;
+        ctx.font = `bold 18px 'Baloo 2', sans-serif`;
         ctx.fillStyle = '#EF4444';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -591,7 +597,7 @@
       const barPx = line.len * availW;
 
       // Label
-      ctx.font = `bold 18px 'Nunito', sans-serif`;
+      ctx.font = `bold 18px 'Baloo 2', sans-serif`;
       ctx.fillStyle = line.color;
       ctx.textAlign = 'right';
       ctx.textBaseline = 'middle';
@@ -619,7 +625,7 @@
           ? (line.correct ? '#10B981' : '#EF4444')
           : '#1A3A5C';
         ctx.fill();
-        ctx.font = `bold 15px 'Nunito', sans-serif`;
+        ctx.font = `bold 15px 'Baloo 2', sans-serif`;
         ctx.fillStyle = '#fff';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
