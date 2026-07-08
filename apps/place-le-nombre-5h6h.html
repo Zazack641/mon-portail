@@ -6,21 +6,25 @@
 <title>Place le nombre</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app-base.css">
 <style>
   :root {
     --color-units:    #3B7DD8;
     --color-tens:     #D64045;
     --color-hundreds: #3A9E6F;
-    --app-header-bg:  #C0272D; /* branche Mathématiques */
+    /* Domaine : Mathématiques */
+    --app-accent:      #C0272D;
+    --app-accent-dark: #A01F23;
+    --app-tint-bg:     #FDECEA;
+    --app-tint-fg:     #8B0000;
   }
 
   /* Number to place — big colored display */
   .target-number {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: clamp(52px, 12vw, 80px);
-    font-weight: 900;
+    font-weight: 800;
     line-height: 1;
     display: flex;
     gap: 2px;
@@ -32,7 +36,7 @@
   .numberline-wrap {
     width: 100%;
     background: #fff;
-    border: 1px solid #E2E8F0;
+    border: 1px solid #DFE6EE;
     border-radius: 16px;
     padding: 16px 8px;
     touch-action: none;
@@ -66,7 +70,7 @@
 
 <header class="app-header" role="banner">
   <a href="../index.html" class="back-link">← Retour</a>
-  <h1>↗️ Place le nombre</h1>
+  <h1>Place le nombre</h1>
   <div class="header-spacer"></div>
 </header>
 
@@ -267,7 +271,7 @@
 
       // Label above
       const userVal = Math.round(nlStart + frac * (nlEnd - nlStart));
-      ctx.font = `bold 18px 'Nunito', sans-serif`;
+      ctx.font = `bold 18px 'Baloo 2', sans-serif`;
       ctx.fillStyle = '#1A3A5C';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'bottom';
@@ -282,7 +286,7 @@
       ctx.beginPath();
       ctx.arc(cx, lineY, 11, 0, Math.PI * 2);
       ctx.fill();
-      ctx.font = `bold 18px 'Nunito', sans-serif`;
+      ctx.font = `bold 18px 'Baloo 2', sans-serif`;
       ctx.fillStyle = '#10B981';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'bottom';

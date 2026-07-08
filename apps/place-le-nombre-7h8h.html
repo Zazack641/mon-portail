@@ -6,11 +6,15 @@
 <title>Place le nombre (7H-8H)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app-base.css">
 <style>
   :root {
-    --app-header-bg: #C0272D;
+    /* Domaine : Mathématiques */
+    --app-accent:      #C0272D;
+    --app-accent-dark: #A01F23;
+    --app-tint-bg:     #FDECEA;
+    --app-tint-fg:     #8B0000;
   }
 
   .line-wrap {
@@ -34,7 +38,7 @@
   /* Focus visible sur la droite (navigation clavier) */
   #number-line:focus,
   #number-line:focus-visible {
-    outline: 3px solid var(--app-header-bg);
+    outline: 3px solid var(--app-accent);
     outline-offset: 4px;
     border-radius: 8px;
   }
@@ -61,7 +65,7 @@
 <!-- ── Header ──────────────────────────────────────────────────────────────── -->
 <header class="app-header" role="banner">
   <a href="../index.html" class="back-link">← Retour</a>
-  <h1>📍 Place le nombre (7H-8H)</h1>
+  <h1>Place le nombre (7H-8H)</h1>
   <div class="header-spacer"></div>
 </header>
 
@@ -118,7 +122,7 @@
         <polygon id="sm-shape" fill="#1A3A5C"/>
         <text id="sm-label"
               text-anchor="middle"
-              font-family="Nunito, sans-serif"
+              font-family="Baloo 2, sans-serif"
               font-weight="800"
               font-size="15"
               fill="#1A3A5C"></text>
