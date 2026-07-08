@@ -6,11 +6,15 @@
 <title>Conversions de mesures</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app-base.css">
 <style>
   :root {
-    --app-header-bg: #C0272D;
+    /* Domaine : Mathématiques */
+    --app-accent:      #C0272D;
+    --app-accent-dark: #A01F23;
+    --app-tint-bg:     #FDECEA;
+    --app-tint-fg:     #8B0000;
   }
 
   .choices-grid {
@@ -25,12 +29,12 @@
   .choice-btn {
     min-height: 72px;
     min-width: 64px;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: 22px;
     font-weight: 800;
-    color: #1A1A2E;
+    color: #1A2535;
     background: #fff;
-    border: 2px solid var(--app-border, #E2E8F0);
+    border: 2px solid var(--app-border, #DFE6EE);
     border-radius: 14px;
     cursor: pointer;
     touch-action: manipulation;
@@ -51,11 +55,11 @@
   .choice-btn:hover,
   .choice-btn:focus-visible {
     background: #f5f5f5;
-    border-color: var(--app-header-bg);
+    border-color: var(--app-accent);
   }
 
   .choice-btn:focus {
-    outline: 3px solid var(--app-header-bg);
+    outline: 3px solid var(--app-accent);
     outline-offset: 2px;
   }
 
@@ -81,7 +85,7 @@
 
 <header class="app-header" role="banner">
   <a href="../index.html" class="back-link">← Retour</a>
-  <h1>📏 Conversions de mesures</h1>
+  <h1>Conversions de mesures</h1>
   <div class="header-spacer"></div>
 </header>
 

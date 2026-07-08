@@ -11,11 +11,17 @@
 <title>Les coordonnées</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app-base.css">
 <style>
   /* ── Branche Mathématiques (MSN) — rouge officiel CIIP ───────────────────── */
-  :root { --app-header-bg: #C0272D; }
+  :root {
+    /* Domaine : Mathématiques */
+    --app-accent:      #C0272D;
+    --app-accent-dark: #A01F23;
+    --app-tint-bg:     #FDECEA;
+    --app-tint-fg:     #8B0000;
+  }
 
   /* ── Quadrillage ─────────────────────────────────────────────────────────── */
   .grid {
@@ -28,8 +34,8 @@
     display: flex; align-items: center; justify-content: center;
     width: clamp(40px, 9vw, 56px);
     height: clamp(48px, 11vw, 64px);
-    font-family: 'Nunito', sans-serif;
-    font-weight: 900;
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 800;
     font-size: clamp(17px, 4.2vw, 23px);
     color: #1A2535;
   }
@@ -39,7 +45,7 @@
     border-radius: 8px;
   }
   /* Surbrillance croisée : lettre + numéro de la case (survol/focus ou sélection) */
-  .grid-label.hl, .grid-label.sel-hl { background: var(--app-header-bg); color: #fff; }
+  .grid-label.hl, .grid-label.sel-hl { background: var(--app-accent); color: #fff; }
   .cell {
     width: clamp(48px, 11vw, 64px);
     height: clamp(48px, 11vw, 64px);
@@ -47,7 +53,7 @@
     border: 2px solid #64748B;            /* bordure nette, contraste ≥ 3:1 */
     background: #fff;
     border-radius: 10px;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-weight: 800;
     font-size: clamp(22px, 6vw, 30px);
     color: var(--app-text);
@@ -56,11 +62,11 @@
   }
   .cell-odd { background: #E5EAF1; }       /* damier : aide au suivi visuel */
   /* Case choisie (1er temps), avant validation — anneau bien visible, sans layout shift */
-  .cell.selected { box-shadow: inset 0 0 0 4px var(--app-header-bg); background: #FFF1F1; }
+  .cell.selected { box-shadow: inset 0 0 0 4px var(--app-accent); background: #FFF1F1; }
   button.cell { cursor: pointer; }
   button.cell:hover:not(:disabled)  { background: #FFF1F1; border-color: #C0272D; }
   button.cell:active:not(:disabled) { background: #FFE4E4; }
-  .cell:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 2px; }
+  .cell:focus-visible { outline: 3px solid var(--app-accent); outline-offset: 2px; }
   .cell:disabled { cursor: default; }
   .cell.cell-correct { background: var(--app-correct-bg); border-color: var(--app-correct-fg); color: var(--app-correct-fg); }
   .cell.cell-wrong   { background: var(--app-wrong-bg);   border-color: var(--app-wrong-fg);   color: var(--app-wrong-fg); }
@@ -76,7 +82,7 @@
     border: 2px solid var(--app-border);
     background: #fff;
     border-radius: 12px;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-weight: 800;
     font-size: clamp(18px, 4.5vw, 22px);
     color: var(--app-text);
@@ -86,8 +92,8 @@
   }
   .coord-btn:hover:not(:disabled)  { background: #FFF1F1; border-color: #C0272D; }
   .coord-btn:active:not(:disabled) { background: #FFE4E4; }
-  .coord-btn.selected { box-shadow: inset 0 0 0 4px var(--app-header-bg); background: #FFF1F1; }
-  .coord-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 2px; }
+  .coord-btn.selected { box-shadow: inset 0 0 0 4px var(--app-accent); background: #FFF1F1; }
+  .coord-btn:focus-visible { outline: 3px solid var(--app-accent); outline-offset: 2px; }
   .coord-btn:disabled { cursor: default; }
   .coord-btn.coord-correct { background: var(--app-correct-bg); border-color: var(--app-correct-fg); color: var(--app-correct-fg); }
   .coord-btn.coord-wrong   { background: var(--app-wrong-bg);   border-color: var(--app-wrong-fg);   color: var(--app-wrong-fg); }
@@ -99,11 +105,11 @@
     color: #1A2535;
     border-radius: 999px;
     padding: 2px 14px;
-    font-family: 'Nunito', sans-serif;
-    font-weight: 900;
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 800;
     white-space: nowrap;
   }
-  .question-box:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; }
+  .question-box:focus-visible { outline: 3px solid var(--app-accent); outline-offset: 3px; }
 
   @media (prefers-reduced-motion: no-preference) {
     .cell       { transition: background 0.12s, border-color 0.12s; }
@@ -117,7 +123,7 @@
 <!-- ── Header ──────────────────────────────────────────────────────────────── -->
 <header class="app-header" role="banner">
   <a href="../index.html" class="back-link">← Retour</a>
-  <h1>🗺️ Les coordonnées</h1>
+  <h1>Les coordonnées</h1>
   <div class="header-spacer"></div>
 </header>
 
