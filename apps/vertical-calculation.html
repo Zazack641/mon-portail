@@ -6,18 +6,21 @@
   <title>Additions en colonne</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="app-base.css">
   <style>
     :root {
       /* Couleur de branche (Mathématiques) — app-base.css l'utilise pour le
          header, les boutons primaires et le niveau actif. */
-      --app-header-bg: #C0272D;
-      /* Variables propres au rendu de la grille de calcul (conservées). */
+      /* Domaine : Mathématiques */
+      --app-accent:      #C0272D;
+      --app-accent-dark: #A01F23;
+      --app-tint-bg:     #FDECEA;
+      --app-tint-fg:     #8B0000;
       --white:     #ffffff;
       --text:      #1A2535;
       --muted:     #64748B;
-      --border:    #E2E8F0;
+      --border:    #DFE6EE;
     }
 
     /* ── Layout ── */
@@ -68,7 +71,7 @@
       border-radius: 7px;
       background: #F8FAFC;
       text-align: center;
-      font-family: 'Nunito', sans-serif;
+      font-family: 'Baloo 2', sans-serif;
       font-size: 15px;
       font-weight: 800;
       color: #94A3B8;
@@ -83,18 +86,18 @@
     .td-sign {
       text-align: right;
       padding-right: 8px;
-      font-family: 'Nunito', sans-serif;
+      font-family: 'Baloo 2', sans-serif;
       font-size: 44px;
-      font-weight: 900;
+      font-weight: 800;
       color: var(--muted);
       vertical-align: middle;
       height: 60px;
     }
     .td-digit { text-align: center; padding: 2px 6px; height: 60px; vertical-align: middle; }
     .digit {
-      font-family: 'Nunito', sans-serif;
+      font-family: 'Baloo 2', sans-serif;
       font-size: 44px;
-      font-weight: 900;
+      font-weight: 800;
       line-height: 1;
       display: block;
     }
@@ -114,9 +117,9 @@
       border-radius: 10px;
       background: #F8FAFC;
       text-align: center;
-      font-family: 'Nunito', sans-serif;
+      font-family: 'Baloo 2', sans-serif;
       font-size: 42px;
-      font-weight: 900;
+      font-weight: 800;
       color: var(--text);
       outline: none;
       -webkit-appearance: none;
