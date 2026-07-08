@@ -6,11 +6,15 @@
 <title>Le saut de nombre (3H-4H)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app-base.css">
 <style>
   :root {
-    --app-header-bg: #C0272D; /* branche Mathématiques */
+    /* Domaine : Mathématiques */
+    --app-accent:      #C0272D;
+    --app-accent-dark: #A01F23;
+    --app-tint-bg:     #FDECEA;
+    --app-tint-fg:     #8B0000;
   }
   /* --color-units/tens/hundreds, .app-header, .back-link, .app-header h1,
      .header-spacer et main sont fournis par app-base.css (déjà lié ci-dessus)
@@ -31,9 +35,9 @@
     letter-spacing: 0.8px;
   }
   .current-number {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: clamp(56px, 14vw, 88px);
-    font-weight: 900;
+    font-weight: 800;
     line-height: 1;
     display: flex;
     gap: 2px;
@@ -52,9 +56,9 @@
     border-radius: 14px;
     border: 2.5px solid;
     background: #fff;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: clamp(22px, 4vw, 24px);
-    font-weight: 900;
+    font-weight: 800;
     cursor: pointer;
     min-height: 64px;
     touch-action: manipulation;
@@ -65,7 +69,7 @@
     justify-content: center;
   }
   .jump-btn:active { transform: scale(0.95); }
-  .jump-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; }
+  .jump-btn:focus-visible { outline: 3px solid var(--app-accent); outline-offset: 3px; }
   .jump-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
 
   .jump-btn.units-pos  { color: var(--color-units); border-color: var(--color-units); }
@@ -83,7 +87,7 @@
     gap: 16px;
     width: 100%;
     background: #fff;
-    border: 1px solid #E2E8F0;
+    border: 1px solid #DFE6EE;
     border-radius: 16px;
     padding: 16px 24px;
     flex-wrap: wrap;
@@ -94,9 +98,9 @@
     color: #64748B;
   }
   .target-number {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: clamp(28px, 6vw, 40px);
-    font-weight: 900;
+    font-weight: 800;
     color: #0F7860;
     display: flex;
     gap: 2px;
@@ -115,7 +119,7 @@
 
 <header class="app-header" role="banner">
   <a href="../index.html" class="back-link">← Retour</a>
-  <h1>🦘 Le saut de nombre (3H-4H)</h1>
+  <h1>Le saut de nombre (3H-4H)</h1>
   <div class="header-spacer"></div>
 </header>
 
