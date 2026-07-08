@@ -6,10 +6,16 @@
 <title>Les surfaces — Calculer des aires</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app-base.css">
 <style>
-  :root { --app-header-bg: #C0272D; }
+  :root {
+    /* Domaine : Mathématiques */
+    --app-accent:      #C0272D;
+    --app-accent-dark: #A01F23;
+    --app-tint-bg:     #FDECEA;
+    --app-tint-fg:     #8B0000;
+  }
 
   .shapes-row {
     display: flex;
@@ -28,7 +34,7 @@
     cursor: pointer;
     touch-action: manipulation;
     padding: 10px;
-    border: 3px solid #E2E8F0;
+    border: 3px solid #DFE6EE;
     border-radius: 14px;
     background: #fff;
     transition: border-color 0.15s, background 0.15s;
@@ -40,17 +46,17 @@
   .shape-item.wrong    { border-color: #EF4444; background: #FEE2E2; }
 
   .shape-label {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: 15px;
     font-weight: 800;
     color: #64748B;
   }
 
   .dim-label {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: 17px;
-    font-weight: 900;
-    color: #1A1A2E;
+    font-weight: 800;
+    color: #1A2535;
   }
 
   .grid-note {
@@ -66,7 +72,7 @@
 
 <header class="app-header">
   <a href="../index.html" class="back-link">← Retour</a>
-  <h1>📐 Les surfaces</h1>
+  <h1>Les surfaces</h1>
   <div class="header-spacer"></div>
 </header>
 
