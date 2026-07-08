@@ -6,41 +6,21 @@
 <title>Valeur de position</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app-base.css">
 <style>
   :root {
     --color-units:    #3B7DD8;
     --color-tens:     #D64045;
     --color-hundreds: #3A9E6F;
-    --app-header-bg:  #C0272D; /* branche Mathématiques */
+    /* Domaine : Mathématiques */
+    --app-accent:      #C0272D;
+    --app-accent-dark: #A01F23;
+    --app-tint-bg:     #FDECEA;
+    --app-tint-fg:     #8B0000;
   }
 
-  .app-header {
-    background: #C0272D;
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  .back-link {
-    color: rgba(255,255,255,0.85);
-    text-decoration: none;
-    font-size: 15px;
-    font-weight: 600;
-    white-space: nowrap;
-    touch-action: manipulation;
-  }
-  .back-link:hover { color: #fff; }
-  .app-header h1 {
-    font-family: 'Nunito', sans-serif;
-    font-size: clamp(18px, 4vw, 24px);
-    font-weight: 900;
-    color: #fff;
-    flex: 1;
-    text-align: center;
-  }
-  .header-spacer { width: 80px; }
+  /* .app-header, .back-link : fournis par app-base.css */
 
   main {
     flex: 1;
@@ -69,9 +49,9 @@
     gap: 4px;
   }
   .digit-char {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: clamp(56px, 14vw, 88px);
-    font-weight: 900;
+    font-weight: 800;
     line-height: 1;
     color: #CBD5E0;
     transition: color 0.2s;
@@ -102,12 +82,12 @@
     max-width: 180px;
     padding: 16px 12px;
     background: #fff;
-    border: 2.5px solid #E2E8F0;
+    border: 2.5px solid #DFE6EE;
     border-radius: 14px;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: clamp(18px, 3.5vw, 22px);
     font-weight: 800;
-    color: #1A1A2E;
+    color: #1A2535;
     cursor: pointer;
     min-height: 64px;
     touch-action: manipulation;
@@ -125,7 +105,7 @@
   .place-table {
     display: flex;
     gap: 0;
-    border: 2px solid #E2E8F0;
+    border: 2px solid #DFE6EE;
     border-radius: 14px;
     overflow: hidden;
     width: 100%;
@@ -137,7 +117,7 @@
     flex-direction: column;
     align-items: center;
   }
-  .place-col:not(:last-child) { border-right: 2px solid #E2E8F0; }
+  .place-col:not(:last-child) { border-right: 2px solid #DFE6EE; }
   .place-header {
     padding: 8px 4px;
     font-size: 12px;
@@ -149,12 +129,12 @@
   }
   .place-value {
     padding: 12px 4px;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: clamp(28px, 6vw, 40px);
-    font-weight: 900;
+    font-weight: 800;
     width: 100%;
     text-align: center;
-    border-top: 2px solid #E2E8F0;
+    border-top: 2px solid #DFE6EE;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -170,7 +150,7 @@
 
 <header class="app-header" role="banner">
   <a href="../index.html" class="back-link">← Retour</a>
-  <h1>🧩 Valeur de position</h1>
+  <h1>Valeur de position</h1>
   <div class="header-spacer"></div>
 </header>
 
