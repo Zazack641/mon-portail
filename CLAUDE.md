@@ -225,8 +225,8 @@ Pour le design des apps pédagogiques (typographie incluse), la source est `skil
 |------|--------|
 | Fond de page | `#E9EDF4` (`#F0F4F8` avant la migration « Couleur franche ») |
 | Texte principal | `#1A2535` |
-| Header / bouton math | `#1A3A5C` |
-| Filtre actif domaine | `#1A3A5C` |
+| Header du portail / filtre « Toutes les branches » | `#14202E` (`#1A3A5C` avant la migration — voir couleur « Neutre » dans la table des variables d'apps) |
+| Filtre actif domaine | couleur du domaine (ex. maths `#C0272D`, français `#7A6200`) |
 | Filtre actif cycle | `#0F7860` |
 | Bouton Français | `#0F7860` |
 | Accent math (badge bg) | `#EBF3FC` |
@@ -247,7 +247,8 @@ Pour le design des apps pédagogiques (typographie incluse), la source est `skil
 |---------|--------|
 | Cartes | `18px` |
 | Icônes carrées | `14px` |
-| Boutons lancer / recherche | `12px` |
+| Bouton « Lancer » (cartes) | `16px` (`12px` avant la migration « Couleur franche ») |
+| Recherche | `12px` (inchangé) |
 | Filtres / badges | `999px` (pilule) |
 
 Pour les apps pédagogiques (`.verify-btn`, `.new-btn` dans `apps/app-base.css`), depuis la migration « Couleur franche » : rayon `16px` (au lieu de `12px`), hauteur minimale `68px` (au lieu de `64px`). Les pilules de niveau (`.level-btn`) restent en `999px`, désormais teintées par domaine (voir « Variables CSS des apps par domaine »).
@@ -258,9 +259,9 @@ Pour les apps pédagogiques (`.verify-btn`, `.new-btn` dans `apps/app-base.css`)
 
 | Élément (portail `index.html`) | Taille min |
 |---------|-----------|
-| Boutons filtres (mobile) | `min-height: 36px` |
-| Boutons filtres (≥768px) | `min-height: 40px` |
-| Bouton « Lancer » | `padding: 14px` (≥15px sur tablette) |
+| Boutons filtres | `min-height: 56px` (toutes tailles d'écran, depuis la migration « Couleur franche » ; `36px`/`40px` mobile/tablette avant) |
+| Recherche | `min-height: 56px` |
+| Bouton « Lancer » | `min-height: 68px` (`padding: 14px` avant la migration) |
 
 Tous les éléments interactifs du portail ont `touch-action: manipulation` et `-webkit-appearance: none`.
 
