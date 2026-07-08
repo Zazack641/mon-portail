@@ -6,11 +6,15 @@
 <title>Le comparateur de nombres (3H-4H)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app-base.css">
 <style>
   :root {
-    --app-header-bg: #C0272D; /* Mathématiques */
+    /* Domaine : Mathématiques */
+    --app-accent:      #C0272D;
+    --app-accent-dark: #A01F23;
+    --app-tint-bg:     #FDECEA;
+    --app-tint-fg:     #8B0000;
   }
 
   .comparison-row {
@@ -37,9 +41,9 @@
   }
 
   .digit {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: clamp(40px, 10vw, 64px);
-    font-weight: 900;
+    font-weight: 800;
     line-height: 1;
   }
   .digit.units { color: var(--color-units); }
@@ -57,9 +61,9 @@
     border-radius: 14px;
     border: 2.5px solid var(--app-border);
     background: #fff;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: clamp(22px, 5vw, 30px);
-    font-weight: 900;
+    font-weight: 800;
     color: var(--app-text);
     cursor: pointer;
     touch-action: manipulation;
@@ -104,7 +108,7 @@
 
 <header class="app-header" role="banner">
   <a href="../index.html" class="back-link">← Retour</a>
-  <h1>🔢 Le comparateur de nombres</h1>
+  <h1>Le comparateur de nombres</h1>
   <div class="header-spacer"></div>
 </header>
 
