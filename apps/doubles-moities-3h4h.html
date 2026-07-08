@@ -6,11 +6,15 @@
 <title>Doubles et moitiés — Maths 3H-4H</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app-base.css">
 <style>
   :root {
-    --app-header-bg: #C0272D;
+    /* Domaine : Mathématiques */
+    --app-accent:      #C0272D;
+    --app-accent-dark: #A01F23;
+    --app-tint-bg:     #FDECEA;
+    --app-tint-fg:     #8B0000;
   }
 
   /* ── Affichage de l'équation ─────────────────────────────────────────────── */
@@ -19,8 +23,8 @@
     align-items: center;
     justify-content: center;
     gap: clamp(8px, 2.5vw, 20px);
-    font-family: 'Nunito', sans-serif;
-    font-weight: 900;
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 800;
     font-size: clamp(38px, 10vw, 68px);
     margin: 8px auto;
     flex-wrap: wrap;
@@ -38,10 +42,10 @@
     justify-content: center;
     min-width: clamp(60px, 14vw, 90px);
     min-height: clamp(56px, 12vw, 80px);
-    border-bottom: 5px solid var(--app-header-bg);
+    border-bottom: 5px solid var(--app-accent);
     color: transparent;
     font-size: inherit;
-    font-weight: 900;
+    font-weight: 800;
     border-radius: 4px;
     padding: 0 6px;
   }
@@ -67,13 +71,13 @@
 
   .choice-btn {
     min-height: 72px;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-weight: 800;
     font-size: clamp(28px, 7vw, 44px);
     border-radius: 16px;
-    border: 3px solid var(--app-border, #E2E8F0);
+    border: 3px solid var(--app-border, #DFE6EE);
     background: #fff;
-    color: #1A1A2E;
+    color: #1A2535;
     cursor: pointer;
     touch-action: manipulation;
     -webkit-appearance: none;
@@ -99,7 +103,7 @@
   }
 
   .choice-btn:focus-visible {
-    outline: 3px solid var(--app-header-bg);
+    outline: 3px solid var(--app-accent);
     outline-offset: 2px;
   }
 
@@ -112,7 +116,7 @@
 
 <header class="app-header" role="banner">
   <a href="../index.html" class="back-link">← Retour</a>
-  <h1>2️⃣ Doubles et moitiés</h1>
+  <h1>Doubles et moitiés</h1>
   <div class="header-spacer"></div>
 </header>
 

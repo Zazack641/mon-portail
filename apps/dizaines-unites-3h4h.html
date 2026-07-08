@@ -6,11 +6,15 @@
 <title>Dizaines et unités</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app-base.css">
 <style>
   :root {
-    --app-header-bg: #C0272D; /* Mathématiques — MSN */
+    /* Domaine : Mathématiques */
+    --app-accent:      #C0272D;
+    --app-accent-dark: #A01F23;
+    --app-tint-bg:     #FDECEA;
+    --app-tint-fg:     #8B0000;
     --color-units:    #3B7DD8;
     --color-tens:     #D64045;
     --color-hundreds: #3A9E6F;
@@ -21,9 +25,9 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: clamp(80px, 22vw, 130px);
-    font-weight: 900;
+    font-weight: 800;
     line-height: 1;
     min-height: 130px;
     width: 100%;
@@ -77,9 +81,9 @@
     border-radius: 4px;
   }
   .blocks-sep {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: 28px;
-    font-weight: 900;
+    font-weight: 800;
     color: #94A3B8;
     display: flex;
     align-items: center;
@@ -102,16 +106,16 @@
     gap: 6px;
   }
   .slot-label {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: 20px;
     font-weight: 800;
     text-align: center;
   }
   /* Le carré qui affiche la valeur sélectionnée */
   .slot-value {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: 56px;
-    font-weight: 900;
+    font-weight: 800;
     width: 84px;
     height: 84px;
     display: flex;
@@ -134,9 +138,9 @@
     border-radius: 12px;
     border: 2px solid var(--app-border);
     background: #F8FAFC;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: 28px;
-    font-weight: 900;
+    font-weight: 800;
     cursor: pointer;
     touch-action: manipulation;
     -webkit-appearance: none;
@@ -148,13 +152,13 @@
   }
   .spin-btn:hover { background: #EEF2F7; }
   .spin-btn:active { transform: scale(0.96); }
-  .spin-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; }
+  .spin-btn:focus-visible { outline: 3px solid var(--app-accent); outline-offset: 3px; }
   .spin-btn:disabled { opacity: 0.4; cursor: default; }
 
   .slot-connector {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: 28px;
-    font-weight: 900;
+    font-weight: 800;
     color: #94A3B8;
     display: flex;
     align-items: center;
@@ -172,7 +176,7 @@
 <!-- ── Header ──────────────────────────────────────────────────────────────── -->
 <header class="app-header" role="banner">
   <a href="../index.html" class="back-link">← Retour</a>
-  <h1>🔟 Dizaines et unités</h1>
+  <h1>Dizaines et unités</h1>
   <div class="header-spacer"></div>
 </header>
 
