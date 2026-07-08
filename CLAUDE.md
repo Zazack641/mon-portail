@@ -9,6 +9,7 @@ Ces règles s'appliquent à chaque tâche, sans exception.
 3. Ne jamais inventer de conventions de couleur — utiliser `var(--color-units)`, `var(--color-tens)`, `var(--color-hundreds)`.
 4. Ne jamais appliquer le title case anglais aux titres français.
 5. Ne jamais modifier les IDs JS critiques (`#search-input`, `#app-grid`, etc.) ni les attributs `data-*` des cartes.
+6. Ne jamais ajouter d'émoji dans le `<h1>` d'une app — le domaine est porté par la couleur du header (`--app-accent`), pas par une icône.
 
 ---
 
@@ -97,7 +98,7 @@ Le template référence automatiquement trois fichiers partagés :
 
 | Fichier | Rôle |
 |---------|------|
-| [`apps/app-base.css`](apps/app-base.css) | Reset, header, level-bar, question-box, feedback, boutons d'action, variables CSS couleurs |
+| [`apps/app-base.css`](apps/app-base.css) | Reset, header, level-bar, question-box, feedback, boutons d'action, variables CSS couleurs (dont `--app-accent`/`--app-accent-dark`/`--app-tint-bg`/`--app-tint-fg`, à surcharger par domaine — voir « Variables CSS des apps par domaine » plus bas) |
 | [`apps/appUtils.js`](apps/appUtils.js) | `randInt`, `randBetween`, `shuffle`, `pick`, `colorForRank` + boucle de tabulation Tab/Shift+Tab automatique, voir `skills/accessibilite/SKILL.md` |
 | [`apps/feedbackUtils.js`](apps/feedbackUtils.js) | `playCorrect`, `playIncorrect`, `launchConfetti` |
 
@@ -133,8 +134,10 @@ Chaque branche appartient à un domaine PER parent.
 | Branche  | Header / bouton | Fond badge | Texte badge | Point filtre |
 |----------|-----------------|------------|-------------|--------------|
 | Français | `#7A6200`       | `#FBF5D6`  | `#7A6200`   | `#B8960C`    |
-| Allemand | `#6B5800`       | `#F5F0D0`  | `#6B5800`   | `#A08510`    |
-| Anglais  | `#5C4D00`       | `#F0ECC8`  | `#5C4D00`   | `#8C7515`    |
+| Allemand | `#4F6320`       | `#F5F0D0`  | `#6B5800`   | `#A08510`    |
+| Anglais  | `#8C4A10`       | `#F0ECC8`  | `#5C4D00`   | `#8C7515`    |
+
+> **Mise à jour 08.07.2026 :** Allemand (`#6B5800` → `#4F6320` olive) et Anglais (`#5C4D00` → `#8C4A10` bronze-ambré) s'écartent volontairement du jaune-brun du français, trop proche en bandeau plein — validé le 08.07.2026. Seul le "Header / bouton" change ici ; fond/texte badge et point filtre restent inchangés pour l'instant dans cette table (portail `index.html`, non encore migré). Pour les apps, voir la table complète ci-dessous.
 
 > **Note contraste :** les couleurs "Header / bouton" sont choisies pour garantir un rapport ≥ 4,5:1 avec le texte blanc (WCAG AA). Les nuances plus claires (colonne "Point filtre") ne conviennent qu'aux éléments décoratifs (dot 8px) sur fond blanc — elles ne peuvent pas servir de fond à du texte blanc.
 
@@ -151,6 +154,24 @@ Chaque branche appartient à un domaine PER parent.
 |-----------|-----------------|------------|-------------|
 | Géographie | `#1A6B4A`      | `#E6F2ED`  | `#0D4A30`   |
 | Histoire   | `#1A5C5C`      | `#E0EEEE`  | `#0D3D3D`   |
+
+### Variables CSS des apps par domaine (design « Couleur franche »)
+
+Depuis la migration « Couleur franche », le header de chaque app (et ses éléments teintés : pilules de niveau, boutons d'action) n'utilise plus un bleu marine unique mais la couleur de son domaine, via 4 variables CSS surchargées dans le `:root` de chaque app (déclarées par défaut sur le neutre dans `apps/app-base.css`, voir `--app-header-bg: var(--app-accent)`) :
+
+| Domaine | `--app-accent` (header/boutons) | `--app-accent-dark` (hover) | `--app-tint-bg` (pilules/badges) | `--app-tint-fg` (texte sur tint) |
+|---|---|---|---|---|
+| Mathématiques | `#C0272D` | `#A01F23` | `#FDECEA` | `#8B0000` |
+| Français | `#7A6200` | `#5C4A00` | `#FBF5D6` | `#7A6200` |
+| Allemand | `#4F6320` | `#3D4D16` | `#EEF3DC` | `#3A4A12` |
+| Anglais | `#8C4A10` | `#6E3A0C` | `#F7EAD9` | `#6E3A0C` |
+| Sciences de la nature | `#A02030` | `#801828` | `#F8E4E4` | `#700018` |
+| Géographie | `#1A6B4A` | `#145438` | `#E6F2ED` | `#0D4A30` |
+| Histoire | `#1A5C5C` | `#144646` | `#E0EEEE` | `#0D3D3D` |
+| Cycles (générique) | `#0F7860` | `#0A5343` | `#E4F2EE` | `#0A5343` |
+| Neutre (défaut `app-base.css`) | `#14202E` | `#0B141F` | `#EEF2F7` | `#33415A` |
+
+Tous ces couples texte/fond tiennent AA (la plupart AAA) : blanc sur accent ≥ 4,9:1, tint-fg sur tint-bg ≥ 7:1. Les pilules de niveau (`.level-btn`) sont teintées `--app-tint-bg`/`--app-tint-fg` au repos et passent en `--app-accent` (fond plein, texte blanc) à l'état actif.
 
 ### Valeurs `data-*` des cartes
 
@@ -191,10 +212,10 @@ Donc : **ne jamais créer une app dont l'objectif principal est MSN 15 ou MSN 25
 
 | Usage | Police | Graisse |
 |-------|--------|---------|
-| Titres (h1, h2 cartes, boutons) | **Nunito** | 800–900 |
+| Titres (h1, h2 cartes, boutons) | **Baloo 2** | 600–800 |
 | Corps de texte, filtres, descriptions | **Source Sans 3** | 400–700 |
 
-Chargées depuis Google Fonts (également en cache local dans `_files/`).
+Chargées depuis Google Fonts (également en cache local dans `_files/`). Baloo 2 remplace Nunito depuis la migration « Couleur franche » (08.07.2026) ; poids maximum utilisé : 800 (jamais 900). Les `h1` d'app n'affichent plus d'émoji — voir interdiction absolue #6.
 
 Pour le design des apps pédagogiques (typographie incluse), la source est `skills/design-portail/SKILL.md` ; les seuils tactiles et de texte des apps relèvent de `skills/accessibilite/SKILL.md`.
 
@@ -202,7 +223,7 @@ Pour le design des apps pédagogiques (typographie incluse), la source est `skil
 
 | Rôle | Valeur |
 |------|--------|
-| Fond de page | `#F0F4F8` |
+| Fond de page | `#E9EDF4` (`#F0F4F8` avant la migration « Couleur franche ») |
 | Texte principal | `#1A2535` |
 | Header / bouton math | `#1A3A5C` |
 | Filtre actif domaine | `#1A3A5C` |
@@ -228,6 +249,8 @@ Pour le design des apps pédagogiques (typographie incluse), la source est `skil
 | Icônes carrées | `14px` |
 | Boutons lancer / recherche | `12px` |
 | Filtres / badges | `999px` (pilule) |
+
+Pour les apps pédagogiques (`.verify-btn`, `.new-btn` dans `apps/app-base.css`), depuis la migration « Couleur franche » : rayon `16px` (au lieu de `12px`), hauteur minimale `68px` (au lieu de `64px`). Les pilules de niveau (`.level-btn`) restent en `999px`, désormais teintées par domaine (voir « Variables CSS des apps par domaine »).
 
 ### Tailles tactiles minimum (iPad)
 
@@ -379,7 +402,7 @@ playIncorrect();  // descente sawtooth, ~0,4s — aucune animation
 2. **Les IDs JS** : `#search-input`, `#domain-filters`, `#cycle-filters`, `#result-count`, `#no-results`, `#app-grid`.
 3. **Les classes de state** : `.active-domain`, `.active-cycle`, `.hidden`, `.visible`.
 4. **Le CSS de la barre `controls`** : `position: sticky; top: 0; z-index: 100` — nécessaire pour que les filtres restent visibles lors du scroll.
-5. **Les polices Google Fonts** : les deux familles (Nunito + Source Sans 3) doivent toujours être chargées ensemble.
+5. **Les polices Google Fonts** : les deux familles (Baloo 2 + Source Sans 3) doivent toujours être chargées ensemble.
 
 ---
 

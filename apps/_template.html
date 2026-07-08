@@ -1,16 +1,20 @@
 <!DOCTYPE html>
 <!--
   _template.html — Squelette canonique pour une nouvelle app pédagogique.
+  Design « Couleur franche » (refonte 2026).
 
   UTILISATION :
     1. Copier ce fichier sous le nom de la nouvelle app (ex. apps/mon-activite.html).
     2. Remplacer tous les blocs marqués « TODO » ci-dessous.
-    3. Ne pas modifier les classes/IDs marqués « NE PAS CHANGER » — ils correspondent
+    3. Choisir la couleur du domaine dans le bloc :root ci-dessous.
+    4. Ne pas modifier les classes/IDs marqués « NE PAS CHANGER » — ils correspondent
        aux conventions documentées dans CLAUDE.md.
 
   CHECKLIST avant livraison :
     [ ] <title> renseigné
-    [ ] Emoji + titre dans le <h1>
+    [ ] Titre dans le <h1> (sans émoji — le domaine est porté par la couleur du header)
+    [ ] Variables --app-accent / --app-accent-dark / --app-tint-bg / --app-tint-fg
+        réglées sur la branche de l'activité
     [ ] Niveaux définis dans .level-bar (au moins 2 boutons)
     [ ] playCorrect() + launchConfetti() appelés sur bonne réponse
     [ ] playIncorrect() appelé seul sur mauvaise réponse (pas de confettis)
@@ -25,16 +29,37 @@
 <title>TODO — Titre de l'activité</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 <!-- Styles partagés (reset, header, level-bar, feedback, boutons d'action…) -->
 <link rel="stylesheet" href="app-base.css">
 <style>
+  /* ── Couleur du domaine — TODO : choisir la branche de l'activité ───────── */
+  /*
+    Table complète (validée 08.07.2026, cf. NOTES-MIGRATION.md) :
+    Maths      : --app-accent:#C0272D; --app-accent-dark:#A01F23; --app-tint-bg:#FDECEA; --app-tint-fg:#8B0000;
+    Français   : --app-accent:#7A6200; --app-accent-dark:#5C4A00; --app-tint-bg:#FBF5D6; --app-tint-fg:#7A6200;
+    Allemand   : --app-accent:#4F6320; --app-accent-dark:#3D4D16; --app-tint-bg:#EEF3DC; --app-tint-fg:#3A4A12;
+    Anglais    : --app-accent:#8C4A10; --app-accent-dark:#6E3A0C; --app-tint-bg:#F7EAD9; --app-tint-fg:#6E3A0C;
+    Sciences   : --app-accent:#A02030; --app-accent-dark:#801828; --app-tint-bg:#F8E4E4; --app-tint-fg:#700018;
+    Géographie : --app-accent:#1A6B4A; --app-accent-dark:#145438; --app-tint-bg:#E6F2ED; --app-tint-fg:#0D4A30;
+    Histoire   : --app-accent:#1A5C5C; --app-accent-dark:#144646; --app-tint-bg:#E0EEEE; --app-tint-fg:#0D3D3D;
+    Cycles     : --app-accent:#0F7860; --app-accent-dark:#0A5343; --app-tint-bg:#E4F2EE; --app-tint-fg:#0A5343;
+    Neutre     : --app-accent:#14202E; --app-accent-dark:#0B141F; --app-tint-bg:#EEF2F7; --app-tint-fg:#33415A;
+  */
+  :root {
+    --app-accent:      #C0272D; /* TODO */
+    --app-accent-dark: #A01F23; /* TODO */
+    --app-tint-bg:     #FDECEA; /* TODO */
+    --app-tint-fg:     #8B0000; /* TODO */
+  }
+
   /* ── TODO : styles spécifiques à l'app ──────────────────────────────────── */
   /*
     Ajouter ici uniquement les styles propres à cette activité (canvas, SVG,
     grilles de choix…). Ne pas redéfinir ce qui est déjà dans app-base.css.
     Exemple :
-      .canvas-wrap { width: 100%; background: #fff; border: 1px solid var(--app-border); border-radius: 16px; }
+      .canvas-wrap { width: 100%; background: #fff; border-radius: 20px;
+                     box-shadow: 0 2px 8px rgba(20,32,46,0.08); }
   */
 </style>
 </head>
@@ -42,8 +67,8 @@
 
 <!-- ── Header ──────────────────────────────────────────────────────────────── -->
 <header class="app-header" role="banner">
-  <a href="../index.html" class="back-link">← Retour</a>
-  <h1>TODO 🎯 Titre de l'activité</h1>
+  <a href="../index.html" class="back-link"><span aria-hidden="true">←</span> Retour</a>
+  <h1>TODO — Titre de l'activité</h1>
   <div class="header-spacer"></div>
 </header>
 

@@ -1,4 +1,5 @@
 /* app-base.css — Styles partagés entre toutes les apps pédagogiques.
+   Design « Couleur franche » (refonte 2026).
    NE PAS IMPORTER dans les apps existantes — uniquement pour les nouvelles apps
    créées à partir de _template.html.                                          */
 
@@ -8,10 +9,27 @@
   --color-tens:     #D64045; /* dizaines  — rouge */
   --color-hundreds: #3A9E6F; /* centaines — vert  */
 
-  --app-bg:         #F7F8FA;
-  --app-text:       #1A1A2E;
-  --app-border:     #E2E8F0;
-  --app-header-bg:  #1A3A5C;
+  --app-bg:         #E9EDF4;
+  --app-text:       #1A2535;
+  --app-border:     #DFE6EE;
+
+  /* Couleur du domaine — SURCHARGER dans chaque app (voir _template.html).
+     Table complète (validée 08.07.2026, cf. NOTES-MIGRATION.md) :
+     Maths      : --app-accent:#C0272D; --app-accent-dark:#A01F23; --app-tint-bg:#FDECEA; --app-tint-fg:#8B0000;
+     Français   : --app-accent:#7A6200; --app-accent-dark:#5C4A00; --app-tint-bg:#FBF5D6; --app-tint-fg:#7A6200;
+     Allemand   : --app-accent:#4F6320; --app-accent-dark:#3D4D16; --app-tint-bg:#EEF3DC; --app-tint-fg:#3A4A12;
+     Anglais    : --app-accent:#8C4A10; --app-accent-dark:#6E3A0C; --app-tint-bg:#F7EAD9; --app-tint-fg:#6E3A0C;
+     Sciences   : --app-accent:#A02030; --app-accent-dark:#801828; --app-tint-bg:#F8E4E4; --app-tint-fg:#700018;
+     Géographie : --app-accent:#1A6B4A; --app-accent-dark:#145438; --app-tint-bg:#E6F2ED; --app-tint-fg:#0D4A30;
+     Histoire   : --app-accent:#1A5C5C; --app-accent-dark:#144646; --app-tint-bg:#E0EEEE; --app-tint-fg:#0D3D3D;
+     Cycles     : --app-accent:#0F7860; --app-accent-dark:#0A5343; --app-tint-bg:#E4F2EE; --app-tint-fg:#0A5343;
+     Neutre     : --app-accent:#14202E; --app-accent-dark:#0B141F; --app-tint-bg:#EEF2F7; --app-tint-fg:#33415A; (défaut ci-dessous) */
+  --app-accent:      #14202E;
+  --app-accent-dark: #0B141F;
+  --app-tint-bg:     #EEF2F7;
+  --app-tint-fg:     #33415A;
+  --app-header-bg:   var(--app-accent);
+
   --app-correct-bg: #D1FAE5;
   --app-correct-fg: #065F46;
   --app-wrong-bg:   #FEE2E2;
@@ -35,63 +53,69 @@ body {
 /* NE PAS CHANGER les classes .app-header, .back-link, .header-spacer */
 .app-header {
   background: var(--app-header-bg);
-  padding: 16px 20px;
+  padding: 14px 20px;
   display: flex;
   align-items: center;
   gap: 16px;
 }
 .back-link {
-  color: rgba(255,255,255,0.85);
-  text-decoration: none;
-  font-size: 15px;
-  font-weight: 600;
-  white-space: nowrap;
-  touch-action: manipulation;
   display: inline-flex;
   align-items: center;
+  gap: 8px;
   min-height: 44px;
+  padding: 0 20px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+  text-decoration: none;
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  white-space: nowrap;
+  touch-action: manipulation;
 }
-.back-link:hover { color: #fff; }
-.back-link:focus-visible { outline: 3px solid rgba(255,255,255,0.9); outline-offset: 4px; border-radius: 4px; }
+.back-link:hover { background: rgba(255,255,255,0.30); color: #fff; }
+.back-link:focus-visible { outline: 3px solid rgba(255,255,255,0.9); outline-offset: 4px; }
 .app-header h1 {
-  font-family: 'Nunito', sans-serif;
-  font-size: clamp(18px, 4vw, 24px);
-  font-weight: 900;
+  font-family: 'Baloo 2', sans-serif;
+  font-size: clamp(22px, 4vw, 28px);
+  font-weight: 800;
   color: #fff;
   flex: 1;
   text-align: center;
+  line-height: 1.1;
 }
-.header-spacer { width: 80px; }
+.header-spacer { width: 132px; }
 
 /* ── Sélecteur de niveau ─────────────────────────────────────────────────── */
 /* NE PAS CHANGER les classes .level-bar, .level-btn */
 .level-bar {
   background: #fff;
-  border-bottom: 1px solid var(--app-border);
-  padding: 12px 20px;
+  box-shadow: 0 2px 10px rgba(20,32,46,0.06);
+  padding: 14px 20px;
   display: flex;
   justify-content: center;
   gap: 12px;
   flex-wrap: wrap;
 }
 .level-btn {
-  padding: 10px 24px;
+  padding: 0 26px;
   border-radius: 999px;
-  border: 2px solid var(--app-border);
-  background: #F8FAFC;
-  color: #4A5568;
-  font-family: 'Source Sans 3', sans-serif;
+  border: none;
+  background: var(--app-tint-bg);
+  color: var(--app-tint-fg);
+  font-family: 'Baloo 2', sans-serif;
   font-size: 22px;
   font-weight: 700;
   cursor: pointer;
-  min-height: 48px;
-  min-width: 44px;
+  min-height: 56px;
+  min-width: 64px;
   touch-action: manipulation;
   -webkit-appearance: none;
 }
-.level-btn.active               { background: var(--app-header-bg); color: #fff; border-color: var(--app-header-bg); }
-.level-btn:not(.active):hover   { background: #EEF2F7; border-color: #CBD5E0; }
-.level-btn:focus-visible        { outline: 3px solid var(--app-header-bg); outline-offset: 3px; }
+.level-btn.active               { background: var(--app-accent); color: #fff; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.35); }
+.level-btn:not(.active):hover   { filter: brightness(0.96); }
+.level-btn:focus-visible        { outline: 3px solid var(--app-accent); outline-offset: 3px; }
 .level-btn.active:focus-visible { outline: 3px solid rgba(255,255,255,0.9); outline-offset: 3px; }
 
 /* ── Zone principale ─────────────────────────────────────────────────────── */
@@ -100,7 +124,7 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 24px 16px 40px;
+  padding: 28px 16px 44px;
   gap: 24px;
   max-width: 680px;
   margin: 0 auto;
@@ -111,28 +135,28 @@ main {
 /* NE PAS CHANGER la classe .question-box */
 .question-box {
   background: #fff;
-  border: 1px solid var(--app-border);
-  border-radius: 16px;
-  padding: 20px 24px;
+  border-radius: 20px;
+  padding: 24px 28px;
   text-align: center;
   width: 100%;
-  font-family: 'Nunito', sans-serif;
-  font-size: clamp(18px, 3.5vw, 21px);
-  font-weight: 800;
+  font-family: 'Baloo 2', sans-serif;
+  font-size: clamp(20px, 3.5vw, 26px);
+  font-weight: 700;
   color: var(--app-text);
-  line-height: 1.5;
+  line-height: 1.4;
+  box-shadow: 0 2px 8px rgba(20,32,46,0.08);
 }
 
 /* ── Feedback ────────────────────────────────────────────────────────────── */
 /* NE PAS CHANGER la classe .feedback */
 .feedback {
   width: 100%;
-  padding: 18px 24px;
-  border-radius: 14px;
+  padding: 20px 24px;
+  border-radius: 16px;
   text-align: center;
-  font-family: 'Nunito', sans-serif;
-  font-size: clamp(18px, 3vw, 19px);
-  font-weight: 800;
+  font-family: 'Baloo 2', sans-serif;
+  font-size: clamp(18px, 3vw, 22px);
+  font-weight: 700;
   display: none;
   line-height: 1.5;
 }
@@ -149,34 +173,34 @@ main {
   width: 100%;
 }
 .verify-btn {
-  padding: 16px 36px;
-  background: var(--app-header-bg);
+  padding: 0 40px;
+  background: var(--app-accent);
   color: #fff;
   border: none;
-  border-radius: 12px;
-  font-family: 'Nunito', sans-serif;
-  font-size: 22px;
-  font-weight: 800;
+  border-radius: 16px;
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
   cursor: pointer;
-  min-height: 64px;
+  min-height: 68px;
   min-width: 64px;
   touch-action: manipulation;
   -webkit-appearance: none;
 }
 .verify-btn:hover    { filter: brightness(0.85); }
-.verify-btn:disabled { background: #94A3B8; cursor: default; }
+.verify-btn:disabled { background: #94A3B8; cursor: default; filter: none; }
 .verify-btn:focus-visible { outline: 3px solid rgba(255,255,255,0.9); outline-offset: 3px; }
 .new-btn {
-  padding: 16px 36px;
+  padding: 0 40px;
   background: #0F7860;
   color: #fff;
   border: none;
-  border-radius: 12px;
-  font-family: 'Nunito', sans-serif;
-  font-size: 22px;
-  font-weight: 800;
+  border-radius: 16px;
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
   cursor: pointer;
-  min-height: 64px;
+  min-height: 68px;
   min-width: 64px;
   touch-action: manipulation;
   -webkit-appearance: none;
@@ -188,6 +212,9 @@ main {
 
 @media (prefers-reduced-motion: no-preference) {
   .level-btn  { transition: all 0.15s; }
+  .level-btn:active  { transform: scale(0.96); }
   .verify-btn { transition: all 0.15s; }
+  .verify-btn:active { transform: scale(0.97); }
   .new-btn    { transition: all 0.15s; }
+  .new-btn:active    { transform: scale(0.97); }
 }
