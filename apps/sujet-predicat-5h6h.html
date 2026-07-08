@@ -6,10 +6,16 @@
 <title>Sujet et prédicat</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app-base.css">
 <style>
-  :root { --app-header-bg: #7A6200; }
+  :root {
+    /* Domaine : Français */
+    --app-accent:      #7A6200;
+    --app-accent-dark: #5C4A00;
+    --app-tint-bg:     #FBF5D6;
+    --app-tint-fg:     #7A6200;
+  }
 
   /* ── Niveau 1 — deux blocs côte à côte, taille au contenu ─────────────── */
   .phrase-area {
@@ -24,7 +30,7 @@
   .bloc-phrase {
     min-height: 64px;
     padding: 14px 24px;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: clamp(18px, 3.8vw, 24px);
     font-weight: 800;
     border: 3px solid var(--app-border);
@@ -41,7 +47,7 @@
   .bloc-phrase.correct { border-color: #059669; background: var(--app-correct-bg); color: var(--app-correct-fg); }
   .bloc-phrase.wrong   { border-color: #DC2626; background: var(--app-wrong-bg);   color: var(--app-wrong-fg); }
   .bloc-phrase:disabled { cursor: default; }
-  .bloc-phrase:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; }
+  .bloc-phrase:focus-visible { outline: 3px solid var(--app-accent); outline-offset: 3px; }
 
   @media (prefers-reduced-motion: no-preference) {
     .bloc-phrase { transition: border-color 0.15s, background 0.15s, transform 0.1s; }
@@ -60,7 +66,7 @@
   .token {
     min-height: 64px;
     padding: 10px 18px;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: clamp(18px, 3.5vw, 22px);
     font-weight: 800;
     border: 3px solid var(--app-border);
@@ -73,11 +79,11 @@
     color: var(--app-text);
   }
 
-  .token.selected { border-color: var(--app-header-bg); background: #FBF5D6; }
+  .token.selected { border-color: var(--app-accent); background: #FBF5D6; }
   .token.correct  { border-color: #059669; background: var(--app-correct-bg); color: var(--app-correct-fg); }
   .token.wrong    { border-color: #DC2626; background: var(--app-wrong-bg);   color: var(--app-wrong-fg); }
   .token:disabled { cursor: default; }
-  .token:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; }
+  .token:focus-visible { outline: 3px solid var(--app-accent); outline-offset: 3px; }
 
   @media (prefers-reduced-motion: no-preference) {
     .token { transition: border-color 0.15s, background 0.15s, transform 0.1s; }
@@ -89,7 +95,7 @@
 
 <header class="app-header" role="banner">
   <a href="../index.html" class="back-link">← Retour</a>
-  <h1>✏️ Sujet et prédicat</h1>
+  <h1>Sujet et prédicat</h1>
   <div class="header-spacer"></div>
 </header>
 
