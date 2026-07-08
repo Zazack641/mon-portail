@@ -6,16 +6,22 @@
 <title>Le champ lexical</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app-base.css">
 <style>
-  :root { --app-header-bg: #7A6200; }
+  :root {
+    /* Domaine : Français */
+    --app-accent:      #7A6200;
+    --app-accent-dark: #5C4A00;
+    --app-tint-bg:     #FBF5D6;
+    --app-tint-fg:     #7A6200;
+  }
 
   /* ── Mot mis en avant (N1 et N2) ──────────────────────────────────────── */
   .mot-vedette {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: clamp(24px, 5vw, 34px);
-    font-weight: 900;
+    font-weight: 800;
     color: var(--app-text);
     background: #fff;
     border: 2px solid var(--app-border);
@@ -38,7 +44,7 @@
     max-width: 200px;
     min-height: 64px;
     padding: 14px 20px;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: 22px;
     font-weight: 800;
     border: 3px solid var(--app-border);
@@ -50,7 +56,7 @@
     -webkit-appearance: none;
     line-height: 1.3;
   }
-  .oui-non-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; }
+  .oui-non-btn:focus-visible { outline: 3px solid var(--app-accent); outline-offset: 3px; }
   .oui-non-btn:disabled { cursor: default; opacity: 0.55; }
   .oui-non-btn.correct { background: var(--app-correct-bg); color: var(--app-correct-fg); border-color: #059669; }
   .oui-non-btn.wrong   { background: var(--app-wrong-bg);   color: var(--app-wrong-fg);   border-color: #DC2626; }
@@ -69,8 +75,8 @@
   .panier-btn {
     min-height: 120px;
     padding: 14px 12px;
-    font-family: 'Nunito', sans-serif;
-    border: 3px solid var(--app-header-bg);
+    font-family: 'Baloo 2', sans-serif;
+    border: 3px solid var(--app-accent);
     border-radius: 14px;
     background: #FBF5D6;
     cursor: pointer;
@@ -82,7 +88,7 @@
     gap: 8px;
     text-align: center;
   }
-  .panier-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; }
+  .panier-btn:focus-visible { outline: 3px solid var(--app-accent); outline-offset: 3px; }
   .panier-btn:disabled { cursor: default; }
   .panier-btn.panier-statique { cursor: default; }
   @media (prefers-reduced-motion: no-preference) {
@@ -92,7 +98,7 @@
   .panier-nom {
     font-size: 22px;
     font-weight: 800;
-    color: var(--app-header-bg);
+    color: var(--app-accent);
   }
   .panier-mots {
     display: flex;
@@ -124,7 +130,7 @@
   .mot-btn {
     min-height: 64px;
     padding: 14px 22px;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-size: clamp(20px, 4vw, 24px);
     font-weight: 800;
     border: 3px solid var(--app-border);
@@ -136,7 +142,7 @@
     -webkit-appearance: none;
     line-height: 1.3;
   }
-  .mot-btn:focus-visible { outline: 3px solid var(--app-header-bg); outline-offset: 3px; }
+  .mot-btn:focus-visible { outline: 3px solid var(--app-accent); outline-offset: 3px; }
   .mot-btn:disabled { cursor: default; }
   .mot-btn.correct { background: var(--app-correct-bg); color: var(--app-correct-fg); border-color: #059669; }
   .mot-btn.wrong   { background: var(--app-wrong-bg);   color: var(--app-wrong-fg);   border-color: #DC2626; }
@@ -150,7 +156,7 @@
 
 <header class="app-header" role="banner">
   <a href="../index.html" class="back-link">← Retour</a>
-  <h1>📚 Le champ lexical</h1>
+  <h1>Le champ lexical</h1>
   <div class="header-spacer"></div>
 </header>
 
