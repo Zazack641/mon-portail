@@ -119,7 +119,7 @@ Copier un bloc `<article class="app-card" …>` existant et renseigner :
 - `data-keywords` : mots-clés de recherche supplémentaires (minuscules, séparés par des espaces)
 - `data-per` : code objectif PER ciblé par l'app (ex. `"MSN 11"`, `"MSN 21"`). Obligatoire pour les apps maths. Consulter `docs/per/per-msn.md` pour trouver le bon code.
 - `href` du `.launch-btn` : URL réelle de l'application
-- Classe du bouton : `.launch-btn` (math, bleu marine) ou `.launch-btn.fr` (français, vert)
+- Classe du bouton : `.launch-btn` + le domaine (`.maths`, `.francais`, `.sciences`, `.geo`…), qui pilote sa couleur via les variables `--dom-*` (voir palette). Texte visible : « Jouer <span aria-hidden="true">→</span> » ; `aria-label` conserve « Lancer l'activité : … » pour les lecteurs d'écran.
 - `style="animation-delay: NNNms;"` : incrémenter de 30ms par rapport à la carte précédente
 
 ---
@@ -245,11 +245,12 @@ Pour le design des apps pédagogiques (typographie incluse), la source est `skil
 
 | Élément | Valeur |
 |---------|--------|
-| Cartes | `18px` |
-| Icônes carrées | `14px` |
+| Cartes | `24px` (`18px` avant la migration « Couleur franche ») |
 | Bouton « Lancer » (cartes) | `16px` (`12px` avant la migration « Couleur franche ») |
-| Recherche | `12px` (inchangé) |
+| Recherche | `999px` (pilule, `12px` avant la migration) |
 | Filtres / badges | `999px` (pilule) |
+
+Les cartes n'ont plus d'icône emoji carrée (`.card-icon`) : le domaine est désormais porté par le bandeau de couleur pleine en tête de carte (`.card-header`), qui affiche le titre en blanc et le badge de cycle (ex. « 5H–6H ») directement dedans.
 
 Pour les apps pédagogiques (`.verify-btn`, `.new-btn` dans `apps/app-base.css`), depuis la migration « Couleur franche » : rayon `16px` (au lieu de `12px`), hauteur minimale `68px` (au lieu de `64px`). Les pilules de niveau (`.level-btn`) restent en `999px`, désormais teintées par domaine (voir « Variables CSS des apps par domaine »).
 
@@ -260,7 +261,7 @@ Pour les apps pédagogiques (`.verify-btn`, `.new-btn` dans `apps/app-base.css`)
 | Élément (portail `index.html`) | Taille min |
 |---------|-----------|
 | Boutons filtres | `min-height: 56px` (toutes tailles d'écran, depuis la migration « Couleur franche » ; `36px`/`40px` mobile/tablette avant) |
-| Recherche | `min-height: 56px` |
+| Recherche | `min-height: 64px` (`padding: 9px` avant la migration) |
 | Bouton « Lancer » | `min-height: 68px` (`padding: 14px` avant la migration) |
 
 Tous les éléments interactifs du portail ont `touch-action: manipulation` et `-webkit-appearance: none`.
