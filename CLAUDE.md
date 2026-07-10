@@ -250,7 +250,7 @@ Pour le design des apps pédagogiques (typographie incluse), la source est `skil
 | Recherche | `999px` (pilule, `12px` avant la migration) |
 | Filtres / badges | `999px` (pilule) |
 
-Les cartes n'ont plus d'icône emoji carrée (`.card-icon`) : le domaine est désormais porté par le bandeau de couleur pleine en tête de carte (`.card-header`), qui affiche le titre en blanc et le badge de cycle (ex. « 5H–6H ») directement dedans.
+Les cartes n'ont plus d'icône emoji carrée (`.card-icon`) : le domaine est désormais porté par le bandeau de couleur pleine en tête de carte (`.card-header`), qui affiche le titre en blanc et le badge de cycle (ex. « 5H–6H ») directement dedans. `.card-title` réserve toujours une hauteur de 2 lignes (`min-height: 2.3em`, texte centré verticalement) pour que la hauteur du bandeau reste identique d'une carte à l'autre, que le titre tienne sur une ou deux lignes.
 
 Pour les apps pédagogiques (`.verify-btn`, `.new-btn` dans `apps/app-base.css`), depuis la migration « Couleur franche » : rayon `16px` (au lieu de `12px`), hauteur minimale `68px` (au lieu de `64px`). Les pilules de niveau (`.level-btn`) restent en `999px`, désormais teintées par domaine (voir « Variables CSS des apps par domaine »).
 
@@ -489,4 +489,4 @@ Les niveaux internes servent uniquement la différenciation à l'intérieur de c
 
 **Si une app couvre plusieurs groupes d'années scolaires, elle doit être scindée** : créer une app distincte par groupe, chacune avec sa propre carte dans `index.html` et son propre `data-harmos`. Ne jamais élargir les niveaux internes d'une app existante pour absorber un groupe d'années supplémentaire.
 
-Si deux apps partagent le même thème mais ciblent des groupes d'années différents, leurs titres peuvent être identiques. Dans ce cas, ajouter le groupe d'années entre parenthèses dans le titre de la carte du portail : "Figures géométriques (5H-6H)".
+Si deux apps partagent le même thème mais ciblent des groupes d'années différents, leurs titres de carte peuvent être identiques : depuis la migration « Couleur franche », le bandeau de couleur de chaque carte affiche déjà le groupe d'années (`.header-cycle-badge`, ex. « 5H–6H ») à côté du titre — il est donc inutile de le répéter entre parenthèses dans `<h2 class="card-title">` comme auparavant (ex. "Figures géométriques (5H-6H)" → "Figures géométriques"). Cette règle ne concerne que le titre affiché dans la carte du portail ; le `<title>` de la page et le `<h1>` de l'app elle-même n'ont jamais porté cette mention et n'ont pas à changer.
