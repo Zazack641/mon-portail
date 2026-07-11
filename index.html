@@ -36,17 +36,18 @@
   /* ===== HEADER ===== */
   .site-header {
     background: var(--ink);
-    padding: 24px 28px;
+    padding: 14px 24px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
+    gap: 14px 18px;
     flex-wrap: wrap;
   }
   .site-header .header-brand {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
+    flex-shrink: 0;
   }
   .site-header .header-shapes {
     display: flex;
@@ -55,80 +56,162 @@
   }
   .site-header h1 {
     font-family: 'Baloo 2', sans-serif;
-    font-size: clamp(24px, 3vw, 32px);
+    font-size: clamp(19px, 2.4vw, 26px);
     font-weight: 800;
     color: #fff;
     letter-spacing: -0.5px;
     line-height: 1;
   }
   .site-header .header-cycles {
-    font-size: 18px;
+    font-size: 15px;
     font-weight: 600;
     color: #AFC0D4;
     flex-shrink: 0;
+    white-space: nowrap;
   }
 
-  /* ===== CONTROLS BAR ===== */
-  .controls {
-    background: #fff;
-    border-bottom: 1px solid var(--line);
-    padding: 10px 18px 8px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
-  }
-
-  /* Search */
+  /* ===== SEARCH (dans le bandeau) ===== */
   .search-wrap {
     position: relative;
-    margin-bottom: 8px;
+    flex: 1 1 320px;
+    min-width: 200px;
   }
   .search-icon {
     position: absolute;
-    left: 20px;
+    left: 18px;
     top: 50%;
     transform: translateY(-50%);
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     color: #5E6E82;
     pointer-events: none;
   }
   .search-input {
     width: 100%;
-    min-height: 64px;
-    padding: 0 22px 0 54px;
+    min-height: 46px;
+    padding: 0 20px 0 46px;
     border: none;
     border-radius: 999px;
-    font-size: 22px;
+    font-size: 18px;
     font-family: 'Source Sans 3', sans-serif;
-    background: #EEF2F7;
+    background: #fff;
     color: var(--text);
     outline: none;
     -webkit-appearance: none;
   }
   @media (prefers-reduced-motion: no-preference) {
-    .search-input { transition: border-color 0.15s, box-shadow 0.15s; }
+    .search-input { transition: box-shadow 0.15s; }
   }
-  .search-input:focus {
-    border-color: #3482D2;
-    box-shadow: 0 0 0 3px rgba(52,130,210,0.40);
-    background: #fff;
-  }
+  .search-input:focus { box-shadow: 0 0 0 3px rgba(52,130,210,0.45); }
   .search-input::placeholder { color: #5E6E82; }
 
-  /* Filter groups */
-  .filter-row {
+  /* ===== BODY + RAIL DE FILTRES ===== */
+  .portal-body { display: flex; align-items: flex-start; }
+
+  .rail {
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    width: 236px;
+    flex-shrink: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    background: #fff;
+    border-right: 1px solid var(--line);
+    box-shadow: 2px 0 12px rgba(20,32,46,0.05);
+    padding: 16px 14px 24px;
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 18px;
+    z-index: 90;
+  }
+  .rail-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     gap: 8px;
   }
+  .rail-title {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #5E6E82;
+  }
+  .rail-toggle {
+    border: none;
+    background: #EEF2F7;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4A5A6C;
+    flex-shrink: 0;
+    -webkit-appearance: none;
+  }
+  .rail-toggle:hover { filter: brightness(0.96); }
+  .rail-toggle svg { width: 18px; height: 18px; }
+
+  .rail-label {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #5E6E82;
+    margin-bottom: 9px;
+  }
+
   .filter-group {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
     align-items: center;
   }
+  .rail .filter-group { flex-direction: column; align-items: stretch; gap: 8px; }
+  .rail .filter-btn {
+    width: 100%;
+    justify-content: flex-start;
+    min-height: 48px;
+    font-size: 18px;
+    padding: 0 16px;
+  }
+
+  /* Onglet de réouverture quand le rail est replié */
+  .rail-tab {
+    display: none;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    width: 48px;
+    flex-shrink: 0;
+    background: #fff;
+    border: none;
+    border-right: 1px solid var(--line);
+    box-shadow: 2px 0 12px rgba(20,32,46,0.05);
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 0;
+    cursor: pointer;
+    color: var(--ink);
+    z-index: 90;
+    -webkit-appearance: none;
+  }
+  .rail-tab svg { width: 22px; height: 22px; }
+  .rail-tab span {
+    writing-mode: vertical-rl;
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+  }
+  body.rail-is-collapsed .rail { display: none; }
+  body.rail-is-collapsed .rail-tab { display: flex; }
+
+  main { flex: 1; min-width: 0; }
   .filter-btn {
     padding: 0 26px;
     border-radius: 999px;
@@ -202,9 +285,9 @@
 
   /* Result count */
   .result-count {
-    font-size: 16px;
+    font-size: 15px;
     color: #4A5A6C;
-    margin-top: 6px;
+    padding: 16px 28px 0;
     min-height: 20px;
     font-weight: 600;
   }
@@ -428,12 +511,47 @@
   /* ===== RESPONSIVE IPAD ===== */
   @media (min-width: 768px) {
     .app-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
-    .controls { padding: 18px 28px 22px; }
-    .domain-subgroups { flex-direction: row; gap: 10px 24px; flex-wrap: wrap; }
   }
   @media (min-width: 1024px) {
     .app-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
     .app-card { padding: 28px 26px; }
+  }
+
+  /* ===== BASCULE PORTRAIT (< 820px) : rail replié en barre sous l'en-tête ===== */
+  @media (max-width: 819px) {
+    .portal-body { flex-direction: column; }
+    .rail,
+    body.rail-is-collapsed .rail {
+      display: flex;
+      position: sticky;
+      top: 0;
+      width: auto;
+      max-height: none;
+      overflow: visible;
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 10px;
+      padding: 10px 16px;
+      border-right: none;
+      border-bottom: 1px solid var(--line);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+      z-index: 100;
+    }
+    .rail-head { display: none; }
+    .rail-tab,
+    body.rail-is-collapsed .rail-tab { display: none; }
+    .rail-section { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .rail-label { margin: 0; }
+    .rail .filter-group { flex-direction: row; flex-wrap: wrap; }
+    .rail .filter-btn {
+      width: auto;
+      min-height: 48px;
+      font-size: 19px;
+      padding: 0 20px;
+    }
+    .result-count { padding: 12px 18px 0; }
+    .app-grid { padding: 16px 18px 44px; }
   }
 </style>
 </head>
@@ -449,42 +567,52 @@
     </div>
     <h1>Mes outils pour apprendre</h1>
   </div>
-  <div class="header-cycles">Cycles 1 &amp; 2</div>
-</header>
-
-<nav class="controls" aria-label="Filtres et recherche">
-
   <div class="search-wrap">
     <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
     </svg>
     <input type="search" id="search-input" class="search-input" placeholder="Rechercher une activité..." autocomplete="off" aria-label="Rechercher une activité">
   </div>
+  <div class="header-cycles">Cycles 1 &amp; 2</div>
+</header>
 
-  <div class="filter-row">
-    <div id="domain-filters" class="filter-group" role="group" aria-label="Filtrer par branche">
-      <button class="filter-btn active-domain" data-domain="all" aria-pressed="true">Toutes les branches</button>
-      <button class="filter-btn" data-domain="maths" aria-pressed="false">Mathématiques
-      </button>
-      <button class="filter-btn" data-domain="francais" aria-pressed="false">Français
-      </button>
-      <button class="filter-btn" data-domain="sciences" aria-pressed="false">Sciences
-      </button>
-      <button class="filter-btn" data-domain="geo" aria-pressed="false">Géographie
+<div class="portal-body">
+
+  <aside class="rail" id="rail" aria-label="Filtres">
+    <div class="rail-head">
+      <span class="rail-title">Filtres</span>
+      <button type="button" class="rail-toggle" id="rail-toggle" aria-label="Réduire les filtres" title="Réduire les filtres">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
       </button>
     </div>
-    <div id="cycle-filters" class="filter-group" role="group" aria-label="Filtrer par cycle">
-      <button class="filter-btn active-harmos" data-harmos="all" aria-pressed="true">Tous les cycles</button>
-      <button class="filter-btn" data-harmos="c1" aria-pressed="false">Cycle 1</button>
-      <button class="filter-btn" data-harmos="c2" aria-pressed="false">Cycle 2</button>
+    <div class="rail-section">
+      <p class="rail-label">Branche</p>
+      <div id="domain-filters" class="filter-group" role="group" aria-label="Filtrer par branche">
+        <button class="filter-btn active-domain" data-domain="all" aria-pressed="true">Toutes les branches</button>
+        <button class="filter-btn" data-domain="maths" aria-pressed="false">Mathématiques</button>
+        <button class="filter-btn" data-domain="francais" aria-pressed="false">Français</button>
+        <button class="filter-btn" data-domain="sciences" aria-pressed="false">Sciences</button>
+        <button class="filter-btn" data-domain="geo" aria-pressed="false">Géographie</button>
+      </div>
     </div>
-  </div>
+    <div class="rail-section">
+      <p class="rail-label">Cycle</p>
+      <div id="cycle-filters" class="filter-group" role="group" aria-label="Filtrer par cycle">
+        <button class="filter-btn active-harmos" data-harmos="all" aria-pressed="true">Tous les cycles</button>
+        <button class="filter-btn" data-harmos="c1" aria-pressed="false">Cycle 1</button>
+        <button class="filter-btn" data-harmos="c2" aria-pressed="false">Cycle 2</button>
+      </div>
+    </div>
+  </aside>
 
-  <div class="result-count" id="result-count" aria-live="polite" aria-atomic="true">13 activités affichées</div>
-</nav>
+  <button type="button" class="rail-tab" id="rail-tab" aria-label="Afficher les filtres" title="Afficher les filtres">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+    <span>Filtres</span>
+  </button>
 
-<main aria-label="Liste des activités">
-  <div class="app-grid" id="app-grid">
+  <main aria-label="Liste des activités">
+    <div class="result-count" id="result-count" aria-live="polite" aria-atomic="true">13 activités affichées</div>
+    <div class="app-grid" id="app-grid">
 
     <!-- ======= MATHÉMATIQUES — GRANDEURS ET MESURES ======= -->
 
@@ -1133,6 +1261,7 @@
 
   </div>
 </main>
+</div>
 
 <footer class="site-footer">
   Ressources pédagogiques indépendantes &nbsp;·&nbsp; <span id="year">2026</span>
@@ -1225,6 +1354,20 @@
   });
 
   applyFilters();
+
+  // ===== Rail rétractable (paysage) — état mémorisé =====
+  (function(){
+    const KEY = 'portail-rail-collapsed';
+    try { if (localStorage.getItem(KEY) === '1') document.body.classList.add('rail-is-collapsed'); } catch(e){}
+    function setCollapsed(collapsed){
+      document.body.classList.toggle('rail-is-collapsed', collapsed);
+      try { localStorage.setItem(KEY, collapsed ? '1' : '0'); } catch(e){}
+    }
+    const toggleBtn = document.getElementById('rail-toggle');
+    const tabBtn = document.getElementById('rail-tab');
+    if (toggleBtn) toggleBtn.addEventListener('click', () => setCollapsed(true));
+    if (tabBtn) tabBtn.addEventListener('click', () => setCollapsed(false));
+  })();
 </script>
 
 
