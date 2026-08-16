@@ -246,6 +246,7 @@
   /* Teinte au repos, par domaine / cycle */
   .filter-btn[data-domain="maths"]    { background: var(--dom-maths-tint);    color: var(--dom-maths-fg); }
   .filter-btn[data-domain="francais"] { background: var(--dom-francais-tint); color: var(--dom-francais-fg); }
+  .filter-btn[data-domain="allemand"] { background: #EEF3DC; color: #3A4A12; }
   .filter-btn[data-domain="sciences"] { background: var(--dom-sciences-tint); color: var(--dom-sciences-fg); }
   .filter-btn[data-domain="geo"]      { background: var(--dom-geo-tint);      color: var(--dom-geo-fg); }
   .filter-btn[data-harmos]            { background: var(--cycle-tint);        color: var(--cycle-fg); }
@@ -374,6 +375,7 @@
   }
   .app-card[data-domain="maths"]    .card-header { background: var(--dom-maths); }
   .app-card[data-domain="francais"] .card-header { background: var(--dom-francais); }
+  .app-card[data-domain="allemand"] .card-header { background: #4F6320; }
   .app-card[data-domain="sciences"] .card-header { background: var(--dom-sciences); }
   .app-card[data-domain="geo"]      .card-header { background: var(--dom-geo); }
   .card-title {
@@ -591,6 +593,7 @@
         <button class="filter-btn active-domain" data-domain="all" aria-pressed="true">Toutes les branches</button>
         <button class="filter-btn" data-domain="maths" aria-pressed="false">Mathématiques</button>
         <button class="filter-btn" data-domain="francais" aria-pressed="false">Français</button>
+        <button class="filter-btn" data-domain="allemand" aria-pressed="false">Allemand</button>
         <button class="filter-btn" data-domain="sciences" aria-pressed="false">Sciences</button>
         <button class="filter-btn" data-domain="geo" aria-pressed="false">Géographie</button>
       </div>
@@ -1251,6 +1254,22 @@
         <span class="badge badge-per">MSN 12</span>
       </div>
       <a href="apps/denombrement-3h4h.html" class="launch-btn maths" aria-label="Lancer l'activité : Le dénombrement (3H-4H)">Jouer <span aria-hidden="true">→</span></a>
+    </article>
+
+    <!-- ======= ALLEMAND (C2) ======= -->
+
+    <article class="app-card" data-domain="allemand" data-harmos="c2" data-per="L2 21-38" data-keywords="allemand vocabulaire mots qcm einheit unités révision traduction prononciation audio langues" style="animation-delay: 1230ms;">
+      <div class="card-header">
+        <h2 class="card-title">Vocabulaire allemand</h2>
+        <span class="header-cycle-badge">7H–8H</span>
+      </div>
+      <p class="card-desc">Révise le vocabulaire allemand unité par unité, avec écoute audio et choix de la bonne traduction française.</p>
+      <div class="card-badges">
+        <span class="badge badge-allemand">Allemand</span>
+        <span class="badge badge-theme">Vocabulaire</span>
+        <span class="badge badge-per">L2 21-38</span>
+      </div>
+      <a href="apps/vocabulaire-allemand-7h8h.html" class="launch-btn allemand" aria-label="Lancer l'activité : Vocabulaire allemand (7H-8H)">Jouer <span aria-hidden="true">→</span></a>
     </article>
 
     <!-- No results -->

@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Vocabulaire allemand (7H-8H)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-base.css">
+<style>
+  :root {
+    --app-accent:      #4F6320;
+    --app-accent-dark: #3D4D16;
+    --app-tint-bg:     #EEF3DC;
+    --app-tint-fg:     #3A4A12;
+  }
+
+  /* ── Écrans ──────────────────────────────────────────────────────────────
+     Cette app ne suit pas le schéma standard « niveaux internes + question
+     unique » : la structure demandée est un menu à deux niveaux — 11 unités,
+     chacune divisée en petits blocs de mots — puis une session bornée par
+     bloc (spec pédagogique, pas un choix de design — voir hiérarchie des
+     skills). Pas de .level-bar. 4 écrans : accueil (unités) → blocs d'une
+     unité → question (session d'un bloc) → résultat (puis retour direct à
+     l'accueil, jamais de relance automatique — voir le JS plus bas). */
+  .screen { display: none; width: 100%; flex-direction: column; align-items: center; gap: 24px; }
+  .screen.active { display: flex; }
+
+  .home-intro {
+    font-size: 18px;
+    line-height: 1.6;
+    text-align: center;
+    color: var(--app-text);
+    background: #fff;
+    border-radius: 20px;
+    padding: 20px 24px;
+    width: 100%;
+    box-shadow: 0 2px 8px rgba(20,32,46,0.08);
+  }
+
+  .unit-list { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+  .unit-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    text-align: left;
+    background: #fff;
+    border: 2px solid var(--app-border);
+    border-radius: 16px;
+    padding: 16px 20px;
+    min-height: 72px;
+    font-family: 'Source Sans 3', sans-serif;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+  .unit-card:hover           { border-color: var(--app-accent); }
+  .unit-card:focus-visible   { outline: 3px solid var(--app-accent); outline-offset: 3px; }
+  .unit-card-main  { display: flex; flex-direction: column; gap: 4px; }
+  .unit-card-num   { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 22px; color: var(--app-text); }
+  .unit-card-theme { font-size: 18px; color: #4A5A6C; }
+  .unit-status {
+    flex-shrink: 0;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 16px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .unit-status.status-new      { background: #EEF2F7;           color: #5A6B80; }
+  .unit-status.status-progress { background: var(--app-tint-bg); color: var(--app-tint-fg); }
+  .unit-status.status-done     { background: var(--app-correct-bg); color: var(--app-correct-fg); }
+
+  .back-to-units {
+    align-self: flex-start;
+    background: none;
+    border: none;
+    color: var(--app-text);
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    cursor: pointer;
+    min-height: 44px;
+    padding: 0 12px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+  .back-to-units:hover         { color: var(--app-accent); }
+  .back-to-units:focus-visible { outline: 3px solid var(--app-accent); outline-offset: 3px; }
+
+  .remaining-indicator {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--app-tint-fg);
+    background: var(--app-tint-bg);
+    border-radius: 999px;
+    padding: 8px 20px;
+    align-self: flex-start;
+  }
+
+  .question-german { display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; }
+  .listen-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--app-tint-bg);
+    color: var(--app-tint-fg);
+    border: none;
+    border-radius: 999px;
+    padding: 0 22px;
+    min-height: 56px;
+    min-width: 64px;
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+  .listen-btn:hover           { filter: brightness(0.95); }
+  .listen-btn:focus-visible   { outline: 3px solid var(--app-accent); outline-offset: 3px; }
+  .listen-btn:disabled        { opacity: 0.5; cursor: default; }
+
+  .choices { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+  .choice-btn {
+    width: 100%;
+    min-height: 64px;
+    padding: 14px 22px;
+    border-radius: 16px;
+    border: 2px solid var(--app-border);
+    background: #fff;
+    color: var(--app-text);
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    line-height: 1.3;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+  .choice-btn:hover:not(:disabled) { border-color: var(--app-accent); }
+  .choice-btn:focus-visible        { outline: 3px solid var(--app-accent); outline-offset: 3px; }
+  .choice-btn:disabled             { cursor: default; }
+  .choice-btn.choice-correct { background: var(--app-correct-bg); color: var(--app-correct-fg); border-color: var(--app-correct-fg); }
+  .choice-btn.choice-wrong   { background: var(--app-wrong-bg);   color: var(--app-wrong-fg);   border-color: var(--app-wrong-fg); }
+
+  .end-message { font-family: 'Baloo 2', sans-serif; font-size: clamp(22px, 4vw, 28px); font-weight: 800; text-align: center; color: var(--app-text); }
+  .end-sub     { font-size: 18px; text-align: center; color: #4A5A6C; }
+
+  .results-lists { display: flex; flex-direction: column; gap: 16px; width: 100%; }
+  .results-group {
+    background: #fff;
+    border-radius: 16px;
+    padding: 18px 22px;
+    box-shadow: 0 2px 8px rgba(20,32,46,0.08);
+  }
+  .results-group-title { font-family: 'Baloo 2', sans-serif; font-size: 19px; font-weight: 800; margin-bottom: 10px; }
+  .results-known   .results-group-title { color: var(--app-correct-fg); }
+  .results-unknown .results-group-title { color: var(--app-wrong-fg); }
+  .results-word-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .results-word-list li { font-size: 18px; color: var(--app-text); line-height: 1.4; }
+  .results-word-list .de-word { font-weight: 700; }
+  .results-empty { font-size: 16px; color: #8A97A8; font-style: italic; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .unit-card, .choice-btn, .listen-btn { transition: all 0.15s; }
+    .unit-card:active, .choice-btn:active, .listen-btn:active { transform: scale(0.98); }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header" role="banner">
+  <a href="../index.html" class="back-link"><span aria-hidden="true">←</span> Retour</a>
+  <h1>Vocabulaire allemand</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<main>
+
+  <!-- ── Écran d'accueil : menu des 11 unités ─────────────────────────────── -->
+  <div class="screen" id="screen-home">
+    <p class="home-intro">Choisis une unité, puis un petit bloc de mots. Tu entends ou tu lis un mot en allemand, puis tu choisis sa traduction française parmi 3 réponses.</p>
+    <div class="unit-list" id="unit-list"></div>
+  </div>
+
+  <!-- ── Écran des blocs d'une unité ──────────────────────────────────────── -->
+  <div class="screen" id="screen-blocks">
+    <button type="button" class="back-to-units" id="back-to-home-btn"><span aria-hidden="true">←</span> Unités</button>
+    <p class="home-intro" id="blocks-intro"></p>
+    <div class="unit-list" id="block-list"></div>
+  </div>
+
+  <!-- ── Écran de question (session d'un bloc) ────────────────────────────── -->
+  <div class="screen" id="screen-question">
+    <button type="button" class="back-to-units" id="back-to-blocks-btn"><span aria-hidden="true">←</span> Bloc</button>
+    <!-- Pas d'aria-live ici : mise à jour à chaque question, une annonce
+         systématique concurrencerait le point d'attention unique (la
+         question elle-même, focalisée juste après). -->
+    <p class="remaining-indicator" id="remaining-indicator"></p>
+
+    <div class="question-box" id="question-box">
+      <div class="question-german">
+        <span id="german-text" lang="de"></span>
+        <button type="button" class="listen-btn" id="listen-btn"><span aria-hidden="true">🔊</span> Écouter</button>
+      </div>
+    </div>
+
+    <div class="choices" id="choices"></div>
+
+    <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <div class="action-row">
+      <button class="new-btn visible-toggle" id="new-btn"><span aria-hidden="true">▶</span> <span id="new-btn-label">Suivant</span></button>
+    </div>
+  </div>
+
+  <!-- ── Écran de résultat d'un bloc ──────────────────────────────────────── -->
+  <!-- Jamais de relance automatique ici : un seul bouton, qui ramène au menu
+       principal. Recommencer est un choix délibéré de l'élève, pas un
+       enchaînement automatique (évite le clic « pilote automatique »). -->
+  <div class="screen" id="screen-results">
+    <p class="end-message" id="results-title">Bloc terminé !</p>
+    <p class="end-sub" id="results-sub"></p>
+    <div class="results-lists">
+      <div class="results-group results-known">
+        <h2 class="results-group-title">Mots que tu connais</h2>
+        <ul class="results-word-list" id="known-list"></ul>
+      </div>
+      <div class="results-group results-unknown">
+        <h2 class="results-group-title">Mots à revoir</h2>
+        <ul class="results-word-list" id="unknown-list"></ul>
+      </div>
+    </div>
+    <div class="action-row">
+      <button class="new-btn visible" id="home-btn"><span aria-hidden="true">▶</span> Retour au menu</button>
+    </div>
+  </div>
+
+</main>
+
+<script src="appUtils.js"></script>
+<script>
+  // ── Type de tâche ───────────────────────────────────────────────────────
+  // 'drill' : une erreur ne se corrige pas sur place — elle ferme la question
+  // et on passe au mot suivant de la session, pas de retry immédiat sur la
+  // même instance.
+  const TYPE_TACHE = 'drill';
+
+  function W(de, fr) { return { de, fr }; }
+
+  const UNITS = [
+    { id: 1, title: "Ferien sind schön.", words: [
+      W("Wann …?", "Quand…? / À quelle heure…?"),
+      W("Wann stehst du auf?", "À quelle heure te lèves-tu?"),
+      W("in den Ferien", "pendant les vacances"),
+      W("am Montag", "le lundi"),
+      W("am Mittwoch", "le mercredi"),
+      W("am Freitag", "le vendredi"),
+      W("am Samstag", "le samedi"),
+      W("um 9 Uhr", "à 9 heures"),
+      W("um Viertel nach 10", "à 10 heures et quart"),
+      W("Was machst du gern?", "Qu'aimes-tu faire?"),
+      W("Was isst du zum Abendessen?", "Que manges-tu au souper?"),
+      W("Zum Abendessen esse ich gern Suppe.", "Au souper, je mange volontiers une soupe."),
+      W("Wie oft?", "À quelle fréquence?"),
+      W("oft", "souvent"),
+      W("nie", "jamais")
+    ]},
+    { id: 2, title: "Es geht wieder los.", words: [
+      W("der Stundenplan", "l'horaire"),
+      W("das Schulfach, die Schulfächer", "la branche scolaire"),
+      W("Was ist dein Lieblingsfach?", "Quelle est ta branche préférée?"),
+      W("Französisch", "français"),
+      W("Deutsch", "allemand"),
+      W("Mathe / Mathematik", "maths"),
+      W("Sport", "sport"),
+      W("Am Montag haben wir zwei Stunden Mathe.", "Le lundi, nous avons deux périodes de maths."),
+      W("frei", "congé"),
+      W("Wie findest du …?", "Comment trouves-tu…?"),
+      W("Ich finde … interessant / toll.", "Je trouve… intéressant / super."),
+      W("Wann hast du …?", "Quand as-tu…?"),
+      W("Ich mag Sport.", "J'aime le sport.")
+    ]},
+    { id: 3, title: "Sie ist so nett.", words: [
+      W("Mein Lehrer / Meine Lehrerin heisst …", "Mon/Ma prof s'appelle…"),
+      W("Sein / Ihr Name ist …", "Son nom est…"),
+      W("Er / Sie unterrichtet Geschichte.", "Elle enseigne l'histoire."),
+      W("geduldig", "patient.e"),
+      W("streng", "sévère"),
+      W("fair", "juste"),
+      W("klein ≠ gross", "petit.e ≠ grand.e"),
+      W("jung ≠ alt", "jeune ≠ vieux, vieille"),
+      W("nett", "gentil.le"),
+      W("lustig", "drôle"),
+      W("süss", "chou, mignon.ne"),
+      W("lachen", "rire")
+    ]},
+    { id: 4, title: "Links in der Ecke ist …", words: [
+      W("links", "à gauche"),
+      W("rechts", "à droite"),
+      W("Das Regal ist links.", "L'étagère est à gauche."),
+      W("vorne", "devant"),
+      W("hinten", "derrière"),
+      W("das Klassenzimmer, die Klassenzimmer", "la salle de classe"),
+      W("der Tisch, die Tische", "la table"),
+      W("der Stuhl, die Stühle", "la chaise"),
+      W("das Fenster, die Fenster", "la fenêtre"),
+      W("die Tür, die Türen", "la porte"),
+      W("die Tafel, die Tafeln", "le tableau noir/blanc"),
+      W("Hausaufgaben machen", "faire les devoirs")
+    ]},
+    { id: 5, title: "Im 1. Stock", words: [
+      W("das Lehrerzimmer", "la salle des maîtres"),
+      W("der Computerraum", "la salle d'informatique"),
+      W("die Turnhalle", "la salle de sport"),
+      W("die Bibliothek", "la bibliothèque"),
+      W("die Toilette, die Toiletten", "les toilettes"),
+      W("Entschuldigung, wo ist die Toilette?", "Excusez-moi, où sont les toilettes?"),
+      W("im Erdgeschoss", "au rez-de-chaussée"),
+      W("im ersten Stock", "au premier étage"),
+      W("die Schule", "l'école"),
+      W("Wo ist …?", "Où est…?")
+    ]},
+    { id: 6, title: "Wer macht mit?", words: [
+      W("Theater spielen", "faire du théâtre"),
+      W("Wo ist der Kurs?", "Où est-ce que le cours a lieu?"),
+      W("mitmachen", "participer"),
+      W("Machst du mit?", "Tu participes?"),
+      W("Das macht (keinen) Spass.", "C'est (Ce n'est pas) amusant."),
+      W("Ich weiss (noch) nicht.", "Je ne sais pas (encore)."),
+      W("Ja, vielleicht.", "Oui, peut-être."),
+      W("basteln", "bricoler"),
+      W("backen", "cuire au four"),
+      W("mögen / Das mag ich nicht.", "aimer / Je n'aime pas ça."),
+      W("Ich finde … interessant.", "Je trouve … intéressant.e.")
+    ]},
+    { id: 7, title: "Es ist kalt und windig.", words: [
+      W("Wie ist das Wetter?", "Quel temps fait-il?"),
+      W("Es regnet.", "Il pleut."),
+      W("Es ist warm.", "Il fait chaud."),
+      W("Es ist kalt.", "Il fait froid."),
+      W("Die Sonne scheint.", "Le soleil brille."),
+      W("die Mütze", "le bonnet"),
+      W("die Jacke", "la veste"),
+      W("der Pullover", "le pull-over"),
+      W("das T-Shirt", "le t-shirt"),
+      W("die Jeans", "les jeans"),
+      W("Was ziehst du an?", "Que mets-tu?"),
+      W("heute", "aujourd'hui")
+    ]},
+    { id: 8, title: "Ich spiele lieber Eishockey.", words: [
+      W("Was machst du am liebsten?", "Qu'est-ce que tu aimes le plus faire?"),
+      W("Bist du lieber aktiv oder faul?", "Es-tu plutôt actif ou relax?"),
+      W("faul", "paresseux/relax"),
+      W("allein", "seul.e"),
+      W("drinnen", "dedans"),
+      W("draussen", "dehors"),
+      W("Musik hören", "écouter de la musique"),
+      W("Freunde treffen", "rencontrer des amis"),
+      W("kreativ", "créatif/-ve")
+    ]},
+    { id: 9, title: "Das kann ich gut!", words: [
+      W("Was kannst du gut?", "Que sais-tu bien faire?"),
+      W("können", "savoir/pouvoir"),
+      W("der Trick, die Tricks", "le truc/l'astuce"),
+      W("Comics zeichnen", "dessiner des bandes dessinées"),
+      W("balancieren", "tenir en équilibre"),
+      W("jonglieren", "jongler"),
+      W("eine Geschichte erzählen", "raconter une histoire"),
+      W("Fahrrad fahren", "faire du vélo"),
+      W("schwimmen", "nager"),
+      W("klettern", "faire de l'escalade"),
+      W("Das ist (nicht) schwer.", "C'est (Ce n'est pas) difficile.")
+    ]},
+    { id: 10, title: "In den Bergen, am Meer", words: [
+      W("Wo machst du Ferien?", "Où passes-tu tes vacances?"),
+      W("Ich mache Ferien am Meer.", "Je passe mes vacances à la mer."),
+      W("in den Bergen", "à la montagne"),
+      W("in der Schweiz", "en Suisse"),
+      W("zu Hause", "à la maison"),
+      W("Was möchtest du machen?", "Qu'est-ce que tu aimerais faire?"),
+      W("Ich möchte wandern.", "J'aimerais faire de la randonnée."),
+      W("tauchen", "faire de la plongée"),
+      W("Weihnachten", "Noël"),
+      W("am liebsten", "le préféré/de préférence")
+    ]},
+    { id: 11, title: "Liebe Grüsse aus …", words: [
+      W("die Postkarte", "la carte postale"),
+      W("Liebe Oma,", "Chère grand-maman,"),
+      W("Wir sind im Hotel.", "Nous sommes à l'hôtel."),
+      W("jeden Tag", "chaque jour"),
+      W("ein Museum besuchen", "visiter un musée"),
+      W("das Schwimmbad", "la piscine"),
+      W("Viele Grüsse", "Meilleures salutations"),
+      W("Das Wetter ist schön.", "Il fait beau (temps)."),
+      W("Es ist warm / kalt.", "Il fait chaud/froid."),
+      W("Wir essen … / Wir trinken …", "Nous mangeons…/Nous buvons…"),
+      W("Das macht (keinen) Spass.", "C'est (ce n'est pas) amusant.")
+    ]}
+  ];
+
+  // ── Persistance (localStorage) ─────────────────────────────────────────
+  const STORAGE_KEY = 'mon-portail-vocab-allemand-7h8h-v2';
+
+  function loadProgress() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) { return {}; }
+  }
+  function saveProgress() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); } catch (e) { /* stockage indisponible, session non persistée */ }
+  }
+  // progress[unitId] = liste des indices de mots « connus » à ce jour, c'est-
+  // à-dire réussis à leur dernier passage. Reflète l'état ACTUEL, pas un
+  // historique : un mot réussi puis raté plus tard ressort de la liste.
+  function isKnown(unitId, wordIdx) { return (progress[unitId] || []).includes(wordIdx); }
+  function setKnown(unitId, wordIdx, known) {
+    const set = new Set(progress[unitId] || []);
+    if (known) set.add(wordIdx); else set.delete(wordIdx);
+    progress[unitId] = Array.from(set);
+    saveProgress();
+  }
+
+  let progress = loadProgress();
+
+  // Découpe une unité en petits blocs de sens plutôt qu'une seule grosse
+  // session : répartition égale (pas de petit reliquat de 1-2 mots), en
+  // conservant l'ordre du manuel — les mots qui se suivent dans la même
+  // unité appartiennent déjà au même sous-thème de la leçon.
+  const BLOCK_SIZE = 6;
+  function chunkEvenly(arr, maxSize) {
+    const numBlocks = Math.max(1, Math.ceil(arr.length / maxSize));
+    const base = Math.floor(arr.length / numBlocks);
+    const remainder = arr.length % numBlocks;
+    const blocks = [];
+    let start = 0;
+    for (let b = 0; b < numBlocks; b++) {
+      const size = base + (b < remainder ? 1 : 0);
+      blocks.push(arr.slice(start, start + size));
+      start += size;
+    }
+    return blocks;
+  }
+  function getBlocks(unit) {
+    return chunkEvenly(unit.words.map((_, i) => i), BLOCK_SIZE);
+  }
+
+  // ── Références DOM ───────────────────────────────────────────────────────
+  const screenHome      = document.getElementById('screen-home');
+  const screenBlocks    = document.getElementById('screen-blocks');
+  const screenQuestion  = document.getElementById('screen-question');
+  const screenResults   = document.getElementById('screen-results');
+  const unitListEl      = document.getElementById('unit-list');
+  const blocksIntroEl   = document.getElementById('blocks-intro');
+  const blockListEl     = document.getElementById('block-list');
+  const remainingEl     = document.getElementById('remaining-indicator');
+  const questionBox     = document.getElementById('question-box');
+  const germanTextEl    = document.getElementById('german-text');
+  const listenBtn       = document.getElementById('listen-btn');
+  const choicesEl       = document.getElementById('choices');
+  const feedbackEl      = document.getElementById('feedback');
+  const newBtn          = document.getElementById('new-btn');
+  const newBtnLabel     = document.getElementById('new-btn-label');
+  const homeBtn         = document.getElementById('home-btn');
+  const backToHomeBtn   = document.getElementById('back-to-home-btn');
+  const backToBlocksBtn = document.getElementById('back-to-blocks-btn');
+  const resultsTitleEl  = document.getElementById('results-title');
+  const resultsSubEl    = document.getElementById('results-sub');
+  const knownListEl     = document.getElementById('known-list');
+  const unknownListEl   = document.getElementById('unknown-list');
+
+  // ── État de la session en cours ─────────────────────────────────────────
+  // Une session = UN passage dans un bloc, jamais relancée automatiquement.
+  // À la fin, on affiche le résultat (mots connus / mots à revoir) et on
+  // revient au menu — recommencer est un choix délibéré de l'élève, pas un
+  // enchaînement automatique (évite le pilotage automatique).
+  let currentUnit = null;
+  let currentBlock = [];        // indices des mots du bloc en cours
+  let sessionQueue = [];        // ordre de passage restant dans la session
+  let sessionTotal = 0;         // nb de mots du bloc (fixe pour la session)
+  let sessionAnsweredCount = 0;
+  let sessionResults = [];      // [{ idx, correct }] dans l'ordre de passage
+  let currentWordIdx = null;
+
+  function showScreen(name) {
+    [screenHome, screenBlocks, screenQuestion, screenResults].forEach(s => s.classList.remove('active'));
+    ({ home: screenHome, blocks: screenBlocks, question: screenQuestion, results: screenResults })[name].classList.add('active');
+  }
+
+  // ── Écran d'accueil ──────────────────────────────────────────────────────
+  function renderHome() {
+    unitListEl.innerHTML = '';
+    UNITS.forEach(unit => {
+      const total = unit.words.length;
+      const known = unit.words.filter((_, i) => isKnown(unit.id, i)).length;
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'unit-card';
+
+      const main = document.createElement('span');
+      main.className = 'unit-card-main';
+      const num = document.createElement('span');
+      num.className = 'unit-card-num';
+      num.textContent = 'Einheit ' + unit.id;
+      const theme = document.createElement('span');
+      theme.className = 'unit-card-theme';
+      theme.lang = 'de';
+      theme.textContent = unit.title;
+      main.append(num, theme);
+
+      const status = document.createElement('span');
+      if (known === 0) {
+        status.className = 'unit-status status-new';
+        status.textContent = 'Pas commencée';
+      } else if (known === total) {
+        status.className = 'unit-status status-done';
+        status.textContent = 'Terminée ✓';
+      } else {
+        status.className = 'unit-status status-progress';
+        status.textContent = known + ' / ' + total + ' connus';
+      }
+
+      btn.append(main, status);
+      btn.addEventListener('click', () => renderBlocks(unit));
+      unitListEl.appendChild(btn);
+    });
+    showScreen('home');
+  }
+
+  // ── Écran des blocs d'une unité ──────────────────────────────────────────
+  function renderBlocks(unit) {
+    currentUnit = unit;
+    blocksIntroEl.textContent = 'Einheit ' + unit.id + ' — choisis un bloc de mots à réviser.';
+    blockListEl.innerHTML = '';
+    getBlocks(unit).forEach((block, i) => {
+      const total = block.length;
+      const known = block.filter(idx => isKnown(unit.id, idx)).length;
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'unit-card';
+
+      const main = document.createElement('span');
+      main.className = 'unit-card-main';
+      const num = document.createElement('span');
+      num.className = 'unit-card-num';
+      num.textContent = 'Bloc ' + (i + 1);
+      const theme = document.createElement('span');
+      theme.className = 'unit-card-theme';
+      theme.textContent = total + ' mots';
+      main.append(num, theme);
+
+      const status = document.createElement('span');
+      if (known === 0) {
+        status.className = 'unit-status status-new';
+        status.textContent = 'Pas commencé';
+      } else if (known === total) {
+        status.className = 'unit-status status-done';
+        status.textContent = 'Tous connus ✓';
+      } else {
+        status.className = 'unit-status status-progress';
+        status.textContent = known + ' / ' + total + ' connus';
+      }
+
+      btn.append(main, status);
+      btn.addEventListener('click', () => startBlock(unit, block));
+      blockListEl.appendChild(btn);
+    });
+    showScreen('blocks');
+  }
+
+  // ── Démarrage d'une session (un bloc) ────────────────────────────────────
+  function startBlock(unit, block) {
+    currentUnit = unit;
+    currentBlock = block;
+    sessionQueue = shuffle(block);
+    sessionTotal = block.length;
+    sessionAnsweredCount = 0;
+    sessionResults = [];
+    showScreen('question');
+    nextQuestion();
+  }
+
+  // ── Question suivante ────────────────────────────────────────────────────
+  function nextQuestion() {
+    resetFeedback();
+    if (sessionQueue.length === 0) { renderResults(); return; }
+    currentWordIdx = sessionQueue.shift();
+    renderQuestion();
+  }
+
+  // Combien de questions restent à faire dans CETTE session — n'a rien à voir
+  // avec la maîtrise, juste un compte à rebours simple pour que l'élève
+  // sache où il en est dans la série de questions.
+  function updateRemaining() {
+    const remaining = sessionTotal - sessionAnsweredCount;
+    remainingEl.textContent = remaining <= 1
+      ? 'Encore ' + remaining + ' mot à taper'
+      : 'Encore ' + remaining + ' mots à taper';
+  }
+
+  // Un distracteur « proche » (même unité, même univers thématique) et un
+  // distracteur « hors sujet » (pioché dans une autre unité) : mélanger deux
+  // distracteurs de la même unité laissait deviner la réponse par élimination
+  // de forme plutôt que par connaissance du mot.
+  function pickDistractors(unit, correctIdx) {
+    const correctFr = unit.words[correctIdx].fr;
+
+    const closeCandidates = unit.words
+      .map((_, i) => i)
+      .filter(i => i !== correctIdx && unit.words[i].fr !== correctFr);
+    const closeIdx = pick(closeCandidates, 1)[0];
+    const closeFr = unit.words[closeIdx].fr;
+
+    const otherUnits = shuffle(UNITS.filter(u => u.id !== unit.id));
+    let offTopicUnit = null;
+    let offTopicIdx = null;
+    for (const candidateUnit of otherUnits) {
+      const candidates = candidateUnit.words
+        .map((_, i) => i)
+        .filter(i => candidateUnit.words[i].fr !== correctFr && candidateUnit.words[i].fr !== closeFr);
+      if (candidates.length > 0) {
+        offTopicUnit = candidateUnit;
+        offTopicIdx = pick(candidates, 1)[0];
+        break;
+      }
+    }
+
+    return {
+      close:    { unit, idx: closeIdx },
+      offTopic: { unit: offTopicUnit, idx: offTopicIdx }
+    };
+  }
+
+  function renderQuestion() {
+    const word = currentUnit.words[currentWordIdx];
+    germanTextEl.textContent = word.de;
+    listenBtn.disabled = !('speechSynthesis' in window);
+
+    updateRemaining();
+
+    const distractors = pickDistractors(currentUnit, currentWordIdx);
+    const options = shuffle([
+      { unit: currentUnit,             idx: currentWordIdx,        correct: true },
+      { unit: distractors.close.unit,    idx: distractors.close.idx,    correct: false },
+      { unit: distractors.offTopic.unit, idx: distractors.offTopic.idx, correct: false }
+    ]);
+
+    choicesEl.innerHTML = '';
+    options.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'choice-btn';
+      btn.dataset.correct = String(opt.correct);
+      btn.textContent = opt.unit.words[opt.idx].fr;
+      btn.addEventListener('click', () => selectAnswer(btn));
+      choicesEl.appendChild(btn);
+    });
+
+    // Focus requis après réécriture du DOM (skills/accessibilite/SKILL.md §6) :
+    // la boîte de question porte la nouvelle info, on l'annonce au lecteur d'écran.
+    questionBox.setAttribute('tabindex', '-1');
+    questionBox.focus();
+  }
+
+  function speakGerman(text) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = 'de-DE';
+    utter.rate = 0.95;
+    window.speechSynthesis.speak(utter);
+  }
+  listenBtn.addEventListener('click', () => speakGerman(currentUnit.words[currentWordIdx].de));
+
+  function selectAnswer(chosenBtn) {
+    const buttons = Array.from(choicesEl.querySelectorAll('.choice-btn'));
+    buttons.forEach(b => { b.disabled = true; });
+
+    const correct = chosenBtn.dataset.correct === 'true';
+    const correctBtn = buttons.find(b => b.dataset.correct === 'true');
+    const correctIcon = document.createElement('span');
+    correctIcon.setAttribute('aria-hidden', 'true');
+    correctIcon.textContent = '✓ ';
+    correctBtn.prepend(correctIcon);
+    correctBtn.classList.add('choice-correct');
+    correctBtn.setAttribute('aria-label', correctBtn.textContent + ' — bonne réponse');
+
+    if (!correct) {
+      const wrongIcon = document.createElement('span');
+      wrongIcon.setAttribute('aria-hidden', 'true');
+      wrongIcon.textContent = '✗ ';
+      chosenBtn.prepend(wrongIcon);
+      chosenBtn.classList.add('choice-wrong');
+      chosenBtn.setAttribute('aria-label', chosenBtn.textContent + ' — pas la bonne réponse');
+    }
+
+    const germanWord = currentUnit.words[currentWordIdx].de;
+    const correctFr  = currentUnit.words[currentWordIdx].fr;
+
+    setKnown(currentUnit.id, currentWordIdx, correct);
+    sessionResults.push({ idx: currentWordIdx, correct });
+    sessionAnsweredCount++;
+
+    const msg = correct
+      ? 'Bravo ! « ' + germanWord + ' » veut dire « ' + correctFr + ' ».'
+      : 'Pas tout à fait. « ' + germanWord + ' » veut dire « ' + correctFr + ' ». Appuie sur « Suivant » pour continuer.';
+
+    // Le libellé du bouton change pour la dernière question de la session :
+    // un « Voir le score » prévient l'élève qu'on ne va pas juste enchaîner
+    // sur une nouvelle question, sans surprise ni clic automatique.
+    newBtnLabel.textContent = sessionQueue.length === 0 ? 'Voir le score' : 'Suivant';
+
+    showFeedback(correct, msg);
+    updateRemaining();
+  }
+
+  function showFeedback(correct, msg) {
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = msg;
+    if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+    newBtn.classList.add('visible');
+    newBtn.focus();
+  }
+
+  function resetFeedback() {
+    feedbackEl.className = 'feedback';
+    feedbackEl.textContent = '';
+    newBtn.classList.remove('visible');
+  }
+
+  newBtn.addEventListener('click', nextQuestion);
+
+  // ── Écran de résultat (fin de session, jamais de relance automatique) ────
+  function buildResultItem(idx) {
+    const word = currentUnit.words[idx];
+    const li = document.createElement('li');
+    const de = document.createElement('span');
+    de.className = 'de-word';
+    de.lang = 'de';
+    de.textContent = word.de;
+    li.append(de, document.createTextNode(' — ' + word.fr));
+    return li;
+  }
+
+  function renderResultList(listEl, entries, emptyMsg) {
+    listEl.innerHTML = '';
+    if (entries.length === 0) {
+      const li = document.createElement('li');
+      li.className = 'results-empty';
+      li.textContent = emptyMsg;
+      listEl.appendChild(li);
+      return;
+    }
+    entries.forEach(r => listEl.appendChild(buildResultItem(r.idx)));
+  }
+
+  function renderResults() {
+    const known = sessionResults.filter(r => r.correct);
+    const unknown = sessionResults.filter(r => !r.correct);
+
+    resultsTitleEl.textContent = 'Bloc terminé !';
+    resultsSubEl.textContent = known.length + ' sur ' + sessionTotal + ' mots connus.';
+    renderResultList(knownListEl, known, 'Aucun pour l’instant — ce n’est pas grave, ça viendra.');
+    renderResultList(unknownListEl, unknown, 'Aucun, bravo !');
+
+    showScreen('results');
+    homeBtn.focus();
+  }
+
+  homeBtn.addEventListener('click', renderHome);
+  backToHomeBtn.addEventListener('click', renderHome);
+  backToBlocksBtn.addEventListener('click', () => renderBlocks(currentUnit));
+
+  // ── Démarrage ────────────────────────────────────────────────────────────
+  renderHome();
+</script>
+<script src="feedbackUtils.js"></script>
+</body>
+</html>
