@@ -18,6 +18,7 @@
     --dom-francais:      #7A6200; --dom-francais-dark: #5C4A00; --dom-francais-tint: #FBF5D6; --dom-francais-fg: #7A6200;
     --dom-sciences:      #A02030; --dom-sciences-dark: #801828; --dom-sciences-tint: #F8E4E4; --dom-sciences-fg: #700018;
     --dom-geo:           #1A6B4A; --dom-geo-dark:      #145438; --dom-geo-tint:      #E6F2ED; --dom-geo-fg:      #0D4A30;
+    --dom-jeux:          #7A2E5C; --dom-jeux-dark:     #5C2145; --dom-jeux-tint:     #F7E9F1; --dom-jeux-fg:     #6B2350;
 
     --cycle: #0F7860; --cycle-tint: #E4F2EE; --cycle-fg: #0A5343;
   }
@@ -249,6 +250,7 @@
   .filter-btn[data-domain="allemand"] { background: #EEF3DC; color: #3A4A12; }
   .filter-btn[data-domain="sciences"] { background: var(--dom-sciences-tint); color: var(--dom-sciences-fg); }
   .filter-btn[data-domain="geo"]      { background: var(--dom-geo-tint);      color: var(--dom-geo-fg); }
+  .filter-btn[data-domain="jeux"]     { background: var(--dom-jeux-tint);     color: var(--dom-jeux-fg); }
   .filter-btn[data-harmos]            { background: var(--cycle-tint);        color: var(--cycle-fg); }
 
   /* Active domain */
@@ -261,6 +263,7 @@
   .filter-btn[data-domain="sciences"].active-domain { background: var(--dom-sciences); border-color: var(--dom-sciences); }
   .filter-btn[data-domain="geo"].active-domain      { background: var(--dom-geo); border-color: var(--dom-geo); }
   .filter-btn[data-domain="histoire"].active-domain { background: #1A5C5C; border-color: #1A5C5C; }
+  .filter-btn[data-domain="jeux"].active-domain     { background: var(--dom-jeux); border-color: var(--dom-jeux); }
 
   /* Active HarmoS */
   .filter-btn.active-harmos {
@@ -378,6 +381,7 @@
   .app-card[data-domain="allemand"] .card-header { background: #4F6320; }
   .app-card[data-domain="sciences"] .card-header { background: var(--dom-sciences); }
   .app-card[data-domain="geo"]      .card-header { background: var(--dom-geo); }
+  .app-card[data-domain="jeux"]     .card-header { background: var(--dom-jeux); }
   .card-title {
     font-family: 'Baloo 2', sans-serif;
     font-size: 25px;
@@ -427,6 +431,7 @@
   .badge-sciences { background: var(--dom-sciences-tint); color: var(--dom-sciences-fg); }
   .badge-geo      { background: var(--dom-geo-tint);      color: var(--dom-geo-fg); }
   .badge-histoire { background: #E0EEEE; color: #0D3D3D; }
+  .badge-jeux     { background: var(--dom-jeux-tint);     color: var(--dom-jeux-fg); }
 
   .badge-1h2h { background: #FEF3E2; color: #8A4E00; }
   .badge-3h4h { background: #FEF3E2; color: #8A4E00; }
@@ -488,6 +493,8 @@
   .launch-btn.geo:hover      { background: var(--dom-geo-dark); box-shadow: 0 4px 14px rgba(26,107,74,0.30); }
   .launch-btn.histoire { background: #1A5C5C; }
   .launch-btn.histoire:hover { background: #144646; box-shadow: 0 4px 14px rgba(26,92,92,0.30); }
+  .launch-btn.jeux     { background: var(--dom-jeux); }
+  .launch-btn.jeux:hover     { background: var(--dom-jeux-dark); box-shadow: 0 4px 14px rgba(122,46,92,0.32); }
 
   /* ===== NO RESULTS ===== */
   .no-results {
@@ -596,6 +603,7 @@
         <button class="filter-btn" data-domain="allemand" aria-pressed="false">Allemand</button>
         <button class="filter-btn" data-domain="sciences" aria-pressed="false">Sciences</button>
         <button class="filter-btn" data-domain="geo" aria-pressed="false">Géographie</button>
+        <button class="filter-btn" data-domain="jeux" aria-pressed="false">Jeux</button>
       </div>
     </div>
     <div class="rail-section">
@@ -1270,6 +1278,21 @@
         <span class="badge badge-per">L2 21-38</span>
       </div>
       <a href="apps/vocabulaire-allemand-7h8h.html" class="launch-btn allemand" aria-label="Lancer l'activité : Vocabulaire allemand (7H-8H)">Jouer <span aria-hidden="true">→</span></a>
+    </article>
+
+    <!-- ======= JEUX ======= -->
+
+    <article class="app-card" data-domain="jeux" data-harmos="c2" data-keywords="kukuli jeu plateau pérou quechua andes ukuku ours stratégie règle du jeu prise saut deux joueurs damier alquerque" style="animation-delay: 1260ms;">
+      <div class="card-header">
+        <h2 class="card-title">Kukuli</h2>
+        <span class="header-cycle-badge">7H–8H</span>
+      </div>
+      <p class="card-desc">Le jeu de plateau des Andes : l'ours Ukuku pourchasse les douze Kukulis, qui cherchent à l'enfermer ou à occuper son antre. À deux sur le même écran, ou contre l'ordinateur.</p>
+      <div class="card-badges">
+        <span class="badge badge-jeux">Jeux</span>
+        <span class="badge badge-theme">Jeu de stratégie</span>
+      </div>
+      <a href="apps/kukuli-7h8h.html" class="launch-btn jeux" aria-label="Lancer l'activité : Kukuli">Jouer <span aria-hidden="true">→</span></a>
     </article>
 
     <!-- No results -->

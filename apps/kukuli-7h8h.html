@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<!--
+  kukuli-7h8h.html — Kukuli, jeu de plateau péruvien (Quechua).
+  Branche « Jeux » — design « Couleur franche ».
+
+  Plateau relevé sur l'illustration de référence (fichier « Français 7e-8e —
+  La règle de jeu ») :
+    - grille alquerque 5x5 : horizontales, verticales, et diagonales aux
+      intersections où (ligne + colonne) est paire ;
+    - antre triangulaire de 7 intersections accroché sous le centre du bas de
+      la grille (apex partagé avec la grille, puis une rangée de 3, puis une
+      rangée de 3) ;
+    - la verticale centrale de la grille se prolonge dans l'antre (saut
+      possible entre les deux zones) ; les diagonales de la grille, elles, ne
+      sont PAS alignées avec les arêtes du triangle (mesuré au pixel) : elles
+      ne forment donc pas une même ligne pour les sauts.
+-->
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Kukuli</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-base.css">
+<style>
+  /* ── Couleur du domaine : Jeux ─────────────────────────────────────────── */
+  :root {
+    --app-accent:      #7A2E5C;
+    --app-accent-dark: #5C2145;
+    --app-tint-bg:     #F7E9F1;
+    --app-tint-fg:     #6B2350;
+
+    /* Palette andine du plateau */
+    --pl-fond:    #FBEEDA;
+    --pl-bord:    #9A6B35;
+    --pl-ligne:   #33261A;
+    --pl-antre:   #F4DCB0;
+    --pl-vide:    #8A7658;  /* 3,8:1 sur le fond crème, 3,4:1 sur le lavis de l'antre */
+    --pl-kukuli:  #C8462B;
+    --pl-ukuku:   #43291C;
+    --pl-indice:  #0B6B55;
+  }
+
+  /* ── Barre d'options secondaire (difficulté, aides) ─────────────────────── */
+  .option-bar {
+    background: #fff;
+    border-top: 2px solid var(--app-border);
+    padding: 12px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .option-bar[hidden] { display: none; }
+  .option-label {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--app-tint-fg);
+  }
+  .option-btn {
+    padding: 0 22px;
+    min-height: 56px;
+    min-width: 64px;
+    border-radius: 999px;
+    border: 2px solid var(--app-tint-fg);
+    background: #fff;
+    color: var(--app-tint-fg);
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+  .option-btn[aria-pressed="true"] {
+    background: var(--app-accent);
+    border-color: var(--app-accent);
+    color: #fff;
+  }
+  .option-btn:focus-visible { outline: 3px solid var(--app-accent); outline-offset: 3px; }
+
+  /* ── Boîte de tour ──────────────────────────────────────────────────────── */
+  /* L'anneau intérieur reprend la couleur du camp, mais le jeton dessiné et le
+     texte portent l'information : jamais la couleur seule. */
+  .question-box.tour-ukuku   { background: #F6F0E8; box-shadow: inset 0 0 0 5px var(--pl-ukuku),  0 2px 8px rgba(20,32,46,0.08); }
+  .question-box.tour-kukulis { background: #FDF0EC; box-shadow: inset 0 0 0 5px var(--pl-kukuli), 0 2px 8px rgba(20,32,46,0.08); }
+  .question-box.tour-fin     { background: var(--app-tint-bg); box-shadow: inset 0 0 0 5px var(--app-accent), 0 2px 8px rgba(20,32,46,0.08); }
+  .tour-ligne {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+  .tour-jeton { width: 54px; height: 54px; flex-shrink: 0; }
+  .tour-jeton:empty { display: none; }
+  .turn-sub {
+    display: block;
+    margin-top: 6px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: #3F4A5C;   /* ≥ 7,6:1 sur les trois fonds teintés de la boîte de tour */
+  }
+
+  /* ── Plateau ────────────────────────────────────────────────────────────── */
+  .board-wrap {
+    width: 100%;
+    overflow-x: auto;
+    display: flex;
+    justify-content: center;
+  }
+  .board {
+    width: 100%;
+    min-width: 460px;
+    max-width: 620px;
+    height: auto;
+    display: block;
+  }
+  .pt { cursor: default; }
+  .pt.jouable { cursor: pointer; }
+  .pt:focus { outline: none; }
+  .pt .anneau-focus { opacity: 0; }
+  .pt:focus-visible .anneau-focus { opacity: 1; }
+
+  /* ── Bouton secondaire (annuler, arrêter la chaîne) ─────────────────────── */
+  .second-btn {
+    padding: 0 28px;
+    background: #fff;
+    color: var(--app-tint-fg);
+    border: 3px solid var(--app-tint-fg);
+    border-radius: 16px;
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    cursor: pointer;
+    min-height: 68px;
+    min-width: 64px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+  .second-btn:hover:not(:disabled) { background: var(--app-tint-bg); }
+  .second-btn:disabled { opacity: 0.45; cursor: default; }
+  .second-btn:focus-visible { outline: 3px solid var(--app-accent); outline-offset: 3px; }
+
+  /* Message neutre (ni bonne ni mauvaise action) — ex. « les Kukulis passent ». */
+  .feedback.info { background: var(--app-tint-bg); color: var(--app-tint-fg); display: block; }
+
+  /* ── Panneau des règles ─────────────────────────────────────────────────── */
+  .rules {
+    width: 100%;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(20,32,46,0.08);
+    overflow: hidden;
+  }
+  .rules > summary {
+    list-style: none;
+    padding: 20px 24px;
+    min-height: 68px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--app-tint-fg);
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .rules > summary::-webkit-details-marker { display: none; }
+  .rules > summary::after { content: '▾'; margin-left: auto; font-size: 26px; }
+  .rules[open] > summary::after { content: '▴'; }
+  .rules > summary:focus-visible { outline: 3px solid var(--app-accent); outline-offset: -3px; }
+  .rules-body { padding: 0 24px 24px; font-size: 18px; line-height: 1.6; color: var(--app-text); }
+  .rules-body h2 {
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 21px;
+    font-weight: 700;
+    color: var(--app-tint-fg);
+    margin: 18px 0 6px;
+  }
+  .rules-body ul { margin: 0 0 4px 22px; }
+  .rules-body li { margin-bottom: 6px; }
+  .rules-body p { margin-bottom: 6px; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .option-btn { transition: background 0.15s, color 0.15s, border-color 0.15s; }
+    .option-btn:active { transform: scale(0.97); }
+    .second-btn { transition: background 0.15s; }
+    .second-btn:active { transform: scale(0.97); }
+    .piece { transition: transform 0.18s ease-out; }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header" role="banner">
+  <a href="../index.html" class="back-link"><span aria-hidden="true">←</span> Retour</a>
+  <h1>Kukuli</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<div class="level-bar" role="group" aria-label="Choisir le mode de jeu">
+  <button class="level-btn active" data-mode="2j"          aria-pressed="true">2 joueurs</button>
+  <button class="level-btn"        data-mode="ia-ukuku"    aria-pressed="false">Ordinateur : Ukuku</button>
+  <button class="level-btn"        data-mode="ia-kukulis"  aria-pressed="false">Ordinateur : Kukulis</button>
+</div>
+
+<div class="option-bar">
+  <span class="option-label" id="lbl-diff" hidden>Ordinateur :</span>
+  <button class="option-btn" id="diff-1" data-diff="1" aria-pressed="true"  aria-describedby="lbl-diff" hidden>Facile</button>
+  <button class="option-btn" id="diff-2" data-diff="2" aria-pressed="false" aria-describedby="lbl-diff" hidden>Malin</button>
+  <button class="option-btn" id="aides-btn" aria-pressed="true">Aides visuelles : activées</button>
+</div>
+
+<main>
+  <div class="question-box" id="question-box">
+    <div class="tour-ligne">
+      <svg class="tour-jeton" id="tour-jeton" viewBox="-0.42 -0.42 0.84 0.84" aria-hidden="true"></svg>
+      <span id="turn-main">Au tour d'Ukuku</span>
+    </div>
+    <span class="turn-sub" id="turn-sub">Kukulis sur le plateau : 12</span>
+  </div>
+
+  <div class="board-wrap">
+    <svg class="board" id="board" viewBox="-0.78 -0.78 5.56 7.42"
+         role="group" aria-label="Plateau de Kukuli"></svg>
+  </div>
+
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="action-row">
+    <button class="second-btn" id="stop-btn" hidden>Je m'arrête là</button>
+    <button class="second-btn" id="undo-btn" disabled>Annuler le coup</button>
+    <button class="new-btn visible" id="new-btn"><span aria-hidden="true">▶</span> Nouvelle partie</button>
+  </div>
+
+  <details class="rules" id="rules">
+    <summary>Règles du jeu</summary>
+    <div class="rules-body">
+      <p>Le Kukuli vient du Pérou, chez les Quechuas, un peuple des Andes. Il raconte
+         l'histoire d'une jeune fille, Kukuli, enlevée par un ours, Ukuku.</p>
+
+      <h2>Mise en place</h2>
+      <ul>
+        <li>Les 12 Kukulis occupent les deux rangées du haut, plus les deux
+            intersections des extrémités de la troisième rangée.</li>
+        <li>Ukuku est placé au centre de son antre, le triangle du bas.</li>
+      </ul>
+
+      <h2>Déplacements</h2>
+      <ul>
+        <li>Ukuku commence.</li>
+        <li>Chaque pion se déplace d'une intersection à l'intersection voisine,
+            en suivant une ligne tracée sur le plateau.</li>
+        <li>Ukuku se déplace dans la direction de son choix.</li>
+        <li>Une Kukuli se déplace de la même manière, mais elle ne peut jamais
+            reculer : elle avance ou se décale sur le côté.</li>
+        <li>Ukuku circule librement dans son antre tant qu'il s'y trouve. Mais
+            une fois qu'il en est sorti, il ne peut plus y revenir — ni en se
+            déplaçant, ni en atterrissant après un saut.</li>
+      </ul>
+
+      <h2>La prise</h2>
+      <ul>
+        <li>Ukuku saute par-dessus une Kukuli voisine et se pose sur
+            l'intersection suivante de la même ligne, si elle est libre. La
+            Kukuli sautée est retirée du plateau.</li>
+        <li>S'il peut enchaîner plusieurs prises, il en a le droit. Il peut
+            aussi s'arrêter quand il le souhaite.</li>
+        <li>Les Kukulis ne capturent jamais Ukuku.</li>
+      </ul>
+
+      <h2>Gagner la partie</h2>
+      <ul>
+        <li>Ukuku gagne s'il capture les 12 Kukulis.</li>
+        <li>Les Kukulis gagnent si Ukuku ne peut plus se déplacer, ou si elles
+            occupent les 7 intersections de l'antre.</li>
+      </ul>
+
+      <h2>Dans cette version</h2>
+      <ul>
+        <li>Si les Kukulis n'ont aucun déplacement possible, elles passent leur
+            tour.</li>
+        <li>Si la même position revient trois fois, la partie est déclarée nulle.</li>
+      </ul>
+    </div>
+  </details>
+</main>
+
+<script src="appUtils.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   1. MOTEUR — indépendant de l'affichage
+   ═══════════════════════════════════════════════════════════════════════════
+   Un état de partie : { u: index d'Ukuku, k: masque de bits des Kukulis,
+                         t: 'u' | 'k' (à qui de jouer) }
+   Les 31 intersections tiennent dans un entier 31 bits : le moteur peut donc
+   explorer sans jamais cloner de structure. C'est ce qui rend l'IA rapide. */
+
+/* Index 0..24 : grille 5x5, ligne par ligne (index = 5 * ligne + colonne).
+   Index 25..30 : les 6 intersections de l'antre sous l'apex.
+   L'apex de l'antre est le point de grille (ligne 4, colonne 2) = index 22. */
+const APEX  = 22;
+const ANTRE = [22, 25, 26, 27, 28, 29, 30];
+
+const PTS = [];
+for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) PTS.push({ x: c, y: r });
+PTS.push({ x: 1.2533, y: 4.8 }); // 25 — antre, milieu gauche
+PTS.push({ x: 2.0000, y: 4.8 }); // 26 — antre, milieu centre (départ d'Ukuku)
+PTS.push({ x: 2.7467, y: 4.8 }); // 27 — antre, milieu droite
+PTS.push({ x: 0.6000, y: 5.5 }); // 28 — antre, bas gauche
+PTS.push({ x: 2.0000, y: 5.5 }); // 29 — antre, bas centre
+PTS.push({ x: 3.4000, y: 5.5 }); // 30 — antre, bas droite
+
+/* Les lignes tracées sur le plateau. Deux points consécutifs d'une même ligne
+   sont voisins ; trois points consécutifs forment un saut possible. */
+const LIGNES = [
+  [0,1,2,3,4], [5,6,7,8,9], [10,11,12,13,14], [15,16,17,18,19], [20,21,22,23,24],
+  [0,5,10,15,20], [1,6,11,16,21], [3,8,13,18,23], [4,9,14,19,24],
+  [2,7,12,17,22,26,29],
+  [0,6,12,18,24], [2,8,14], [10,16,22],
+  [4,8,12,16,20], [2,6,10], [14,18,22],
+  [22,25,28], [22,27,30], [25,26,27], [28,29,30]
+];
+
+const VOISINS = PTS.map(() => []);
+const SAUT = new Map();
+for (const l of LIGNES) {
+  for (let i = 0; i < l.length - 1; i++) {
+    if (!VOISINS[l[i]].includes(l[i+1])) VOISINS[l[i]].push(l[i+1]);
+    if (!VOISINS[l[i+1]].includes(l[i])) VOISINS[l[i+1]].push(l[i]);
+  }
+  for (let i = 0; i < l.length - 2; i++) {
+    SAUT.set(l[i]   + '_' + l[i+1], l[i+2]);
+    SAUT.set(l[i+2] + '_' + l[i+1], l[i]);
+  }
+}
+
+const MASQUE_ANTRE = ANTRE.reduce((m, i) => m | (1 << i), 0);
+const estAntre = (i) => (MASQUE_ANTRE & (1 << i)) !== 0;
+
+/* Ukuku ne revient pas dans son antre une fois qu'il en est sorti. Comme il ne
+   peut jamais y rentrer, se trouver sur une intersection de l'antre prouve
+   qu'il n'en est jamais sorti : la règle se ramène donc à « il ne peut entrer
+   dans l'antre que s'il y est déjà ». Aucun indicateur à traîner dans l'état.
+   Vaut aussi pour l'atterrissage d'un saut. */
+function ukukuPeutAller(depuis, vers) {
+  return !estAntre(vers) || estAntre(depuis);
+}
+const KUKULIS_DEPART = (() => {
+  let m = 0;
+  for (let i = 0; i <= 9; i++) m |= 1 << i;
+  m |= 1 << 10; m |= 1 << 14;
+  return m;
+})();
+
+const bit = (i) => 1 << i;
+const occupe = (m, i) => (m & (1 << i)) !== 0;
+function compte(x) { let c = 0; while (x) { x &= x - 1; c++; } return c; }
+
+function etatDepart() { return { u: 26, k: KUKULIS_DEPART, t: 'u' }; }
+
+/* Toutes les suites de prises possibles depuis `pos`. Chaque étape de la
+   chaîne est un coup valable à part entière : Ukuku a le droit de s'arrêter. */
+function chaines(pos, kukulis, prises, sortie) {
+  for (const v of VOISINS[pos]) {
+    if (!occupe(kukulis, v)) continue;
+    const arrivee = SAUT.get(pos + '_' + v);
+    if (arrivee === undefined) continue;
+    if (occupe(kukulis, arrivee)) continue;
+    if (!ukukuPeutAller(pos, arrivee)) continue;
+    const suite = prises.concat(v);
+    sortie.push({ dest: arrivee, prises: suite });
+    chaines(arrivee, kukulis & ~bit(v), suite, sortie);
+  }
+}
+
+function coupsUkuku(e) {
+  const out = [];
+  for (const v of VOISINS[e.u]) {
+    if (occupe(e.k, v) || !ukukuPeutAller(e.u, v)) continue;
+    out.push({ dest: v, prises: [] });
+  }
+  const ch = [];
+  chaines(e.u, e.k, [], ch);
+  const vus = new Set();
+  for (const c of ch) {
+    const cle = c.dest + '|' + c.prises.slice().sort((a, b) => a - b).join(',');
+    if (!vus.has(cle)) { vus.add(cle); out.push(c); }
+  }
+  return out;
+}
+
+/* Une Kukuli ne recule jamais : l'ordonnée d'arrivée ne peut pas être
+   inférieure à celle de départ. Les déplacements latéraux (même ordonnée)
+   restent autorisés. */
+function coupsKukulis(e) {
+  const out = [];
+  for (let i = 0; i < 31; i++) {
+    if (!occupe(e.k, i)) continue;
+    for (const v of VOISINS[i]) {
+      if (v === e.u || occupe(e.k, v)) continue;
+      if (PTS[v].y < PTS[i].y - 1e-6) continue;
+      out.push({ from: i, dest: v });
+    }
+  }
+  return out;
+}
+
+function jouerUkuku(e, c) {
+  let k = e.k;
+  for (const p of c.prises) k &= ~bit(p);
+  return { u: c.dest, k: k, t: 'k' };
+}
+function jouerKukuli(e, c) {
+  return { u: e.u, k: (e.k & ~bit(c.from)) | bit(c.dest), t: 'u' };
+}
+
+/* Ukuku bloqué ne perd que si c'est à lui de jouer : les Kukulis peuvent le
+   libérer en jouant leur tour. */
+function issue(e) {
+  if (e.k === 0) return 'ukuku';
+  if ((e.k & MASQUE_ANTRE) === MASQUE_ANTRE) return 'kukulis';
+  if (e.t === 'u' && coupsUkuku(e).length === 0) return 'kukulis';
+  return null;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   2. IA — minimax avec élagage alpha-bêta
+   ═══════════════════════════════════════════════════════════════════════════
+   Score positif = position favorable à Ukuku. Pour jouer les Kukulis, l'IA
+   minimise ce même score : une seule fonction d'évaluation suffit.
+   Pour ajouter une IA plus forte plus tard, il suffit de remplacer `evaluer()`
+   ou d'augmenter la profondeur dans PROFONDEUR. */
+
+/* Profondeur de recherche par niveau. Mesuré sur ce plateau : profondeur 6
+   coûte 15 ms en moyenne et 180 ms au pire — sans effet perceptible pour
+   l'élève. Monter au-delà de 6 devient sensible (85 ms de moyenne en 7). */
+const PROFONDEUR = { 1: 2, 2: 6 };
+
+function mobiliteUkuku(e) {
+  let n = 0;
+  for (const v of VOISINS[e.u]) {
+    if (!occupe(e.k, v)) { if (ukukuPeutAller(e.u, v)) n++; continue; }
+    const a = SAUT.get(e.u + '_' + v);
+    if (a !== undefined && !occupe(e.k, a) && ukukuPeutAller(e.u, a)) n += 3;
+  }
+  return n;
+}
+
+function evaluer(e) {
+  const restantes = compte(e.k);
+  let s = (12 - restantes) * 120;
+  s += mobiliteUkuku(e) * 7;
+  let dansAntre = 0, avance = 0;
+  for (let i = 0; i < 31; i++) {
+    if (!occupe(e.k, i)) continue;
+    avance += PTS[i].y;
+    if ((MASQUE_ANTRE & bit(i)) !== 0) dansAntre++;
+  }
+  s -= dansAntre * 26;
+  s -= avance * 2.2;
+  return s;
+}
+
+function minimax(e, prof, alpha, beta) {
+  const iss = issue(e);
+  if (iss === 'ukuku')   return  100000 + prof;
+  if (iss === 'kukulis') return -100000 - prof;
+  if (prof === 0) return evaluer(e);
+
+  if (e.t === 'u') {
+    const cs = coupsUkuku(e).sort((a, b) => b.prises.length - a.prises.length);
+    let best = -Infinity;
+    for (const c of cs) {
+      const v = minimax(jouerUkuku(e, c), prof - 1, alpha, beta);
+      if (v > best) best = v;
+      if (best > alpha) alpha = best;
+      if (alpha >= beta) break;
+    }
+    return best;
+  } else {
+    const cs = coupsKukulis(e);
+    if (cs.length === 0) return minimax({ u: e.u, k: e.k, t: 'u' }, prof - 1, alpha, beta);
+    cs.sort((a, b) => PTS[b.dest].y - PTS[a.dest].y);
+    let best = Infinity;
+    for (const c of cs) {
+      const v = minimax(jouerKukuli(e, c), prof - 1, alpha, beta);
+      if (v < best) best = v;
+      if (best < beta) beta = best;
+      if (alpha >= beta) break;
+    }
+    return best;
+  }
+}
+
+/* Renvoie le coup choisi par l'ordinateur, ou null s'il ne peut pas jouer. */
+function choisirCoup(e, difficulte) {
+  const prof = PROFONDEUR[difficulte] || 2;
+  const cs = e.t === 'u' ? coupsUkuku(e) : coupsKukulis(e);
+  if (cs.length === 0) return null;
+
+  const notes = cs.map((c) => ({
+    coup: c,
+    note: minimax(e.t === 'u' ? jouerUkuku(e, c) : jouerKukuli(e, c), prof - 1, -Infinity, Infinity)
+  }));
+
+  const meilleure = e.t === 'u'
+    ? Math.max(...notes.map((n) => n.note))
+    : Math.min(...notes.map((n) => n.note));
+
+  /* En « Facile », l'ordinateur accepte des coups légèrement moins bons : la
+     partie reste gagnable et il ne joue pas deux fois la même partie. */
+  const marge = difficulte === 1 ? 60 : 0;
+  const bons = notes.filter((n) => Math.abs(n.note - meilleure) <= marge);
+  return bons[Math.floor(Math.random() * bons.length)].coup;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   3. AFFICHAGE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const board      = document.getElementById('board');
+const questionBox= document.getElementById('question-box');
+const tourJeton  = document.getElementById('tour-jeton');
+const feedbackEl = document.getElementById('feedback');
+const turnMain   = document.getElementById('turn-main');
+const turnSub    = document.getElementById('turn-sub');
+const newBtn     = document.getElementById('new-btn');
+const undoBtn    = document.getElementById('undo-btn');
+const stopBtn    = document.getElementById('stop-btn');
+const aidesBtn   = document.getElementById('aides-btn');
+const lblDiff    = document.getElementById('lbl-diff');
+const diffBtns   = [document.getElementById('diff-1'), document.getElementById('diff-2')];
+
+const NOMS = (() => {
+  const n = [];
+  for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) n.push('ligne ' + (r+1) + ', colonne ' + (c+1));
+  n[APEX] = 'entrée de l’antre';
+  n[25] = 'antre, milieu gauche';  n[26] = 'antre, milieu centre'; n[27] = 'antre, milieu droite';
+  n[28] = 'antre, bas gauche';     n[29] = 'antre, bas centre';    n[30] = 'antre, bas droite';
+  return n;
+})();
+
+function el(nom, attrs) {
+  const e = document.createElementNS(SVG_NS, nom);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+
+const groupes = [];
+
+function construirePlateau() {
+  board.textContent = '';
+
+  /* Contour du plateau : rectangle arrondi + antre triangulaire.
+     Les arêtes du triangle coupent le bas du rectangle en x = 2 ± 0.513. */
+  board.appendChild(el('path', {
+    d: 'M -0.25 -0.55 L 4.25 -0.55 A 0.3 0.3 0 0 1 4.55 -0.25 L 4.55 4.25 ' +
+       'A 0.3 0.3 0 0 1 4.25 4.55 L 2.513 4.55 L 3.727 5.85 L 0.273 5.85 ' +
+       'L 1.487 4.55 L -0.25 4.55 A 0.3 0.3 0 0 1 -0.55 4.25 L -0.55 -0.25 ' +
+       'A 0.3 0.3 0 0 1 -0.25 -0.55 Z',
+    fill: 'var(--pl-fond)', stroke: 'var(--pl-bord)', 'stroke-width': 0.075
+  }));
+
+  /* Lavis de l'antre : rend lisible la condition de victoire « occuper les 7
+     intersections de l'antre ». */
+  board.appendChild(el('polygon', {
+    points: '2,4 3.66,5.78 0.34,5.78', fill: 'var(--pl-antre)', opacity: 0.75
+  }));
+
+  const traits = el('g', { stroke: 'var(--pl-ligne)', 'stroke-width': 0.042, 'stroke-linecap': 'round' });
+  for (const l of LIGNES) {
+    for (let i = 0; i < l.length - 1; i++) {
+      traits.appendChild(el('line', {
+        x1: PTS[l[i]].x, y1: PTS[l[i]].y, x2: PTS[l[i+1]].x, y2: PTS[l[i+1]].y
+      }));
+    }
+  }
+  board.appendChild(traits);
+
+  for (let i = 0; i < 31; i++) {
+    const p = PTS[i];
+    const g = el('g', { class: 'pt', 'data-i': i, role: 'button', tabindex: -1 });
+    g.appendChild(el('circle', { cx: p.x, cy: p.y, r: 0.34, fill: 'transparent' }));
+    g.appendChild(el('circle', { class: 'anneau-focus', cx: p.x, cy: p.y, r: 0.33,
+      fill: 'none', stroke: 'var(--app-accent)', 'stroke-width': 0.06 }));
+    g.appendChild(el('g', { class: 'contenu' }));
+    board.appendChild(g);
+    groupes.push(g);
+    g.addEventListener('click', () => cliquer(i));
+    g.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); cliquer(i); }
+    });
+  }
+}
+
+/* Marque d'intersection vide. Les points de l'antre portent un anneau ocre :
+   la distinction ne repose pas sur la seule couleur. */
+function dessinerVide(c, p, dansAntre) {
+  if (dansAntre) {
+    c.appendChild(el('circle', { cx: p.x, cy: p.y, r: 0.115, fill: 'var(--pl-antre)',
+      stroke: 'var(--pl-bord)', 'stroke-width': 0.05 }));
+  } else {
+    c.appendChild(el('circle', { cx: p.x, cy: p.y, r: 0.085, fill: 'var(--pl-vide)' }));
+  }
+}
+
+/* Kukuli : petit disque plat. Ukuku : disque plus grand, plus foncé, avec deux
+   oreilles et un anneau clair — la forme suffit à les distinguer sans la
+   couleur. */
+function dessinerKukuli(c, p) {
+  const g = el('g', { class: 'piece' });
+  g.appendChild(el('circle', { cx: p.x, cy: p.y, r: 0.185, fill: 'var(--pl-kukuli)',
+    stroke: '#7B2413', 'stroke-width': 0.045 }));
+  g.appendChild(el('circle', { cx: p.x, cy: p.y - 0.05, r: 0.06, fill: '#F2B49F' }));
+  c.appendChild(g);
+}
+
+function dessinerUkuku(c, p) {
+  const g = el('g', { class: 'piece' });
+  for (const dx of [-0.185, 0.185]) {
+    g.appendChild(el('circle', { cx: p.x + dx, cy: p.y - 0.225, r: 0.105,
+      fill: 'var(--pl-ukuku)', stroke: '#1F120B', 'stroke-width': 0.045 }));
+  }
+  g.appendChild(el('circle', { cx: p.x, cy: p.y, r: 0.265, fill: 'var(--pl-ukuku)',
+    stroke: '#1F120B', 'stroke-width': 0.045 }));
+  g.appendChild(el('circle', { cx: p.x, cy: p.y, r: 0.155, fill: 'none',
+    stroke: 'var(--pl-fond)', 'stroke-width': 0.055 }));
+  c.appendChild(g);
+}
+
+/* Indice de déplacement : cercle pour un déplacement simple, losange pour une
+   prise. Deux formes distinctes, pas deux couleurs. */
+function dessinerIndice(c, p, prise) {
+  if (prise) {
+    c.appendChild(el('polygon', {
+      points: [ [p.x, p.y - 0.30], [p.x + 0.30, p.y], [p.x, p.y + 0.30], [p.x - 0.30, p.y] ]
+        .map((q) => q.join(',')).join(' '),
+      fill: 'none', stroke: 'var(--pl-indice)', 'stroke-width': 0.075, 'stroke-linejoin': 'round'
+    }));
+  } else {
+    c.appendChild(el('circle', { cx: p.x, cy: p.y, r: 0.27, fill: 'none',
+      stroke: 'var(--pl-indice)', 'stroke-width': 0.065 }));
+  }
+}
+
+function dessinerSelection(c, p) {
+  c.appendChild(el('circle', { cx: p.x, cy: p.y, r: 0.31, fill: 'none',
+    stroke: 'var(--app-accent)', 'stroke-width': 0.085 }));
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   4. PARTIE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+let etat, mode, difficulte, aides, selection, coupsDuTour, enChaine, historique, positions, finie, iaOccupee;
+
+function camp(e) { return e.t === 'u' ? 'ukuku' : 'kukulis'; }
+function humainJoue() {
+  if (finie || iaOccupee) return false;
+  if (mode === '2j') return true;
+  return !(mode === 'ia-ukuku' && etat.t === 'u') && !(mode === 'ia-kukulis' && etat.t === 'k');
+}
+
+function nouvellePartie() {
+  etat = etatDepart();
+  selection = null; enChaine = false; finie = false; iaOccupee = false;
+  historique = []; positions = new Map();
+  coupsDuTour = coupsUkuku(etat);
+  feedbackEl.className = 'feedback';
+  feedbackEl.textContent = '';
+  stopBtn.hidden = true;
+  undoBtn.disabled = true;
+  noterPosition();
+  rendre();
+  jouerIaSiBesoin();
+}
+
+function clePosition(e) { return e.u + ':' + e.k + ':' + e.t; }
+function noterPosition() {
+  const c = clePosition(etat);
+  positions.set(c, (positions.get(c) || 0) + 1);
+  return positions.get(c);
+}
+
+function terminer(gagnant) {
+  finie = true;
+  selection = null; enChaine = false;
+  stopBtn.hidden = true;
+  let msg;
+  if (gagnant === 'ukuku') {
+    msg = 'Ukuku a capturé toutes les Kukulis : il gagne la partie ! ' +
+          'Appuie sur « Nouvelle partie » pour rejouer.';
+  } else if (gagnant === 'kukulis-antre') {
+    msg = 'Les Kukulis occupent les 7 intersections de l’antre : elles gagnent ! ' +
+          'Appuie sur « Nouvelle partie » pour rejouer.';
+  } else if (gagnant === 'kukulis') {
+    msg = 'Ukuku ne peut plus se déplacer : les Kukulis gagnent ! ' +
+          'Appuie sur « Nouvelle partie » pour rejouer.';
+  } else {
+    msg = 'La même position est revenue trois fois : la partie est nulle. ' +
+          'Appuie sur « Nouvelle partie » pour rejouer.';
+  }
+  feedbackEl.className = 'feedback correct';
+  feedbackEl.textContent = msg;
+  playCorrect();
+  launchConfetti();
+  rendre();
+  newBtn.focus();
+}
+
+/* Contrôle de fin de partie après chaque coup. */
+function verifierFin() {
+  if (etat.k === 0) { terminer('ukuku'); return true; }
+  if ((etat.k & MASQUE_ANTRE) === MASQUE_ANTRE) { terminer('kukulis-antre'); return true; }
+  if (etat.t === 'u' && coupsUkuku(etat).length === 0) { terminer('kukulis'); return true; }
+  if (noterPosition() >= 3) { terminer('nulle'); return true; }
+  return false;
+}
+
+/* Passe la main. Si les Kukulis n'ont aucun déplacement, elles passent leur
+   tour — la règle d'origine ne prévoit pas ce cas. */
+function finDeTour() {
+  selection = null; enChaine = false;
+  stopBtn.hidden = true;
+  if (verifierFin()) return;
+  if (etat.t === 'k' && coupsKukulis(etat).length === 0) {
+    etat = { u: etat.u, k: etat.k, t: 'u' };
+    feedbackEl.className = 'feedback info';
+    feedbackEl.textContent = 'Aucune Kukuli ne peut se déplacer : elles passent leur tour. ' +
+                             'C’est de nouveau à Ukuku de jouer.';
+    if (verifierFin()) return;
+  }
+  coupsDuTour = etat.t === 'u' ? coupsUkuku(etat) : coupsKukulis(etat);
+  rendre();
+  jouerIaSiBesoin();
+}
+
+function messageTemporaire(txt) {
+  feedbackEl.className = 'feedback wrong';
+  feedbackEl.textContent = txt;
+  playIncorrect();
+}
+
+function cliquer(i) {
+  if (!humainJoue()) return;
+
+  /* En cours de chaîne, seules les prises supplémentaires sont recevables. */
+  if (enChaine) {
+    const c = coupsDuTour.find((m) => m.dest === i);
+    if (c) { appliquerUkuku(c); return; }
+    messageTemporaire('Tu es en train d’enchaîner des prises. Choisis un losange, ' +
+                      'ou appuie sur « Je m’arrête là ».');
+    return;
+  }
+
+  if (etat.t === 'u') {
+    if (i === etat.u) {
+      selection = selection === etat.u ? null : etat.u;
+      feedbackEl.className = 'feedback'; feedbackEl.textContent = '';
+      rendre(); return;
+    }
+    if (selection === null) {
+      messageTemporaire('Choisis d’abord Ukuku, le grand pion à oreilles, puis son point d’arrivée.');
+      return;
+    }
+    const c = coupsDuTour.find((m) => m.dest === i && m.prises.length <= 1);
+    if (!c) {
+      messageTemporaire(estAntre(i) && !estAntre(etat.u)
+        ? 'Ukuku est sorti de son antre : il ne peut plus y retourner. Choisis une autre intersection.'
+        : 'Ukuku ne peut pas aller sur cette intersection.');
+      return;
+    }
+    appliquerUkuku(c);
+    return;
+  }
+
+  /* Tour des Kukulis */
+  if (occupe(etat.k, i)) {
+    selection = selection === i ? null : i;
+    feedbackEl.className = 'feedback'; feedbackEl.textContent = '';
+    rendre(); return;
+  }
+  if (selection === null) {
+    messageTemporaire('Choisis d’abord une Kukuli, puis son point d’arrivée.');
+    return;
+  }
+  const c = coupsDuTour.find((m) => m.from === selection && m.dest === i);
+  if (!c) {
+    messageTemporaire('Cette Kukuli ne peut pas aller là. Rappelle-toi : une Kukuli ' +
+                      'avance ou se décale sur le côté, mais ne recule jamais.');
+    return;
+  }
+  historique.push({ e: etat, p: new Map(positions) });
+  etat = jouerKukuli(etat, c);
+  undoBtn.disabled = false;
+  feedbackEl.className = 'feedback'; feedbackEl.textContent = '';
+  finDeTour();
+}
+
+/* Un coup d'Ukuku est appliqué prise par prise : après chaque saut, on regarde
+   si la chaîne peut continuer et on laisse le choix de s'arrêter. */
+function appliquerUkuku(c) {
+  if (!enChaine) historique.push({ e: etat, p: new Map(positions) });
+  undoBtn.disabled = false;
+  etat = { u: c.dest, k: c.prises.length ? etat.k & ~bit(c.prises[c.prises.length - 1]) : etat.k, t: 'u' };
+  feedbackEl.className = 'feedback'; feedbackEl.textContent = '';
+
+  if (c.prises.length > 0 && etat.k !== 0) {
+    const suites = [];
+    chaines(etat.u, etat.k, [], suites);
+    const directes = suites.filter((s) => s.prises.length === 1);
+    if (directes.length > 0) {
+      enChaine = true;
+      coupsDuTour = directes;
+      selection = etat.u;
+      stopBtn.hidden = false;
+      feedbackEl.className = 'feedback correct';
+      feedbackEl.textContent = 'Prise réussie ! Ukuku peut enchaîner : choisis un losange, ' +
+                               'ou appuie sur « Je m’arrête là ».';
+      rendre();
+      return;
+    }
+  }
+  etat = { u: etat.u, k: etat.k, t: 'k' };
+  finDeTour();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   5. RENDU
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function rendre() {
+  const destinations = new Map();
+  if (!finie && humainJoue() && selection !== null) {
+    for (const m of coupsDuTour) {
+      if (etat.t === 'u' || enChaine) {
+        if (m.prises.length <= 1) destinations.set(m.dest, m.prises.length > 0);
+      } else if (m.from === selection) {
+        destinations.set(m.dest, false);
+      }
+    }
+  }
+
+  for (let i = 0; i < 31; i++) {
+    const g = groupes[i];
+    const c = g.querySelector('.contenu');
+    const p = PTS[i];
+    c.textContent = '';
+
+    const estUkuku  = etat.u === i;
+    const estKukuli = occupe(etat.k, i);
+    const cible     = destinations.has(i);
+
+    if (selection === i) dessinerSelection(c, p);
+    if (cible && aides) dessinerIndice(c, p, destinations.get(i));
+
+    if (estUkuku)       dessinerUkuku(c, p);
+    else if (estKukuli) dessinerKukuli(c, p);
+    else                dessinerVide(c, p, estAntre(i));
+
+    /* Seuls les points réellement actionnables entrent dans l'ordre de
+       tabulation : la boucle de tabulation d'appUtils.js reste ainsi utile. */
+    const selectionnable = !finie && humainJoue() && !enChaine &&
+      ((etat.t === 'u' && estUkuku) || (etat.t === 'k' && estKukuli));
+    const actif = selectionnable || cible;
+    g.setAttribute('tabindex', actif ? 0 : -1);
+    g.classList.toggle('jouable', actif);
+
+    let etiquette = NOMS[i] + ' — ';
+    if (estUkuku) etiquette += 'Ukuku';
+    else if (estKukuli) etiquette += 'Kukuli';
+    else etiquette += 'intersection libre';
+    if (cible) etiquette += destinations.get(i) ? ', prise possible' : ', déplacement possible';
+    g.setAttribute('aria-label', etiquette);
+  }
+
+  majTexteTour();
+}
+
+function majTexteTour() {
+  const restantes = compte(etat.k);
+  tourJeton.textContent = '';
+  questionBox.classList.remove('tour-ukuku', 'tour-kukulis', 'tour-fin');
+
+  if (finie) {
+    questionBox.classList.add('tour-fin');
+    turnMain.textContent = 'Partie terminée';
+  } else {
+    /* Le jeton du camp qui doit jouer est redessiné dans la boîte : l'élève
+       reconnaît la pièce, pas seulement la couleur de l'anneau. */
+    const cote = etat.t === 'u' ? 'ukuku' : 'kukulis';
+    questionBox.classList.add('tour-' + cote);
+    if (cote === 'ukuku') dessinerUkuku(tourJeton, { x: 0, y: 0 });
+    else                  dessinerKukuli(tourJeton, { x: 0, y: 0 });
+
+    if (iaOccupee) {
+      turnMain.textContent = 'L’ordinateur réfléchit…';
+    } else if (cote === 'ukuku') {
+      turnMain.textContent = 'Au tour d’Ukuku' + (humainJoue() ? '' : ' (ordinateur)');
+    } else {
+      turnMain.textContent = 'Au tour des Kukulis' + (humainJoue() ? '' : ' (ordinateur)');
+    }
+  }
+  turnSub.textContent = 'Kukulis sur le plateau : ' + restantes +
+                        ' · Antre occupé : ' + compte(etat.k & MASQUE_ANTRE) + '/7';
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   6. TOUR DE L'ORDINATEUR
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function jouerIaSiBesoin() {
+  if (finie || mode === '2j') return;
+  const iaJoue = (mode === 'ia-ukuku' && etat.t === 'u') || (mode === 'ia-kukulis' && etat.t === 'k');
+  if (!iaJoue) return;
+
+  iaOccupee = true;
+  rendre();
+  /* Laisse le navigateur peindre « L'ordinateur réfléchit… » avant le calcul. */
+  setTimeout(() => {
+    const c = choisirCoup(etat, difficulte);
+    iaOccupee = false;
+    if (c === null) { finDeTour(); return; }
+    if (etat.t === 'u') {
+      /* L'ordinateur joue sa chaîne complète d'un seul tenant. */
+      etat = jouerUkuku(etat, c);
+    } else {
+      etat = jouerKukuli(etat, c);
+    }
+    selection = null; enChaine = false;
+    finDeTour();
+  }, 260);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   7. COMMANDES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+document.querySelectorAll('.level-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    mode = btn.dataset.mode;
+    document.querySelectorAll('.level-btn').forEach((b) => {
+      b.classList.remove('active');
+      b.setAttribute('aria-pressed', 'false');
+    });
+    btn.classList.add('active');
+    btn.setAttribute('aria-pressed', 'true');
+    const contreIa = mode !== '2j';
+    lblDiff.hidden = !contreIa;
+    diffBtns.forEach((b) => { b.hidden = !contreIa; });
+    nouvellePartie();
+  });
+});
+
+diffBtns.forEach((btn) => {
+  btn.addEventListener('click', () => {
+    difficulte = parseInt(btn.dataset.diff, 10);
+    diffBtns.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+    nouvellePartie();
+  });
+});
+
+aidesBtn.addEventListener('click', () => {
+  aides = !aides;
+  aidesBtn.setAttribute('aria-pressed', String(aides));
+  aidesBtn.textContent = 'Aides visuelles : ' + (aides ? 'activées' : 'désactivées');
+  rendre();
+});
+
+stopBtn.addEventListener('click', () => {
+  enChaine = false;
+  stopBtn.hidden = true;
+  etat = { u: etat.u, k: etat.k, t: 'k' };
+  feedbackEl.className = 'feedback'; feedbackEl.textContent = '';
+  finDeTour();
+});
+
+/* Annuler remonte jusqu'au dernier état où c'était à l'humain de jouer :
+   contre l'ordinateur, un seul appui annule bien le coup du joueur. */
+undoBtn.addEventListener('click', () => {
+  if (historique.length === 0) return;
+  do {
+    const prec = historique.pop();
+    etat = prec.e; positions = prec.p;
+  } while (historique.length > 0 && !humainJoueDansEtat(etat));
+  finie = false; iaOccupee = false; selection = null; enChaine = false;
+  stopBtn.hidden = true;
+  undoBtn.disabled = historique.length === 0;
+  coupsDuTour = etat.t === 'u' ? coupsUkuku(etat) : coupsKukulis(etat);
+  feedbackEl.className = 'feedback'; feedbackEl.textContent = '';
+  rendre();
+});
+
+function humainJoueDansEtat(e) {
+  if (mode === '2j') return true;
+  return !(mode === 'ia-ukuku' && e.t === 'u') && !(mode === 'ia-kukulis' && e.t === 'k');
+}
+
+newBtn.addEventListener('click', nouvellePartie);
+
+/* ── Démarrage ─────────────────────────────────────────────────────────────── */
+mode = '2j';
+difficulte = 1;
+aides = true;
+construirePlateau();
+nouvellePartie();
+</script>
+<script src="feedbackUtils.js"></script>
+</body>
+</html>

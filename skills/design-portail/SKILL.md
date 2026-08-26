@@ -42,7 +42,7 @@ Ne jamais copier une app existante comme base.
   style="animation-delay: NNNms;">
 ```
 
-**data-domain — 7 branches, palette PER officielle CIIP**
+**data-domain — 7 branches PER (palette officielle CIIP) + 1 branche hors PER**
 
 | `data-domain` | Branche               | Domaine PER | Header / bouton | Fond badge | Texte badge | Classe bouton         | Classe badge     | Classe icône     |
 |---------------|-----------------------|-------------|-----------------|------------|-------------|----------------------|------------------|------------------|
@@ -53,6 +53,9 @@ Ne jamais copier une app existante comme base.
 | `sciences`    | Sciences de la nature | MSN         | `#A02030`       | `#F8E4E4`  | `#700018`   | `.launch-btn.sciences` | `.badge-sciences` | `.icon-sciences` |
 | `geo`         | Géographie            | SHS         | `#1A6B4A`       | `#E6F2ED`  | `#0D4A30`   | `.launch-btn.geo`      | `.badge-geo`      | `.icon-geo`      |
 | `histoire`    | Histoire              | SHS         | `#1A5C5C`       | `#E0EEEE`  | `#0D3D3D`   | `.launch-btn.histoire` | `.badge-histoire` | `.icon-histoire` |
+| `jeux`        | Jeux                  | *aucun*     | `#7A2E5C`       | `#F7E9F1`  | `#6B2350`   | `.launch-btn.jeux`     | `.badge-jeux`     | —                |
+
+**La branche `jeux` n'appartient à aucun domaine PER.** Elle regroupe les jeux de plateau et de stratégie, transversaux par nature. Sa couleur prune ne vient pas de la charte CIIP : elle est choisie par écart maximal avec les sept branches PER (34° de teinte de la plus proche, le rouge maths). Pour cette branche, `data-per` est **omis** tant qu'aucun code n'a été validé — ne jamais en inventer un pour remplir le badge. Voir `CLAUDE.md` § « Hors charte PER — Jeux ».
 
 **data-harmos — cycle filtré par le portail**
 

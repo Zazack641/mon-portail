@@ -127,7 +127,7 @@ Copier un bloc `<article class="app-card" …>` existant et renseigner :
 ## Branches et couleurs PER
 
 Les couleurs suivent la charte officielle CIIP du Plan d'études romand.
-Chaque branche appartient à un domaine PER parent.
+Chaque branche appartient à un domaine PER parent — **à une exception près, la branche « Jeux »** (voir plus bas), qui n'est rattachée à aucun domaine PER et dont la couleur ne provient donc pas de la charte CIIP.
 
 ### Domaine LANGUES — jaune-ocre
 
@@ -155,6 +155,21 @@ Chaque branche appartient à un domaine PER parent.
 | Géographie | `#1A6B4A`      | `#E6F2ED`  | `#0D4A30`   |
 | Histoire   | `#1A5C5C`      | `#E0EEEE`  | `#0D3D3D`   |
 
+### Hors charte PER — Jeux (prune)
+
+| Branche | Header / bouton | Fond badge | Texte badge |
+|---------|-----------------|------------|-------------|
+| Jeux    | `#7A2E5C`       | `#F7E9F1`  | `#6B2350`   |
+
+Ajoutée le 26.08.2026 avec l'app `kukuli-7h8h.html`. **« Jeux » n'est pas un domaine PER** : c'est une branche du portail destinée aux jeux de plateau et de stratégie, qui sont par nature transversaux (un même jeu peut servir la lecture d'une règle, la stratégie ou le repérage). Elle ne figure donc dans aucune des trois tables CIIP ci-dessus.
+
+Conséquences pratiques :
+
+- La couleur `#7A2E5C` (prune, teinte 324°) est choisie **par écart maximal** avec les sept branches PER : 34° de la plus proche (rouge maths `#C0272D`), et loin du violet `#5B2D9E` des badges de Cycle 2. Contraste 8,85:1 avec le texte blanc, `#6B2350` sur `#F7E9F1` à 9,02:1.
+- `data-per` reste **facultatif** et peut être omis — un jeu ne cible pas nécessairement un objectif PER identifiable. Ne jamais inventer un code pour remplir le badge : sans code validé, on omet simplement `data-per` et le badge `.badge-per`.
+- La règle « un fichier par objectif PER par groupe d'années » ne s'applique pas ici ; le suffixe de groupe d'années (`-7h8h`) reste en revanche obligatoire.
+- Le badge thème (`.badge-theme`) reste renseigné (ex. « Jeu de stratégie »).
+
 ### Variables CSS des apps par domaine (design « Couleur franche »)
 
 Depuis la migration « Couleur franche », le header de chaque app (et ses éléments teintés : pilules de niveau, boutons d'action) n'utilise plus un bleu marine unique mais la couleur de son domaine, via 4 variables CSS surchargées dans le `:root` de chaque app (déclarées par défaut sur le neutre dans `apps/app-base.css`, voir `--app-header-bg: var(--app-accent)`) :
@@ -168,6 +183,7 @@ Depuis la migration « Couleur franche », le header de chaque app (et ses élé
 | Sciences de la nature | `#A02030` | `#801828` | `#F8E4E4` | `#700018` |
 | Géographie | `#1A6B4A` | `#145438` | `#E6F2ED` | `#0D4A30` |
 | Histoire | `#1A5C5C` | `#144646` | `#E0EEEE` | `#0D3D3D` |
+| Jeux (hors PER) | `#7A2E5C` | `#5C2145` | `#F7E9F1` | `#6B2350` |
 | Cycles (générique) | `#0F7860` | `#0A5343` | `#E4F2EE` | `#0A5343` |
 | Neutre (défaut `app-base.css`) | `#14202E` | `#0B141F` | `#EEF2F7` | `#33415A` |
 
@@ -184,9 +200,10 @@ Tous ces couples texte/fond tiennent AA (la plupart AAA) : blanc sur accent ≥ 
 | Sciences de la nature | `"sciences"`   |
 | Géographie            | `"geo"`        |
 | Histoire              | `"histoire"`   |
+| Jeux (hors PER)       | `"jeux"`       |
 
 - **`data-harmos`** : niveau HarmoS de l'activité — valeurs possibles : `"1H-2H"`, `"3H-4H"`, `"5H-6H"`, `"7H-8H"`
-- **`data-per`** : code(s) objectif PER (ex. `"MSN 14"`, `"L1 16"`, `"SHS 11"`)
+- **`data-per`** : code(s) objectif PER (ex. `"MSN 14"`, `"L1 16"`, `"SHS 11"`) — obligatoire pour les apps maths, facultatif ailleurs, et systématiquement omis pour la branche `"jeux"` tant qu'aucun code n'a été validé
 
 ### MSN 15 / MSN 25 (Modélisation) — jamais autonomes
 
@@ -226,7 +243,7 @@ Pour le design des apps pédagogiques (typographie incluse), la source est `skil
 | Fond de page | `#E9EDF4` (`#F0F4F8` avant la migration « Couleur franche ») |
 | Texte principal | `#1A2535` |
 | Header du portail / filtre « Toutes les branches » | `#14202E` (`#1A3A5C` avant la migration — voir couleur « Neutre » dans la table des variables d'apps) |
-| Filtre actif domaine | couleur du domaine (ex. maths `#C0272D`, français `#7A6200`) |
+| Filtre actif domaine | couleur du domaine (ex. maths `#C0272D`, français `#7A6200`, jeux `#7A2E5C`) |
 | Filtre actif cycle | `#0F7860` |
 | Bouton Français | `#0F7860` |
 | Accent math (badge bg) | `#EBF3FC` |
