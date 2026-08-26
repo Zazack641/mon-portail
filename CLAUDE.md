@@ -46,47 +46,140 @@ Référentiel pédagogique : **cycles HarmoS** (système scolaire romand/suisse)
 
 ```
 mon-portail/
-├── index.html                        ← fichier principal (tout-en-un : HTML + CSS + JS)
-└── Mes outils pour apprendre_files/ ← assets locaux (polices Google Fonts en cache)
+├── index.html                        ← le portail (tout-en-un : HTML + CSS + JS)
+├── CLAUDE.md                         ← ce fichier
+├── apps/                             ← une app pédagogique par fichier
+│   ├── _template.html                ← squelette canonique de toute nouvelle app
+│   ├── app-base.css                  ← styles partagés (nouvelles apps uniquement)
+│   ├── appUtils.js                   ← utilitaires + boucle de tabulation
+│   ├── feedbackUtils.js              ← playCorrect / playIncorrect / launchConfetti
+│   └── …                             ← les apps elles-mêmes
+├── docs/
+│   ├── per/                          ← référentiels PER (msn, langues, shs, structure)
+│   └── accessibilite/                ← résumé WCAG 2.2
+├── skills/                           ← pedagogie-per, design-portail, accessibilite
+└── Mes outils pour apprendre_files/  ← assets locaux (polices Google Fonts en cache)
 ```
 
 Pas de build, pas de framework, pas de dépendances npm. HTML/CSS/JS vanilla pur.  
-Les URLs des applications sont pour l'instant des placeholders `file:///apps/…` marqués `<!-- ADD APP URL HERE -->`.
+Chaque carte du portail pointe vers un fichier réel de `apps/` — il n'y a plus d'URL placeholder.
 
 ---
 
-## Les 16 activités
+## Les activités du portail
 
-### Mathématiques — Grandeurs et mesures (9 activités)
+**`index.html` fait foi.** Cet inventaire en est le reflet et doit être régénéré à chaque ajout ou retrait de carte — ne jamais l'utiliser comme source à la place des cartes elles-mêmes. Dernier relevé : 26.08.2026, **45 activités**.
 
-| # | Titre | Cycle | Thème | data-domain | data-cycle | URL placeholder |
-|---|-------|-------|-------|-------------|------------|-----------------|
-| 1 | La plus grande surface | C1 | Grandeurs et mesures | math | c1 | `file:///apps/area-comparison` |
-| 2 | La plus grande surface (avancé) | C2 | Grandeurs et mesures | math | c2 | `file:///apps/area-comparison-advanced` |
-| 3 | Qui contient le plus ? | C1 | Grandeurs et mesures | math | c1 | `file:///apps/capacity-comparison` |
-| 4 | Comparaison de capacités (avancé) | C2 | Grandeurs et mesures | math | c2 | `file:///apps/capacity-comparison-advanced` |
-| 5 | Le plus long | C1 | Grandeurs et mesures | math | c1 | `file:///apps/length-comparison` |
-| 6 | Le plus long (avancé) | C1 | Grandeurs et mesures | math | c1 | `file:///apps/length-comparison-advanced` |
-| 7 | Le plus lourd | C1 | Grandeurs et mesures | math | c1 | `file:///apps/mass-comparison` |
-| 8 | La balance (simple) | C1 | Grandeurs et mesures | math | c1 | `file:///apps/mass-comparison-simple` |
-| 9 | La balance (avancé) | C2 | Grandeurs et mesures | math | c2 | `file:///apps/mass-comparison-advanced` |
+Le groupe d'années est celui qu'affiche le bandeau de la carte (`.header-cycle-badge`) ; `data-harmos` ne porte que le cycle (`c1` pour 1H–4H, `c2` pour 5H–8H). Une cellule PER vide signale une carte sans `data-per` — c'est volontaire, jamais un oubli à combler au jugé (voir « Hors charte PER — Jeux »).
 
-### Mathématiques — Nombres & Opérations (5 activités)
+### Mathématiques (34)
 
-| # | Titre | Cycle | Thème | data-domain | data-cycle | URL placeholder |
-|---|-------|-------|-------|-------------|------------|-----------------|
-| 10 | Nombres Flèches | C2 | Nombres | math | c2 | `file:///apps/arrow-numbers` |
-| 11 | Le comparateur de nombres | C2 | Nombres | math | c2 | `file:///apps/number-comparison` |
-| 12 | Le Grand Saut | C2 | Nombres | math | c2 | `file:///apps/number-jump` |
-| 13 | L'extracteur | C2 | Nombres | math | c2 | `file:///apps/tens-extractor` |
-| 14 | Calcul en Colonne | C2 | Opérations | math | c2 | `file:///apps/vertical-calculation` |
+**Nombres**
 
-### Français (2 activités)
+| Titre | Groupe | PER | Fichier |
+|-------|--------|-----|---------|
+| Le dénombrement | 1H–2H | MSN 12 | `denombrement-1h2h.html` |
+| Dizaines et unités | 3H–4H | MSN 12 | `dizaines-unites-3h4h.html` |
+| Le comparateur de nombres | 3H–4H | MSN 12 | `comparaison-nombres-3h4h.html` |
+| Le dénombrement | 3H–4H | MSN 12 | `denombrement-3h4h.html` |
+| Le saut de nombre | 3H–4H | MSN 12 | `saut-de-nombre-3h4h.html` |
+| Pair ou impair ? | 3H–4H | MSN 12 | `pair-impair-3h4h.html` |
+| Place le nombre | 3H–4H | MSN 12 | `place-le-nombre-3h4h.html` |
+| L'extracteur *(en chantier)* | 5H–6H | MSN 22 | `valeur-position.html` |
+| Le comparateur de nombres | 5H–6H | MSN 22 | `comparaison-nombres-5h6h.html` |
+| Le saut de nombre | 5H–6H | MSN 22 | `saut-de-nombre-5h6h.html` |
+| Place le nombre | 5H–6H | MSN 22 | `place-le-nombre-5h6h.html` |
+| Le comparateur de nombres | 7H–8H | MSN 22 | `comparaison-nombres-7h8h.html` |
+| Le saut de nombre | 7H–8H | MSN 22 | `saut-de-nombre-7h8h.html` |
+| Place le nombre | 7H–8H | MSN 22 | `place-le-nombre-7h8h.html` |
 
-| # | Titre | Cycle | Thème | data-domain | data-cycle | URL placeholder |
-|---|-------|-------|-------|-------------|------------|-----------------|
-| 15 | Compréhension de lecture | C2 | Compréhension | fr | c2 | `file:///apps/reading-comprehension` |
-| 16 | Vocabulaire | C1 | Langue | fr | c1 | `file:///apps/vocabulary` |
+**Opérations**
+
+| Titre | Groupe | PER | Fichier |
+|-------|--------|-----|---------|
+| Mes additions | 1H–2H | MSN 13 | `addition-1h2h.html` |
+| Doubles et moitiés | 3H–4H | MSN 13 | `doubles-moities-3h4h.html` |
+| La soustraction | 3H–4H | MSN 13 | `soustraction-3h4h.html` |
+| Le complément à 10 | 3H–4H | MSN 13 | `complement-dizaine-3h4h.html` |
+| Additions en colonne | 5H–6H | MSN 23 | `vertical-calculation.html` |
+| Soustraction en colonne | 5H–6H | MSN 23 | `soustraction-colonne.html` |
+
+**Grandeurs et mesures**
+
+| Titre | Groupe | PER | Fichier |
+|-------|--------|-----|---------|
+| Qui contient le plus ? | 1H–2H | MSN 14 | `capacites-1h2h.html` |
+| La balance | 3H–4H | MSN 14 | `balance.html` |
+| Les longueurs | 3H–4H | MSN 14 | `longueurs-3h4h.html` |
+| Les surfaces | 3H–4H | MSN 14 | `surfaces-3h4h.html` |
+| Qui contient le plus ? | 3H–4H | MSN 14 | `capacites-3h4h.html` |
+| Les surfaces | 5H–6H | MSN 24 | `surfaces-5h6h.html` |
+| Les conversions de mesures | 7H–8H | MSN 24 | `conversions-mesures-7h8h.html` |
+
+**Espace**
+
+| Titre | Groupe | PER | Fichier |
+|-------|--------|-----|---------|
+| Où est-il ? | 1H–2H | MSN 11 | `ou-est-il-1h2h.html` |
+| Décris le trajet | 3H–4H | MSN 11 | `itineraires-decris.html` |
+| Lis le trajet | 3H–4H | MSN 11 | `itineraires.html` |
+| Les coordonnées | 5H–6H | MSN 21 | `coordonnees-5h6h.html` |
+| Les axes de symétrie | 7H–8H | MSN 21 | `axes-symetrie-7h8h.html` |
+
+**Modélisation**
+
+| Titre | Groupe | PER | Fichier |
+|-------|--------|-----|---------|
+| La bonne opération | 3H–4H | MSN 13 MSN 15 | `bonne-operation-3h4h.html` |
+| La bonne opération | 7H–8H | MSN 23 MSN 25 | `bonne-operation-7h8h.html` |
+
+### Français (7)
+
+**Compréhension de l'écrit**
+
+| Titre | Groupe | PER | Fichier |
+|-------|--------|-----|---------|
+| Compréhension DéCoDi | 5H–6H | L1 21 | `decodi-comprehension-5h6h.html` |
+| Compréhension DéCoDi | 7H–8H | L1 21 | `decodi-comprehension-7h8h.html` |
+
+**Orthographe**
+
+| Titre | Groupe | PER | Fichier |
+|-------|--------|-----|---------|
+| Dictée DéCoDi | 5H–6H | L1 26 | `decodi-dictee-5h6h.html` |
+| Dictée DéCoDi | 7H–8H | L1 26 | `decodi-dictee-7h8h.html` |
+
+**Fonctionnement de la langue**
+
+| Titre | Groupe | PER | Fichier |
+|-------|--------|-----|---------|
+| Le champ lexical | 5H–6H | L1 26 | `champ-lexical-5h6h.html` |
+| Le complément de phrase | 5H–6H | L1 26 | `complement-phrase-5h6h.html` |
+| Sujet et prédicat | 5H–6H | L1 26 | `sujet-predicat-5h6h.html` |
+
+### Allemand (1)
+
+| Titre | Groupe | PER | Fichier |
+|-------|--------|-----|---------|
+| Vocabulaire allemand | 7H–8H | L2 21-38 | `vocabulaire-allemand-7h8h.html` |
+
+### Géographie (1)
+
+| Titre | Groupe | PER | Fichier |
+|-------|--------|-----|---------|
+| Ville et campagne | 5H–6H | SHS 21 | `ville-et-campagne-5h6h.html` |
+
+### Sciences de la nature (1)
+
+| Titre | Groupe | PER | Fichier |
+|-------|--------|-----|---------|
+| Trie les animaux | 3H–4H | MSN 16 | `tri-animaux-3h4h.html` |
+
+### Jeux (1)
+
+| Titre | Groupe | PER | Fichier |
+|-------|--------|-----|---------|
+| Kukuli | 7H–8H | — | `kukuli-7h8h.html` |
 
 ### Ajouter une nouvelle activité
 
