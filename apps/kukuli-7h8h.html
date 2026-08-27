@@ -254,7 +254,9 @@
 
       <h2>Déplacements</h2>
       <ul>
-        <li>Ukuku commence.</li>
+        <li>Ukuku commence. <strong>La partie commence vraiment quand il sort
+            de son antre</strong> : tant qu'il y est, les Kukulis ne jouent pas
+            et il rejoue.</li>
         <li>Chaque pion se déplace d'une intersection à l'intersection voisine,
             en suivant une ligne tracée sur le plateau.</li>
         <li>Ukuku se déplace dans la direction de son choix.</li>
@@ -424,10 +426,16 @@ function coupsKukulis(e) {
   return out;
 }
 
+/* La partie ne commence qu'à la sortie d'Ukuku : tant qu'il est dans son
+   antre, les Kukulis ne jouent pas et il rejoue. Sans cela, une Kukuli lancée
+   vers l'apex pouvait le sceller dans l'antre avant qu'il ait pu en sortir —
+   une défaite en trois coups, incompréhensible pour un élève. */
+function suiteApres(dest) { return estAntre(dest) ? 'u' : 'k'; }
+
 function jouerUkuku(e, c) {
   let k = e.k;
   for (const p of c.prises) k &= ~bit(p);
-  return { u: c.dest, k: k, t: 'k' };
+  return { u: c.dest, k: k, t: suiteApres(c.dest) };
 }
 function jouerKukuli(e, c) {
   return { u: e.u, k: (e.k & ~bit(c.from)) | bit(c.dest), t: 'u' };
@@ -788,7 +796,9 @@ function verifierFin() {
   if ((etat.k & MASQUE_ANTRE) === MASQUE_ANTRE) { terminer('kukulis-antre'); return true; }
   if (ukukuANettoye(etat)) { terminer('ukuku-terrees'); return true; }
   if (etat.t === 'u' && coupsUkuku(etat).length === 0) { terminer('kukulis'); return true; }
-  if (noterPosition() >= 3) { terminer('nulle'); return true; }
+  /* Les allers-retours d'Ukuku dans son antre précèdent la partie : les
+     compter déclencherait une nulle par répétition avant le premier coup. */
+  if (!estAntre(etat.u) && noterPosition() >= 3) { terminer('nulle'); return true; }
   return false;
 }
 
@@ -900,7 +910,7 @@ function appliquerUkuku(c) {
       return;
     }
   }
-  etat = { u: etat.u, k: etat.k, t: 'k' };
+  etat = { u: etat.u, k: etat.k, t: suiteApres(etat.u) };
   finDeTour();
 }
 
@@ -980,8 +990,13 @@ function majTexteTour() {
       turnMain.textContent = 'Au tour des Kukulis' + (humainJoue() ? '' : ' (ordinateur)');
     }
   }
-  turnSub.textContent = 'Kukulis sur le plateau : ' + restantes +
-                        ' · Antre occupé : ' + compte(etat.k & MASQUE_ANTRE) + '/7';
+  if (!finie && estAntre(etat.u)) {
+    /* Le second joueur doit comprendre pourquoi son tour ne vient pas. */
+    turnSub.textContent = 'Les Kukulis attendent : la partie commence quand Ukuku sort de son antre.';
+  } else {
+    turnSub.textContent = 'Kukulis sur le plateau : ' + restantes +
+                          ' · Antre occupé : ' + compte(etat.k & MASQUE_ANTRE) + '/7';
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -1049,7 +1064,7 @@ aidesBtn.addEventListener('click', () => {
 stopBtn.addEventListener('click', () => {
   enChaine = false;
   stopBtn.hidden = true;
-  etat = { u: etat.u, k: etat.k, t: 'k' };
+  etat = { u: etat.u, k: etat.k, t: suiteApres(etat.u) };
   feedbackEl.className = 'feedback'; feedbackEl.textContent = '';
   finDeTour();
 });
