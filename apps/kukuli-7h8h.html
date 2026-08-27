@@ -211,8 +211,9 @@
 
 <div class="option-bar">
   <span class="option-label" id="lbl-diff" hidden>Ordinateur :</span>
-  <button class="option-btn" id="diff-1" data-diff="1" aria-pressed="true"  aria-describedby="lbl-diff" hidden>Facile</button>
-  <button class="option-btn" id="diff-2" data-diff="2" aria-pressed="false" aria-describedby="lbl-diff" hidden>Malin</button>
+  <button class="option-btn" data-diff="1" aria-pressed="true"  aria-describedby="lbl-diff" hidden>Facile</button>
+  <button class="option-btn" data-diff="2" aria-pressed="false" aria-describedby="lbl-diff" hidden>Moyen</button>
+  <button class="option-btn" data-diff="3" aria-pressed="false" aria-describedby="lbl-diff" hidden>Malin</button>
   <button class="option-btn" id="aides-btn" aria-pressed="true">Aides visuelles : activées</button>
 </div>
 
@@ -271,6 +272,8 @@
             Kukuli sautée est retirée du plateau.</li>
         <li>S'il peut enchaîner plusieurs prises, il en a le droit. Il peut
             aussi s'arrêter quand il le souhaite.</li>
+        <li>Une Kukuli qui se tient sur une intersection de l'antre est à
+            l'abri : Ukuku ne peut pas la capturer.</li>
         <li>Les Kukulis ne capturent jamais Ukuku.</li>
       </ul>
 
@@ -369,6 +372,11 @@ function etatDepart() { return { u: 26, k: KUKULIS_DEPART, t: 'u' }; }
 function chaines(pos, kukulis, prises, sortie) {
   for (const v of VOISINS[pos]) {
     if (!occupe(kukulis, v)) continue;
+    /* Une Kukuli posée sur une intersection de l'antre est à l'abri : Ukuku ne
+       peut pas la sauter. Comme l'apex est le seul passage entre l'antre et la
+       grille, une Kukuli qui s'y installe enferme Ukuku s'il est encore
+       dedans — d'où la nécessité pour lui de sortir sans traîner. */
+    if (estAntre(v)) continue;
     const arrivee = SAUT.get(pos + '_' + v);
     if (arrivee === undefined) continue;
     if (occupe(kukulis, arrivee)) continue;
@@ -437,10 +445,20 @@ function issue(e) {
    Pour ajouter une IA plus forte plus tard, il suffit de remplacer `evaluer()`
    ou d'augmenter la profondeur dans PROFONDEUR. */
 
-/* Profondeur de recherche par niveau. Mesuré sur ce plateau : profondeur 6
-   coûte 15 ms en moyenne et 180 ms au pire — sans effet perceptible pour
-   l'élève. Monter au-delà de 6 devient sensible (85 ms de moyenne en 7). */
-const PROFONDEUR = { 1: 2, 2: 6 };
+/* Profondeur de recherche par niveau.
+   1 (Facile) : profondeur 1 — l'ordinateur n'anticipe PAS la réponse adverse.
+                Les Kukulis se laissent donc prendre, ce qui rend Ukuku jouable
+                par un débutant. Complété par une part de hasard ci-dessous.
+   2 (Moyen)  : profondeur 3 — il voit la riposte immédiate.
+   3 (Malin)  : profondeur 6 — 15 ms en moyenne, 180 ms au pire sur ce plateau.
+                Au-delà, le temps de réponse devient sensible (85 ms de moyenne
+                en profondeur 7). */
+const PROFONDEUR = { 1: 1, 2: 3, 3: 6 };
+
+/* Part de coups joués au hasard, par niveau. Sert uniquement à desserrer le
+   niveau Facile : sans elle, même une recherche à profondeur 1 reste trop
+   régulière pour un élève qui découvre le jeu. */
+const HASARD = { 1: 0.35, 2: 0, 3: 0 };
 
 function mobiliteUkuku(e) {
   let n = 0;
@@ -456,6 +474,17 @@ function evaluer(e) {
   const restantes = compte(e.k);
   let s = (12 - restantes) * 120;
   s += mobiliteUkuku(e) * 7;
+  /* Rester dans l'antre est perdant : Ukuku n'y capture rien et une seule
+     Kukuli sur l'apex l'y scelle définitivement. La pénalité vaut plus de
+     deux prises, pour que l'ordinateur sorte dès ses premiers coups au lieu
+     d'attendre que la recherche voie le piège arriver. */
+  if (estAntre(e.u)) {
+    /* Le +60 sur l'apex crée une pente vers la sortie. Sans lui, les quatre
+       intersections de l'antre se valent et l'ordinateur y erre au hasard
+       avant de trouver le seul passage vers la grille. */
+    s -= 300;
+    if (e.u !== APEX) s -= 60;
+  }
   let dansAntre = 0, avance = 0;
   for (let i = 0; i < 31; i++) {
     if (!occupe(e.k, i)) continue;
@@ -500,9 +529,25 @@ function minimax(e, prof, alpha, beta) {
 
 /* Renvoie le coup choisi par l'ordinateur, ou null s'il ne peut pas jouer. */
 function choisirCoup(e, difficulte) {
-  const prof = PROFONDEUR[difficulte] || 2;
-  const cs = e.t === 'u' ? coupsUkuku(e) : coupsKukulis(e);
+  const prof = PROFONDEUR[difficulte] || 1;
+  let cs = e.t === 'u' ? coupsUkuku(e) : coupsKukulis(e);
   if (cs.length === 0) return null;
+
+  /* Tant qu'Ukuku est dans son antre, l'ordinateur ne considère que les coups
+     qui l'en rapprochent la sortie : quitter l'antre si c'est possible, sinon
+     gagner l'apex, seul passage vers la grille. Contrainte et non préférence :
+     une simple pénalité d'évaluation se fait absorber par la marge de
+     tolérance du niveau Facile, et l'ordinateur erre alors dans l'antre au
+     lieu d'en sortir. Le filtre s'applique avant le tirage au hasard, pour
+     valoir à tous les niveaux. */
+  if (e.t === 'u' && estAntre(e.u)) {
+    const sortants = cs.filter((c) => !estAntre(c.dest));
+    const versApex = cs.filter((c) => c.dest === APEX);
+    if (sortants.length) cs = sortants;
+    else if (versApex.length) cs = versApex;
+  }
+
+  if (Math.random() < (HASARD[difficulte] || 0)) return cs[Math.floor(Math.random() * cs.length)];
 
   const notes = cs.map((c) => ({
     coup: c,
@@ -515,7 +560,7 @@ function choisirCoup(e, difficulte) {
 
   /* En « Facile », l'ordinateur accepte des coups légèrement moins bons : la
      partie reste gagnable et il ne joue pas deux fois la même partie. */
-  const marge = difficulte === 1 ? 60 : 0;
+  const marge = difficulte === 1 ? 150 : (difficulte === 2 ? 40 : 0);
   const bons = notes.filter((n) => Math.abs(n.note - meilleure) <= marge);
   return bons[Math.floor(Math.random() * bons.length)].coup;
 }
@@ -536,7 +581,7 @@ const undoBtn    = document.getElementById('undo-btn');
 const stopBtn    = document.getElementById('stop-btn');
 const aidesBtn   = document.getElementById('aides-btn');
 const lblDiff    = document.getElementById('lbl-diff');
-const diffBtns   = [document.getElementById('diff-1'), document.getElementById('diff-2')];
+const diffBtns   = [...document.querySelectorAll('.option-btn[data-diff]')];
 
 const NOMS = (() => {
   const n = [];
@@ -772,9 +817,13 @@ function cliquer(i) {
     }
     const c = coupsDuTour.find((m) => m.dest === i && m.prises.length <= 1);
     if (!c) {
-      messageTemporaire(estAntre(i) && !estAntre(etat.u)
-        ? 'Ukuku est sorti de son antre : il ne peut plus y retourner. Choisis une autre intersection.'
-        : 'Ukuku ne peut pas aller sur cette intersection.');
+      const sauteeDansAntre = VOISINS[etat.u].some(
+        (v) => estAntre(v) && occupe(etat.k, v) && SAUT.get(etat.u + '_' + v) === i);
+      messageTemporaire(
+        sauteeDansAntre ? 'Une Kukuli réfugiée dans l’antre ne peut pas être capturée.'
+      : estAntre(i) && !estAntre(etat.u)
+          ? 'Ukuku est sorti de son antre : il ne peut plus y retourner. Choisis une autre intersection.'
+          : 'Ukuku ne peut pas aller sur cette intersection.');
       return;
     }
     appliquerUkuku(c);
