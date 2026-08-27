@@ -280,6 +280,11 @@
       <h2>Gagner la partie</h2>
       <ul>
         <li>Ukuku gagne s'il capture les 12 Kukulis.</li>
+        <li>Ukuku gagne aussi s'il ne reste plus aucune Kukuli sur la grille et
+            que les rescapées, terrées dans l'antre, sont moins de sept : elles
+            ne pourront jamais l'occuper, et il n'a plus personne à chasser.
+            <em>(ajout de cette version : sans cette règle, une seule Kukuli
+            réfugiée dans l'antre bloquerait la partie pour toujours.)</em></li>
         <li>Les Kukulis gagnent si Ukuku ne peut plus se déplacer, ou si elles
             occupent les 7 intersections de l'antre.</li>
       </ul>
@@ -428,11 +433,24 @@ function jouerKukuli(e, c) {
   return { u: e.u, k: (e.k & ~bit(c.from)) | bit(c.dest), t: 'u' };
 }
 
+/* Une Kukuli réfugiée dans l'antre est intouchable pour toujours : Ukuku ne
+   peut ni l'y capturer, ni y entrer. Sans cette clause, une seule rescapée
+   terrée suffirait à lui interdire la victoire à jamais, alors même qu'elles
+   seraient trop peu nombreuses (moins de sept) pour occuper l'antre. Plus
+   aucun camp ne pouvant progresser, on donne la partie à Ukuku : il n'a plus
+   une seule Kukuli à chasser sur la grille.
+   Le test !estAntre(e.u) est défensif — Ukuku ne peut de toute façon capturer
+   personne sans quitter son antre. */
+function ukukuANettoye(e) {
+  return e.k !== 0 && !estAntre(e.u) && (e.k & ~MASQUE_ANTRE) === 0 && compte(e.k) < 7;
+}
+
 /* Ukuku bloqué ne perd que si c'est à lui de jouer : les Kukulis peuvent le
    libérer en jouant leur tour. */
 function issue(e) {
   if (e.k === 0) return 'ukuku';
   if ((e.k & MASQUE_ANTRE) === MASQUE_ANTRE) return 'kukulis';
+  if (ukukuANettoye(e)) return 'ukuku';
   if (e.t === 'u' && coupsUkuku(e).length === 0) return 'kukulis';
   return null;
 }
@@ -742,6 +760,10 @@ function terminer(gagnant) {
   if (gagnant === 'ukuku') {
     msg = 'Ukuku a capturé toutes les Kukulis : il gagne la partie ! ' +
           'Appuie sur « Nouvelle partie » pour rejouer.';
+  } else if (gagnant === 'ukuku-terrees') {
+    msg = 'Il ne reste plus une seule Kukuli sur le plateau : les dernières sont ' +
+          'terrées dans l’antre, trop peu nombreuses pour l’occuper. Ukuku gagne ! ' +
+          'Appuie sur « Nouvelle partie » pour rejouer.';
   } else if (gagnant === 'kukulis-antre') {
     msg = 'Les Kukulis occupent les 7 intersections de l’antre : elles gagnent ! ' +
           'Appuie sur « Nouvelle partie » pour rejouer.';
@@ -764,6 +786,7 @@ function terminer(gagnant) {
 function verifierFin() {
   if (etat.k === 0) { terminer('ukuku'); return true; }
   if ((etat.k & MASQUE_ANTRE) === MASQUE_ANTRE) { terminer('kukulis-antre'); return true; }
+  if (ukukuANettoye(etat)) { terminer('ukuku-terrees'); return true; }
   if (etat.t === 'u' && coupsUkuku(etat).length === 0) { terminer('kukulis'); return true; }
   if (noterPosition() >= 3) { terminer('nulle'); return true; }
   return false;
