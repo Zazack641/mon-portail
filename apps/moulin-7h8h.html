@@ -863,10 +863,21 @@ function terminer(gagnant) {
     msg = 'Il ne reste que deux jetons à l’adversaire : ' + NOM_CAMP[gagnant.camp] +
           ' gagnent la partie ! Appuie sur « Nouvelle partie » pour rejouer.';
   }
-  feedbackEl.className = 'feedback correct';
+  /* Le son et les confettis disent au joueur ce qui vient de lui arriver.
+     Contre l'ordinateur, fêter sa propre défaite n'aurait aucun sens : on ne
+     célèbre que la victoire de son camp. À deux joueurs, un camp humain
+     l'emporte toujours, sauf partie nulle.
+     Une défaite reste affichée sur le tint neutre, jamais sur le rouge des
+     erreurs : perdre une partie n'est pas se tromper. Les deux canaux du skill
+     accessibilité restent servis, visuel et sonore, dans les deux cas.
+     Même convention que Kukuli. */
+  const ia = campOrdinateur();
+  const campDuJoueur = ia < 0 ? null : 1 - ia;
+  const fete = gagnant !== 'nulle' && (campDuJoueur === null || campDuJoueur === gagnant.camp);
+
+  feedbackEl.className = fete ? 'feedback correct' : 'feedback info';
   feedbackEl.textContent = msg;
-  playCorrect();
-  launchConfetti();
+  if (fete) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
   rendre();
   newBtn.focus();
 }
