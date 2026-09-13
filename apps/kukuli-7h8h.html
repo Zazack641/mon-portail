@@ -286,6 +286,8 @@
             reste moins de sept, donc l'antre ne sera jamais occupé, et aucune
             de celles qui restent ne peut plus remonter pour l'enfermer,
             car une Kukuli ne recule jamais.
+            La partie s'arrête alors immédiatement, même s'il reste des Kukulis
+            sur le plateau : plus rien ne peut changer l'issue, autant rejouer.
             <em>(ajout de cette version : sans cette règle, la partie
             continuerait sans qu'aucun camp puisse encore la gagner, et une
             seule Kukuli terrée dans l'antre la bloquerait pour toujours.)</em></li>
@@ -832,12 +834,23 @@ function terminer(gagnant) {
           'Appuie sur « Nouvelle partie » pour rejouer.';
   } else if (gagnant === 'ukuku-terrees') {
     msg = 'Il ne reste plus une seule Kukuli sur le plateau : les dernières sont ' +
-          'terrées dans l’antre, trop peu nombreuses pour l’occuper. Ukuku gagne ! ' +
+          'terrées dans l’antre, trop peu nombreuses pour l’occuper. Ukuku ne peut ' +
+          'ni entrer dans l’antre ni les y capturer : plus rien ne peut bouger. ' +
+          'Ukuku gagne ! ' +
           'Appuie sur « Nouvelle partie » pour rejouer.';
   } else if (gagnant === 'ukuku-impossible') {
-    msg = 'Les Kukulis ne sont plus assez nombreuses pour occuper l’antre, et aucune ' +
-          'de celles qui restent ne peut remonter pour enfermer Ukuku : elles ne peuvent ' +
-          'plus gagner. Ukuku gagne la partie ! ' +
+    /* L'élève voit des Kukulis encore debout sur le plateau : le message doit
+       lui dire pourquoi la partie s'arrête quand même, raison par raison, et
+       nommer les deux victoires devenues inaccessibles. Sans ça, l'arrêt
+       passerait pour un bug. */
+    const restantes = compte(etat.k);
+    const seule = restantes === 1;
+    msg = (seule ? 'Il ne reste qu’une Kukuli, et elle ne peut plus gagner. '
+                 : 'Il ne reste que ' + restantes + ' Kukulis, et elles ne peuvent plus gagner. ') +
+          'Pour occuper l’antre, il en faudrait 7 : une Kukuli capturée ne revient jamais. ' +
+          'Pour enfermer Ukuku, il faudrait remonter plus haut sur le plateau : une Kukuli ' +
+          'ne recule jamais. La partie s’arrête donc ici, même s’il reste ' +
+          (seule ? 'une Kukuli' : 'des Kukulis') + ' sur le plateau. Ukuku gagne la partie ! ' +
           'Appuie sur « Nouvelle partie » pour rejouer.';
   } else if (gagnant === 'kukulis-antre') {
     msg = 'Les Kukulis occupent les 7 intersections de l’antre : elles gagnent ! ' +
