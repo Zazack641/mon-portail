@@ -101,19 +101,86 @@
     color: #3F4A5C;   /* ≥ 7,4:1 sur les trois fonds teintés de la boîte de tour */
   }
 
-  /* ── Plateau ────────────────────────────────────────────────────────────── */
-  .board-wrap {
+  /* ── Plateau et réserves ────────────────────────────────────────────────── */
+  /* Les deux réserves encadrent le plateau : les ronds à gauche, les carrés à
+     droite, en colonne verticale. Le plateau garde sa largeur minimale et
+     défile dans son cadre si l'écran est trop étroit — jamais la page. */
+  .table-jeu {
     width: 100%;
+    display: flex;
+    align-items: stretch;   /* les réserves prennent la hauteur du plateau */
+    justify-content: center;
+    gap: 10px;
+  }
+  .board-wrap {
+    flex: 1 1 auto;
+    min-width: 0;
     overflow-x: auto;
     display: flex;
     justify-content: center;
   }
   .board {
     width: 100%;
-    min-width: 480px;
+    min-width: 440px;
     max-width: 620px;
     height: auto;
     display: block;
+  }
+  .reserve {
+    flex: 0 0 auto;
+    width: 96px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 6px 12px;
+    border-radius: 20px;
+    background: var(--pl-fond);
+    border: 2px solid var(--pl-bord);
+  }
+  /* flex: 1 1 0 + min-height: 0 : la colonne de jetons ne pousse pas la hauteur
+     de la réserve, elle occupe la place que lui laisse le plateau. Le viewBox
+     se met à l'échelle tout seul, les jetons restent centrés. */
+  .reserve-svg { width: 100%; flex: 1 1 0; min-height: 0; display: block; }
+  .reserve-nom {
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--app-text);
+    text-align: center;
+    line-height: 1.2;
+  }
+  .reserve-compte {
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--app-text);
+    line-height: 1;
+  }
+  .reserve-etat {
+    font-size: 18px;
+    font-weight: 600;
+    color: #4A3A22;   /* 8,9:1 sur le fond crème de la réserve */
+    text-align: center;
+    line-height: 1.2;
+  }
+  @media (max-width: 700px) {
+    .reserve { width: 64px; padding: 10px 4px; }
+    .reserve-nom { font-size: 19px; }
+  }
+
+  /* Les réserves prennent 200 px de large à elles deux. Pour que le plateau ne
+     rétrécisse pas d'autant (ses intersections sont les cibles tactiles du
+     jeu), la table de jeu déborde la colonne de 680 px de `main` dès qu'il y a
+     la place à l'écran. Largeurs fixes plutôt que des vw : la barre de
+     défilement verticale ne fausse pas le calcul. */
+  @media (min-width: 760px) {
+    .table-jeu { width: 720px; }
+    .reserve   { width: 84px; }
+  }
+  @media (min-width: 1000px) {
+    .table-jeu { width: 880px; }
+    .reserve   { width: 96px; }
   }
   .pt { cursor: default; }
   .pt.jouable { cursor: pointer; }
@@ -222,9 +289,27 @@
     <span class="turn-sub" id="turn-sub">Jetons à poser : ronds 9, carrés 9</span>
   </div>
 
-  <div class="board-wrap">
-    <svg class="board" id="board" viewBox="-1 -1 8 8"
-         role="group" aria-label="Plateau du moulin"></svg>
+  <div class="table-jeu">
+    <!-- Réserve des ronds. Le SVG double une information déjà donnée en toutes
+         lettres juste en dessous et dans la boîte de tour : il est décoratif. -->
+    <div class="reserve">
+      <svg class="reserve-svg" id="reserve-ronds" viewBox="-0.5 -0.6 1 9.2" aria-hidden="true"></svg>
+      <span class="reserve-nom">Ronds</span>
+      <span class="reserve-compte" id="nb-ronds">9</span>
+      <span class="reserve-etat" id="etat-ronds">à poser</span>
+    </div>
+
+    <div class="board-wrap">
+      <svg class="board" id="board" viewBox="-1 -1 8 8"
+           role="group" aria-label="Plateau du moulin"></svg>
+    </div>
+
+    <div class="reserve">
+      <svg class="reserve-svg" id="reserve-carres" viewBox="-0.5 -0.6 1 9.2" aria-hidden="true"></svg>
+      <span class="reserve-nom">Carrés</span>
+      <span class="reserve-compte" id="nb-carres">9</span>
+      <span class="reserve-etat" id="etat-carres">à poser</span>
+    </div>
   </div>
 
   <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
@@ -588,6 +673,10 @@ const undoBtn     = document.getElementById('undo-btn');
 const aidesBtn    = document.getElementById('aides-btn');
 const lblDiff     = document.getElementById('lbl-diff');
 const diffBtns    = [...document.querySelectorAll('.option-btn[data-diff]')];
+/* Réserves latérales, indexées par camp : 0 = ronds (à gauche), 1 = carrés. */
+const reserveSvg  = [document.getElementById('reserve-ronds'), document.getElementById('reserve-carres')];
+const reserveNb   = [document.getElementById('nb-ronds'), document.getElementById('nb-carres')];
+const reserveEtat = [document.getElementById('etat-ronds'), document.getElementById('etat-carres')];
 
 const NOM_CAMP    = ['les ronds', 'les carrés'];
 const NOM_JETON   = ['jeton rond', 'jeton carré'];
@@ -684,6 +773,19 @@ function dessinerCarre(c, p) {
 
 function dessinerJeton(c, p, camp) {
   if (camp === RONDS) dessinerRond(c, p); else dessinerCarre(c, p);
+}
+
+/* Emplacement vide d'une réserve : le contour garde la forme du camp, pour que
+   la colonne se lise même quand il n'y reste plus un seul jeton. */
+function dessinerEmplacement(c, p, camp) {
+  const commun = { fill: 'none', stroke: 'var(--pl-vide)', 'stroke-width': 0.05,
+                   'stroke-dasharray': '0.13 0.11' };
+  if (camp === RONDS) {
+    c.appendChild(el('circle', Object.assign({ cx: p.x, cy: p.y, r: 0.29 }, commun)));
+  } else {
+    c.appendChild(el('rect', Object.assign({ x: p.x - 0.27, y: p.y - 0.27,
+      width: 0.54, height: 0.54, rx: 0.09 }, commun)));
+  }
 }
 
 /* Indice : cercle pour une intersection d'arrivée, losange pour un jeton
@@ -948,7 +1050,33 @@ function rendre() {
     g.setAttribute('aria-label', etiquette);
   }
 
+  rendreReserves();
   majTexteTour();
+}
+
+/* Les deux colonnes latérales. Pendant la pose, elles montrent les jetons qui
+   restent à poser : chaque jeton posé quitte la réserve pour le plateau. Une
+   fois les 18 jetons posés, elles montrent les jetons encore en jeu, et se
+   vident donc à chaque capture — c'est là que se lit la condition de victoire
+   (sept jetons pris). Les deux camps basculent ensemble, pour qu'une colonne
+   ne veuille jamais dire autre chose que l'autre au même moment. */
+function rendreReserves() {
+  const pose = etat.mains[RONDS] > 0 || etat.mains[CARRES] > 0;
+  for (const camp of [RONDS, CARRES]) {
+    const n = pose ? etat.mains[camp] : compte(etat.p[camp]);
+    const svg = reserveSvg[camp];
+    svg.textContent = '';
+    for (let k = 0; k < 9; k++) {
+      /* Les jetons de la réserve sont agrandis : la colonne est plus étroite
+         que le plateau, sans quoi ils y paraîtraient deux fois plus petits. */
+      const g = el('g', { transform: 'translate(0,' + k + ') scale(1.28)' });
+      if (k < n) dessinerJeton(g, { x: 0, y: 0 }, camp);
+      else       dessinerEmplacement(g, { x: 0, y: 0 }, camp);
+      svg.appendChild(g);
+    }
+    reserveNb[camp].textContent = n;
+    reserveEtat[camp].textContent = pose ? 'à poser' : 'en jeu';
+  }
 }
 
 function majTexteTour() {
