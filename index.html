@@ -1295,6 +1295,19 @@
       <a href="apps/kukuli-7h8h.html" class="launch-btn jeux" aria-label="Lancer l'activité : Kukuli">Jouer <span aria-hidden="true">→</span></a>
     </article>
 
+    <article class="app-card" data-domain="jeux" data-harmos="c2" data-keywords="moulin merelles mérelles jeu plateau stratégie alignement aligner trois jetons règle du jeu deux joueurs pose déplacement capture carrés emboîtés" style="animation-delay: 1290ms;">
+      <div class="card-header">
+        <h2 class="card-title">Le moulin</h2>
+        <span class="header-cycle-badge">7H–8H</span>
+      </div>
+      <p class="card-desc">Le jeu des trois carrés emboîtés : aligne trois de tes jetons pour former un moulin et retirer un jeton adverse, jusqu'à ce qu'il ne puisse plus jouer. À deux sur le même écran, ou contre l'ordinateur.</p>
+      <div class="card-badges">
+        <span class="badge badge-jeux">Jeux</span>
+        <span class="badge badge-theme">Jeu de stratégie</span>
+      </div>
+      <a href="apps/moulin-7h8h.html" class="launch-btn jeux" aria-label="Lancer l'activité : Le moulin">Jouer <span aria-hidden="true">→</span></a>
+    </article>
+
     <!-- No results -->
     <div class="no-results" id="no-results" role="status">
       <div class="no-results-icon">🔍</div>
@@ -1322,7 +1335,7 @@
 
   // ===== Tri initial des cartes (DOM réordonné une seule fois au chargement) =====
   // 1) par domaine selon un ordre fixe ; 2) par ordre alphabétique français du titre.
-  const DOMAIN_ORDER = ['maths', 'sciences', 'francais', 'allemand', 'anglais', 'geo', 'histoire'];
+  const DOMAIN_ORDER = ['maths', 'sciences', 'francais', 'allemand', 'anglais', 'geo', 'histoire', 'jeux'];
 
   function sortKeyTitle(card) {
     let t = card.querySelector('.card-title').textContent;
