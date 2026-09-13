@@ -282,11 +282,15 @@
       <h2>Gagner la partie</h2>
       <ul>
         <li>Ukuku gagne s'il capture les 12 Kukulis.</li>
-        <li>Ukuku gagne aussi s'il ne reste plus aucune Kukuli sur la grille et
-            que les rescapées, terrées dans l'antre, sont moins de sept : elles
-            ne pourront jamais l'occuper, et il n'a plus personne à chasser.
-            <em>(ajout de cette version : sans cette règle, une seule Kukuli
-            réfugiée dans l'antre bloquerait la partie pour toujours.)</em></li>
+        <li>Ukuku gagne aussi dès que les Kukulis ne peuvent plus gagner : il en
+            reste moins de sept, donc l'antre ne sera jamais occupé, et aucune
+            de celles qui restent ne peut plus remonter pour l'enfermer,
+            car une Kukuli ne recule jamais.
+            La partie s'arrête alors immédiatement, même s'il reste des Kukulis
+            sur le plateau : plus rien ne peut changer l'issue, autant rejouer.
+            <em>(ajout de cette version : sans cette règle, la partie
+            continuerait sans qu'aucun camp puisse encore la gagner, et une
+            seule Kukuli terrée dans l'antre la bloquerait pour toujours.)</em></li>
         <li>Les Kukulis gagnent si Ukuku ne peut plus se déplacer, ou si elles
             occupent les 7 intersections de l'antre.</li>
       </ul>
@@ -453,13 +457,73 @@ function ukukuANettoye(e) {
   return e.k !== 0 && !estAntre(e.u) && (e.k & ~MASQUE_ANTRE) === 0 && compte(e.k) < 7;
 }
 
+/* ── Enfermement d'Ukuku : ce qu'il faudrait pour y arriver ───────────────
+   Les Kukulis gagnent aussi en enfermant Ukuku. Pour une intersection donnée,
+   les points à occuper sont entièrement déterminés : chaque voisin où il
+   pourrait marcher, plus chaque case d'arrivée où il pourrait sauter. Aucun
+   choix, donc une seule configuration par intersection, dont on retient les
+   ordonnées des points, triées. La moins coûteuse ne demande que trois
+   Kukulis (Ukuku en 21, enfermé par 11, 16 et 20) : c'est un vrai piège de
+   partie, pas une curiosité théorique. D'où la règle : ne jamais conclure à
+   la défaite des Kukulis sur leur seul nombre.
+   Les intersections de l'antre sont hors sujet : Ukuku n'y retourne pas une
+   fois sorti, et tant qu'il y est les Kukulis ne jouent pas. */
+const BLOCAGES = PTS.map((_, p) => {
+  if (estAntre(p)) return null;
+  const besoin = new Set();
+  for (const v of VOISINS[p]) {
+    if (!ukukuPeutAller(p, v)) continue;   /* marche déjà interdite : rien à bloquer */
+    besoin.add(v);
+    if (estAntre(v)) continue;             /* une Kukuli de l'antre ne se saute pas */
+    const a = SAUT.get(p + '_' + v);
+    if (a === undefined || !ukukuPeutAller(p, a)) continue;
+    besoin.add(a);                         /* sinon il saute et se pose là */
+  }
+  return [...besoin].map((i) => PTS[i].y).sort((a, b) => a - b);
+});
+
+/* Un enfermement reste-t-il concevable ? Une Kukuli ne recule jamais : une
+   ordonnée dépassée est perdue pour toujours. Il suffit donc de confronter les
+   ordonnées des Kukulis encore en jeu à celles qu'exige chaque configuration
+   bloquante, la Kukuli la plus haute au point le plus haut : si cette
+   affectation-là échoue, aucune autre ne réussit.
+   Le test est volontairement large : il ignore les obstacles de parcours et
+   les prises à venir, donc il ne déclare jamais impossible un enfermement qui
+   le serait encore. */
+function blocageEncorePossible(e) {
+  const ys = [];
+  for (let i = 0; i < 31; i++) if (occupe(e.k, i)) ys.push(PTS[i].y);
+  ys.sort((a, b) => a - b);
+  for (const besoin of BLOCAGES) {
+    if (besoin === null || besoin.length > ys.length) continue;
+    let possible = true;
+    for (let j = 0; j < besoin.length; j++) {
+      if (ys[j] > besoin[j] + 1e-9) { possible = false; break; }
+    }
+    if (possible) return true;
+  }
+  return false;
+}
+
+/* Les deux victoires des Kukulis sont hors de portée : elles sont moins de
+   sept, donc l'antre ne sera jamais occupé, et plus aucune configuration
+   d'enfermement n'est atteignable. La partie est jouée : on la donne à Ukuku
+   au lieu de laisser l'élève dérouler une fin sans enjeu.
+   Ce cas englobe celui d'ukukuANettoye(), conservé pour son message plus
+   parlant. Le test !estAntre(e.u) réserve la règle à la partie réellement
+   commencée. */
+function kukulisNePeuventPlusGagner(e) {
+  return e.k !== 0 && !estAntre(e.u) && compte(e.k) < 7 && !blocageEncorePossible(e);
+}
+
 /* Ukuku bloqué ne perd que si c'est à lui de jouer : les Kukulis peuvent le
-   libérer en jouant leur tour. */
+   libérer en jouant leur tour. Cette victoire-là se teste avant l'impossibilité
+   ci-dessus : un enfermement déjà réalisé prime sur tout pronostic. */
 function issue(e) {
   if (e.k === 0) return 'ukuku';
   if ((e.k & MASQUE_ANTRE) === MASQUE_ANTRE) return 'kukulis';
-  if (ukukuANettoye(e)) return 'ukuku';
   if (e.t === 'u' && coupsUkuku(e).length === 0) return 'kukulis';
+  if (ukukuANettoye(e) || kukulisNePeuventPlusGagner(e)) return 'ukuku';
   return null;
 }
 
@@ -770,7 +834,23 @@ function terminer(gagnant) {
           'Appuie sur « Nouvelle partie » pour rejouer.';
   } else if (gagnant === 'ukuku-terrees') {
     msg = 'Il ne reste plus une seule Kukuli sur le plateau : les dernières sont ' +
-          'terrées dans l’antre, trop peu nombreuses pour l’occuper. Ukuku gagne ! ' +
+          'terrées dans l’antre, trop peu nombreuses pour l’occuper. Ukuku ne peut ' +
+          'ni entrer dans l’antre ni les y capturer : plus rien ne peut bouger. ' +
+          'Ukuku gagne ! ' +
+          'Appuie sur « Nouvelle partie » pour rejouer.';
+  } else if (gagnant === 'ukuku-impossible') {
+    /* L'élève voit des Kukulis encore debout sur le plateau : le message doit
+       lui dire pourquoi la partie s'arrête quand même, raison par raison, et
+       nommer les deux victoires devenues inaccessibles. Sans ça, l'arrêt
+       passerait pour un bug. */
+    const restantes = compte(etat.k);
+    const seule = restantes === 1;
+    msg = (seule ? 'Il ne reste qu’une Kukuli, et elle ne peut plus gagner. '
+                 : 'Il ne reste que ' + restantes + ' Kukulis, et elles ne peuvent plus gagner. ') +
+          'Pour occuper l’antre, il en faudrait 7 : une Kukuli capturée ne revient jamais. ' +
+          'Pour enfermer Ukuku, il faudrait remonter plus haut sur le plateau : une Kukuli ' +
+          'ne recule jamais. La partie s’arrête donc ici, même s’il reste ' +
+          (seule ? 'une Kukuli' : 'des Kukulis') + ' sur le plateau. Ukuku gagne la partie ! ' +
           'Appuie sur « Nouvelle partie » pour rejouer.';
   } else if (gagnant === 'kukulis-antre') {
     msg = 'Les Kukulis occupent les 7 intersections de l’antre : elles gagnent ! ' +
@@ -782,10 +862,21 @@ function terminer(gagnant) {
     msg = 'La même position est revenue trois fois : la partie est nulle. ' +
           'Appuie sur « Nouvelle partie » pour rejouer.';
   }
-  feedbackEl.className = 'feedback correct';
+  /* Le son et les confettis disent au joueur ce qui vient de lui arriver.
+     Contre l'ordinateur, fêter sa propre défaite n'aurait aucun sens : on ne
+     célèbre que la victoire de son camp. À deux joueurs, un camp humain
+     l'emporte toujours, sauf partie nulle.
+     Une défaite reste affichée sur le tint neutre, jamais sur le rouge des
+     erreurs : perdre une partie n'est pas se tromper. Les deux canaux du skill
+     accessibilité restent servis, visuel et sonore, dans les deux cas. */
+  const campGagnant = gagnant === 'nulle' ? null
+    : (gagnant === 'kukulis' || gagnant === 'kukulis-antre') ? 'k' : 'u';
+  const campDuJoueur = mode === 'ia-ukuku' ? 'k' : (mode === 'ia-kukulis' ? 'u' : null);
+  const fete = campGagnant !== null && (campDuJoueur === null || campDuJoueur === campGagnant);
+
+  feedbackEl.className = fete ? 'feedback correct' : 'feedback info';
   feedbackEl.textContent = msg;
-  playCorrect();
-  launchConfetti();
+  if (fete) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
   rendre();
   newBtn.focus();
 }
@@ -794,8 +885,9 @@ function terminer(gagnant) {
 function verifierFin() {
   if (etat.k === 0) { terminer('ukuku'); return true; }
   if ((etat.k & MASQUE_ANTRE) === MASQUE_ANTRE) { terminer('kukulis-antre'); return true; }
-  if (ukukuANettoye(etat)) { terminer('ukuku-terrees'); return true; }
   if (etat.t === 'u' && coupsUkuku(etat).length === 0) { terminer('kukulis'); return true; }
+  if (ukukuANettoye(etat)) { terminer('ukuku-terrees'); return true; }
+  if (kukulisNePeuventPlusGagner(etat)) { terminer('ukuku-impossible'); return true; }
   /* Les allers-retours d'Ukuku dans son antre précèdent la partie : les
      compter déclencherait une nulle par répétition avant le premier coup. */
   if (!estAntre(etat.u) && noterPosition() >= 3) { terminer('nulle'); return true; }
@@ -994,8 +1086,11 @@ function majTexteTour() {
     /* Le second joueur doit comprendre pourquoi son tour ne vient pas. */
     turnSub.textContent = 'Les Kukulis attendent : la partie commence quand Ukuku sort de son antre.';
   } else {
-    turnSub.textContent = 'Kukulis sur le plateau : ' + restantes +
-                          ' · Antre occupé : ' + compte(etat.k & MASQUE_ANTRE) + '/7';
+    /* Sous sept Kukulis, l'antre n'est plus occupable : le dire évite que
+       l'élève continue à viser un objectif devenu inatteignable. */
+    turnSub.textContent = 'Kukulis sur le plateau : ' + restantes + (restantes < 7
+      ? ' · Antre : plus assez de Kukulis pour l’occuper'
+      : ' · Antre occupé : ' + compte(etat.k & MASQUE_ANTRE) + '/7');
   }
 }
 
