@@ -849,10 +849,21 @@ function terminer(gagnant) {
     msg = 'La même position est revenue trois fois : la partie est nulle. ' +
           'Appuie sur « Nouvelle partie » pour rejouer.';
   }
-  feedbackEl.className = 'feedback correct';
+  /* Le son et les confettis disent au joueur ce qui vient de lui arriver.
+     Contre l'ordinateur, fêter sa propre défaite n'aurait aucun sens : on ne
+     célèbre que la victoire de son camp. À deux joueurs, un camp humain
+     l'emporte toujours, sauf partie nulle.
+     Une défaite reste affichée sur le tint neutre, jamais sur le rouge des
+     erreurs : perdre une partie n'est pas se tromper. Les deux canaux du skill
+     accessibilité restent servis, visuel et sonore, dans les deux cas. */
+  const campGagnant = gagnant === 'nulle' ? null
+    : (gagnant === 'kukulis' || gagnant === 'kukulis-antre') ? 'k' : 'u';
+  const campDuJoueur = mode === 'ia-ukuku' ? 'k' : (mode === 'ia-kukulis' ? 'u' : null);
+  const fete = campGagnant !== null && (campDuJoueur === null || campDuJoueur === campGagnant);
+
+  feedbackEl.className = fete ? 'feedback correct' : 'feedback info';
   feedbackEl.textContent = msg;
-  playCorrect();
-  launchConfetti();
+  if (fete) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
   rendre();
   newBtn.focus();
 }
