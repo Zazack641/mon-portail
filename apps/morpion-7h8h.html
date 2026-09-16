@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<!--
+  morpion-7h8h.html — Le morpion (tic-tac-toe), jeu de règle et de stratégie.
+  Branche « Jeux » — design « Couleur franche ».
+
+  Règle relevée sur la fiche de référence (« Le morpion » : but, matériel,
+  déroulement, conditions de victoire) :
+    - grille de 3 x 3 cases ;
+    - un symbole par joueur (X ou O) ;
+    - à tour de rôle, chacun place son symbole dans une case vide ;
+    - gagne qui aligne trois fois son symbole, horizontalement, verticalement
+      ou en diagonale.
+  La fiche ne fixe pas qui commence : dans cette version, ce sont toujours les
+  croix, et le joueur peut choisir son camp face à l'ordinateur.
+
+  Comme kukuli-7h8h.html, cette app est un jeu à deux camps et non un exercice :
+  elle ne déclare donc pas de TYPE_TACHE (il n'y a ni item à valider, ni bonne
+  réponse à corriger), et le module feedbackUtils.js n'est sollicité qu'aux fins
+  de partie.
+-->
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Le morpion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-base.css">
+<style>
+  /* ── Couleur du domaine : Jeux ─────────────────────────────────────────── */
+  :root {
+    --app-accent:      #7A2E5C;
+    --app-accent-dark: #5C2145;
+    --app-tint-bg:     #F7E9F1;
+    --app-tint-fg:     #6B2350;
+
+    /* Palette de la fiche de référence : papier quadrillé, tracé bleu encre,
+       croix verte et rond rouge. Les deux symboles restent distincts par la
+       forme — la couleur ne porte jamais seule l'information. */
+    --mo-papier:   #FCFCF7;
+    --mo-carreau:  #DDE3EE;
+    --mo-ligne:    #1F3C6E;  /* 10,4:1 sur le papier */
+    --mo-croix:    #1B7F4B;  /* 5,0:1 sur le papier  */
+    --mo-rond:     #C0392B;  /* 5,4:1 sur le papier  */
+  }
+
+  /* ── Barre d'options secondaire (difficulté, camp) ──────────────────────── */
+  .option-bar {
+    background: #fff;
+    border-top: 2px solid var(--app-border);
+    padding: 12px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .option-bar[hidden] { display: none; }
+  .option-label {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--app-tint-fg);
+  }
+  .option-btn {
+    padding: 0 22px;
+    min-height: 56px;
+    min-width: 64px;
+    border-radius: 999px;
+    border: 2px solid var(--app-tint-fg);
+    background: #fff;
+    color: var(--app-tint-fg);
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+  .option-btn[aria-pressed="true"] {
+    background: var(--app-accent);
+    border-color: var(--app-accent);
+    color: #fff;
+  }
+  .option-btn:focus-visible { outline: 3px solid var(--app-accent); outline-offset: 3px; }
+
+  /* ── Boîte de tour ──────────────────────────────────────────────────────── */
+  /* L'anneau intérieur reprend la couleur du camp, mais le symbole dessiné et
+     le texte portent l'information : jamais la couleur seule. */
+  .question-box.tour-x   { background: #F1F8F3; box-shadow: inset 0 0 0 5px var(--mo-croix), 0 2px 8px rgba(20,32,46,0.08); }
+  .question-box.tour-o   { background: #FDF1EF; box-shadow: inset 0 0 0 5px var(--mo-rond),  0 2px 8px rgba(20,32,46,0.08); }
+  .question-box.tour-fin { background: var(--app-tint-bg); box-shadow: inset 0 0 0 5px var(--app-accent), 0 2px 8px rgba(20,32,46,0.08); }
+  .tour-ligne {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+  .tour-jeton { width: 48px; height: 48px; flex-shrink: 0; }
+  .tour-jeton:empty { display: none; }
+  .turn-sub {
+    display: block;
+    margin-top: 6px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: #3F4A5C;   /* ≥ 7,6:1 sur les trois fonds teintés de la boîte de tour */
+  }
+
+  /* ── Grille de jeu ──────────────────────────────────────────────────────── */
+  .board-wrap { width: 100%; display: flex; justify-content: center; }
+  .board {
+    position: relative;
+    width: min(100%, 420px);
+    aspect-ratio: 1;
+    border-radius: 20px;
+    padding: 10px;
+    /* Papier quadrillé de la fiche : décoratif, très faible contraste. */
+    background:
+      repeating-linear-gradient(to right,  var(--mo-carreau) 0 1px, transparent 1px 24px),
+      repeating-linear-gradient(to bottom, var(--mo-carreau) 0 1px, transparent 1px 24px),
+      var(--mo-papier);
+    box-shadow: 0 2px 8px rgba(20,32,46,0.10);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    width: 100%;
+    height: 100%;
+  }
+  .cell {
+    background: transparent;
+    border: none;
+    padding: 6%;
+    min-width: 64px;
+    min-height: 64px;
+    border-radius: 12px;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cell[aria-disabled="true"] { cursor: default; }
+  .cell:not([aria-disabled="true"]):hover { background: rgba(122,46,92,0.09); }
+  .cell:focus-visible { outline: 3px solid var(--app-accent); outline-offset: -3px; }
+  .cell.gagnante { background: rgba(122,46,92,0.10); }
+  .cell svg { width: 100%; height: 100%; display: block; }
+  /* Symbole fantôme : aperçu du coup, visible seulement au survol ou au focus. */
+  .cell .fantome { opacity: 0; }
+  .cell:not([aria-disabled="true"]):hover .fantome,
+  .cell:focus-visible .fantome { opacity: 0.32; }
+
+  /* Tracé de la grille et trait de victoire, au-dessus des cases. */
+  .trace {
+    position: absolute;
+    inset: 10px;
+    pointer-events: none;
+  }
+
+  /* Message neutre (ni gain ni erreur) — ex. « la partie est nulle ». */
+  .feedback.info { background: var(--app-tint-bg); color: var(--app-tint-fg); display: block; }
+
+  /* ── Bouton secondaire (annuler) ────────────────────────────────────────── */
+  .second-btn {
+    padding: 0 28px;
+    background: #fff;
+    color: var(--app-tint-fg);
+    border: 3px solid var(--app-tint-fg);
+    border-radius: 16px;
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    cursor: pointer;
+    min-height: 68px;
+    min-width: 64px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+  .second-btn:hover:not(:disabled) { background: var(--app-tint-bg); }
+  .second-btn:disabled { opacity: 0.45; cursor: default; }
+  .second-btn:focus-visible { outline: 3px solid var(--app-accent); outline-offset: 3px; }
+
+  /* ── Panneau des règles ─────────────────────────────────────────────────── */
+  .rules {
+    width: 100%;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(20,32,46,0.08);
+    overflow: hidden;
+  }
+  .rules > summary {
+    list-style: none;
+    padding: 20px 24px;
+    min-height: 68px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--app-tint-fg);
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .rules > summary::-webkit-details-marker { display: none; }
+  .rules > summary::after { content: '▾'; margin-left: auto; font-size: 26px; }
+  .rules[open] > summary::after { content: '▴'; }
+  .rules > summary:focus-visible { outline: 3px solid var(--app-accent); outline-offset: -3px; }
+  .rules-body { padding: 0 24px 24px; font-size: 18px; line-height: 1.6; color: var(--app-text); }
+  .rules-body h2 {
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 21px;
+    font-weight: 700;
+    color: var(--app-tint-fg);
+    margin: 18px 0 6px;
+  }
+  .rules-body ul, .rules-body ol { margin: 0 0 4px 22px; }
+  .rules-body li { margin-bottom: 6px; }
+  .rules-body p { margin-bottom: 6px; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .option-btn { transition: background 0.15s, color 0.15s, border-color 0.15s; }
+    .option-btn:active { transform: scale(0.97); }
+    .second-btn { transition: background 0.15s; }
+    .second-btn:active { transform: scale(0.97); }
+    .cell { transition: background 0.15s; }
+    .cell .fantome { transition: opacity 0.15s; }
+    .trait-victoire { animation: tracer 0.45s ease-out; }
+    @keyframes tracer {
+      from { stroke-dasharray: 400; stroke-dashoffset: 400; }
+      to   { stroke-dasharray: 400; stroke-dashoffset: 0; }
+    }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header" role="banner">
+  <a href="../index.html" class="back-link"><span aria-hidden="true">←</span> Retour</a>
+  <h1>Le morpion</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<div class="level-bar" role="group" aria-label="Choisir le mode de jeu">
+  <button class="level-btn active" data-mode="2j" aria-pressed="true">2 joueurs</button>
+  <button class="level-btn"        data-mode="ia" aria-pressed="false">Contre l’ordinateur</button>
+</div>
+
+<!-- Options du mode « Contre l'ordinateur » : la barre entière reste masquée à deux joueurs. -->
+<div class="option-bar" id="option-bar" hidden>
+  <span class="option-label" id="lbl-diff" hidden>Ordinateur :</span>
+  <button class="option-btn" data-diff="1" aria-pressed="true"  aria-describedby="lbl-diff" hidden>Facile</button>
+  <button class="option-btn" data-diff="2" aria-pressed="false" aria-describedby="lbl-diff" hidden>Moyen</button>
+  <button class="option-btn" data-diff="3" aria-pressed="false" aria-describedby="lbl-diff" hidden>Malin</button>
+  <button class="option-btn" id="camp-btn" aria-pressed="true" hidden>Tu joues les croix</button>
+</div>
+
+<main>
+  <div class="question-box" id="question-box">
+    <div class="tour-ligne" aria-live="polite" aria-atomic="true">
+      <svg class="tour-jeton" id="tour-jeton" viewBox="0 0 100 100" aria-hidden="true"></svg>
+      <span id="turn-main">Au tour des croix</span>
+    </div>
+    <span class="turn-sub" id="turn-sub"></span>
+  </div>
+
+  <div class="board-wrap">
+    <div class="board">
+      <div class="grid" id="grid" role="group" aria-label="Grille du morpion"></div>
+      <svg class="trace" id="trace" viewBox="0 0 300 300" aria-hidden="true">
+        <g stroke="var(--mo-ligne)" stroke-width="7" stroke-linecap="round">
+          <line x1="100" y1="10" x2="100" y2="290"></line>
+          <line x1="200" y1="10" x2="200" y2="290"></line>
+          <line x1="10" y1="100" x2="290" y2="100"></line>
+          <line x1="10" y1="200" x2="290" y2="200"></line>
+        </g>
+        <g id="victoire"></g>
+      </svg>
+    </div>
+  </div>
+
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="action-row">
+    <button class="second-btn" id="undo-btn" disabled>Annuler le coup</button>
+    <button class="new-btn visible" id="new-btn"><span aria-hidden="true">▶</span> Nouvelle partie</button>
+  </div>
+
+  <details class="rules" id="rules">
+    <summary>Règles du jeu</summary>
+    <div class="rules-body">
+      <p><strong>But :</strong> aligner trois symboles identiques.</p>
+      <p><strong>Matériel :</strong> du papier et un crayon. Ici, la grille est
+         déjà tracée pour toi.</p>
+
+      <h2>Déroulement du jeu</h2>
+      <ol>
+        <li>Dessiner une grille de 3 x 3 cases.</li>
+        <li>Attribuer un symbole à chaque joueur (X ou O).</li>
+        <li>À tour de rôle, placer son symbole dans une case vide.</li>
+      </ol>
+
+      <h2>Conditions de victoire</h2>
+      <p>Pour gagner, aligner trois fois son symbole horizontalement,
+         verticalement ou en diagonale.</p>
+
+      <h2>Dans cette version</h2>
+      <ul>
+        <li>Les croix commencent toujours.</li>
+        <li>Si les neuf cases sont remplies sans alignement, la partie est nulle.</li>
+        <li>Contre l’ordinateur, tu choisis ton camp et sa force de jeu.
+            En « Malin », il ne perd jamais : à toi de décrocher la partie nulle.</li>
+      </ul>
+    </div>
+  </details>
+</main>
+
+<script src="appUtils.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   1. MOTEUR — indépendant de l'affichage
+   ═══════════════════════════════════════════════════════════════════════════
+   Une position : un tableau de 9 cases valant 'X', 'O' ou ''.
+   Index 0..8, ligne par ligne (index = 3 * ligne + colonne). */
+
+const ALIGNEMENTS = [
+  [0, 1, 2], [3, 4, 5], [6, 7, 8],   // horizontales
+  [0, 3, 6], [1, 4, 7], [2, 5, 8],   // verticales
+  [0, 4, 8], [2, 4, 6]               // diagonales
+];
+
+const AUTRE = { X: 'O', O: 'X' };
+
+/* Renvoie { symbole, alignement } si trois symboles sont alignés, sinon null. */
+function vainqueur(p) {
+  for (const a of ALIGNEMENTS) {
+    if (p[a[0]] && p[a[0]] === p[a[1]] && p[a[1]] === p[a[2]]) {
+      return { symbole: p[a[0]], alignement: a };
+    }
+  }
+  return null;
+}
+
+function casesLibres(p) {
+  const libres = [];
+  for (let i = 0; i < 9; i++) if (!p[i]) libres.push(i);
+  return libres;
+}
+
+/* Case qui complète immédiatement un alignement pour `sym`, sinon null. */
+function coupGagnant(p, sym) {
+  for (const a of ALIGNEMENTS) {
+    const vals = a.map((i) => p[i]);
+    if (vals.filter((v) => v === sym).length === 2 && vals.includes('')) {
+      return a[vals.indexOf('')];
+    }
+  }
+  return null;
+}
+
+/* Minimax complet : la grille 3x3 est assez petite pour être explorée
+   entièrement, sans élagage ni mémoïsation. Score du point de vue de `sym` :
+   +10 - profondeur pour un gain (gagner vite), -10 + profondeur pour une
+   défaite (perdre tard), 0 pour une nulle. */
+function minimax(p, sym, tour, prof) {
+  const v = vainqueur(p);
+  if (v) return v.symbole === sym ? 10 - prof : prof - 10;
+  const libres = casesLibres(p);
+  if (libres.length === 0) return 0;
+
+  let meilleur = tour === sym ? -Infinity : Infinity;
+  for (const i of libres) {
+    p[i] = tour;
+    const score = minimax(p, sym, AUTRE[tour], prof + 1);
+    p[i] = '';
+    meilleur = tour === sym ? Math.max(meilleur, score) : Math.min(meilleur, score);
+  }
+  return meilleur;
+}
+
+/* Choix du coup de l'ordinateur selon la difficulté :
+     1 — Facile : au hasard.
+     2 — Moyen  : gagne si possible, bloque si nécessaire, sinon au hasard.
+     3 — Malin  : jeu parfait (il ne peut pas perdre). */
+function choisirCoup(p, sym, difficulte) {
+  const libres = casesLibres(p);
+  if (libres.length === 0) return null;
+
+  /* pick(arr, n) d'appUtils.js renvoie un tableau de n éléments : on en prend le
+     premier pour obtenir une case unique. */
+  if (difficulte === 1) return pick(libres, 1)[0];
+
+  if (difficulte === 2) {
+    const gagne = coupGagnant(p, sym);
+    if (gagne !== null) return gagne;
+    const bloque = coupGagnant(p, AUTRE[sym]);
+    if (bloque !== null) return bloque;
+    return pick(libres, 1)[0];
+  }
+
+  let meilleurScore = -Infinity;
+  let meilleurs = [];
+  for (const i of libres) {
+    p[i] = sym;
+    const score = minimax(p, sym, AUTRE[sym], 1);
+    p[i] = '';
+    if (score > meilleurScore) { meilleurScore = score; meilleurs = [i]; }
+    else if (score === meilleurScore) meilleurs.push(i);
+  }
+  /* Plusieurs coups parfaits se valent : en tirer un au sort évite que
+     l'ordinateur rejoue exactement la même partie à chaque fois. */
+  return pick(meilleurs, 1)[0];
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   2. AFFICHAGE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const SVG_NS     = 'http://www.w3.org/2000/svg';
+const grid       = document.getElementById('grid');
+const victoireG  = document.getElementById('victoire');
+const questionBox= document.getElementById('question-box');
+const tourJeton  = document.getElementById('tour-jeton');
+const feedbackEl = document.getElementById('feedback');
+const turnMain   = document.getElementById('turn-main');
+const turnSub    = document.getElementById('turn-sub');
+const newBtn     = document.getElementById('new-btn');
+const undoBtn    = document.getElementById('undo-btn');
+const campBtn    = document.getElementById('camp-btn');
+const optionBar  = document.getElementById('option-bar');
+const lblDiff    = document.getElementById('lbl-diff');
+const diffBtns   = [...document.querySelectorAll('.option-btn[data-diff]')];
+
+const NOMS = [];
+for (let r = 0; r < 3; r++) {
+  for (let c = 0; c < 3; c++) NOMS.push('ligne ' + (r + 1) + ', colonne ' + (c + 1));
+}
+
+const NOM_CAMP = { X: 'les croix', O: 'les ronds' };
+
+function el(nom, attrs) {
+  const e = document.createElementNS(SVG_NS, nom);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+
+/* Croix et rond sont dessinés dans un carré de 100 x 100 : deux formes
+   nettement différentes, reconnaissables sans la couleur. */
+function dessinerSymbole(cible, sym, classe) {
+  const g = el('g', classe ? { class: classe } : {});
+  if (sym === 'X') {
+    const trait = { stroke: 'var(--mo-croix)', 'stroke-width': 13, 'stroke-linecap': 'round' };
+    g.appendChild(el('line', Object.assign({ x1: 22, y1: 22, x2: 78, y2: 78 }, trait)));
+    g.appendChild(el('line', Object.assign({ x1: 78, y1: 22, x2: 22, y2: 78 }, trait)));
+  } else {
+    g.appendChild(el('circle', {
+      cx: 50, cy: 50, r: 29, fill: 'none',
+      stroke: 'var(--mo-rond)', 'stroke-width': 13
+    }));
+  }
+  cible.appendChild(g);
+}
+
+const cellules = [];
+
+function construireGrille() {
+  for (let i = 0; i < 9; i++) {
+    const b = document.createElement('button');
+    b.className = 'cell';
+    b.type = 'button';
+    b.dataset.i = i;
+    const svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 100 100');
+    svg.setAttribute('aria-hidden', 'true');
+    b.appendChild(svg);
+    b.addEventListener('click', () => cliquer(i));
+    grid.appendChild(b);
+    cellules.push(b);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   3. PARTIE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+let plateau, joueur, mode, difficulte, campHumain, finie, gagne, historique, iaOccupee;
+/* Clé du dernier résultat compté ('X', 'O' ou 'nulles') : annuler le coup qui
+   vient de clore la partie doit aussi défaire le point marqué. */
+let dernierResultat = null;
+let scores = { X: 0, O: 0, nulles: 0 };
+
+function humainJoue() {
+  if (finie || iaOccupee) return false;
+  return mode === '2j' || joueur === campHumain;
+}
+
+function nouvellePartie() {
+  plateau = ['', '', '', '', '', '', '', '', ''];
+  joueur = 'X';           // les croix commencent toujours
+  finie = false;
+  gagne = null;
+  iaOccupee = false;
+  historique = [];
+  dernierResultat = null;
+  undoBtn.disabled = true;
+  feedbackEl.className = 'feedback';
+  feedbackEl.textContent = '';
+  rendre();
+  jouerIaSiBesoin();
+}
+
+/* Changement de mode, de difficulté ou de camp : nouvelle série, scores remis
+   à zéro (les parties précédentes ne se comparent plus à celles qui suivent). */
+function nouvelleSerie() {
+  scores = { X: 0, O: 0, nulles: 0 };
+  nouvellePartie();
+}
+
+function terminer(resultat) {
+  finie = true;
+  let msg;
+  dernierResultat = resultat === 'nulle' ? 'nulles' : resultat.symbole;
+  if (resultat === 'nulle') {
+    scores.nulles++;
+    msg = 'Les neuf cases sont remplies sans alignement : la partie est nulle. ' +
+          'Appuie sur « Nouvelle partie » pour rejouer.';
+  } else {
+    scores[resultat.symbole]++;
+    const nom   = resultat.symbole === 'X' ? 'Les croix' : 'Les ronds';
+    const verbe = resultat.symbole === 'X' ? 'elles gagnent' : 'ils gagnent';
+    msg = nom + ' alignent trois symboles : ' + verbe + ' la partie ! ' +
+          'Appuie sur « Nouvelle partie » pour rejouer.';
+  }
+
+  /* Le son marque la fin de partie dans les deux cas : une nulle n'est pas une
+     erreur (contre « Malin », c'est même le meilleur résultat possible), mais
+     elle ne déclenche pas de confettis, réservés à une victoire. */
+  if (resultat === 'nulle') {
+    feedbackEl.className = 'feedback info';
+    feedbackEl.textContent = msg;
+    playCorrect();
+  } else {
+    feedbackEl.className = 'feedback correct';
+    feedbackEl.textContent = msg;
+    playCorrect();
+    launchConfetti();
+  }
+  rendre();
+  newBtn.focus();
+}
+
+function jouer(i) {
+  historique.push({ p: plateau.slice(), j: joueur });
+  undoBtn.disabled = false;
+  plateau[i] = joueur;
+
+  const v = vainqueur(plateau);
+  if (v) { gagne = v; terminer(v); return; }
+  if (casesLibres(plateau).length === 0) { terminer('nulle'); return; }
+
+  joueur = AUTRE[joueur];
+  feedbackEl.className = 'feedback';
+  feedbackEl.textContent = '';
+  rendre();
+  jouerIaSiBesoin();
+}
+
+function cliquer(i) {
+  if (finie) {
+    feedbackEl.className = 'feedback info';
+    feedbackEl.textContent = 'La partie est terminée. Appuie sur « Nouvelle partie » pour rejouer.';
+    return;
+  }
+  if (!humainJoue()) return;
+  if (plateau[i]) {
+    feedbackEl.className = 'feedback wrong';
+    feedbackEl.textContent = 'Cette case est déjà prise. Choisis une case vide.';
+    playIncorrect();
+    return;
+  }
+  jouer(i);
+}
+
+function rendre() {
+  for (let i = 0; i < 9; i++) {
+    const b = cellules[i];
+    const svg = b.querySelector('svg');
+    svg.textContent = '';
+
+    const libre   = !plateau[i];
+    const jouable = libre && !finie && humainJoue();
+
+    if (!libre) dessinerSymbole(svg, plateau[i]);
+    else if (jouable) dessinerSymbole(svg, joueur, 'fantome');
+
+    /* Seules les cases réellement jouables entrent dans l'ordre de tabulation :
+       la boucle de tabulation d'appUtils.js reste ainsi utile. */
+    b.tabIndex = jouable ? 0 : -1;
+    b.setAttribute('aria-disabled', jouable ? 'false' : 'true');
+    b.classList.toggle('gagnante', !!gagne && gagne.alignement.includes(i));
+
+    let etiquette = NOMS[i] + ' : ';
+    if (plateau[i] === 'X')      etiquette += 'croix';
+    else if (plateau[i] === 'O') etiquette += 'rond';
+    else                         etiquette += jouable ? 'case vide, à toi de jouer' : 'case vide';
+    b.setAttribute('aria-label', etiquette);
+  }
+
+  /* Trait de victoire : il barre l'alignement gagnant, comme sur le papier. */
+  victoireG.textContent = '';
+  if (gagne) {
+    const centre = (i) => ({ x: 50 + 100 * (i % 3), y: 50 + 100 * Math.floor(i / 3) });
+    const a = centre(gagne.alignement[0]);
+    const z = centre(gagne.alignement[2]);
+    const dx = z.x - a.x, dy = z.y - a.y;
+    const n = Math.hypot(dx, dy);
+    const m = 34; // dépassement de part et d'autre
+    const geo = {
+      x1: a.x - dx / n * m, y1: a.y - dy / n * m,
+      x2: z.x + dx / n * m, y2: z.y + dy / n * m,
+      'stroke-linecap': 'round'
+    };
+    /* Doublure claire : le trait passe par le centre des symboles, de la même
+       couleur qu'eux. Ce liseré papier l'en détache pour qu'il reste lisible. */
+    victoireG.appendChild(el('line', Object.assign({
+      class: 'trait-victoire', stroke: 'var(--mo-papier)', 'stroke-width': 22
+    }, geo)));
+    victoireG.appendChild(el('line', Object.assign({
+      class: 'trait-victoire',
+      stroke: gagne.symbole === 'X' ? 'var(--mo-croix)' : 'var(--mo-rond)',
+      'stroke-width': 11
+    }, geo)));
+  }
+
+  majTexteTour();
+}
+
+function majTexteTour() {
+  tourJeton.textContent = '';
+  questionBox.classList.remove('tour-x', 'tour-o', 'tour-fin');
+
+  if (finie) {
+    questionBox.classList.add('tour-fin');
+    turnMain.textContent = 'Partie terminée';
+  } else {
+    /* Le symbole du camp qui doit jouer est redessiné dans la boîte : l'élève
+       reconnaît la forme, pas seulement la couleur de l'anneau. */
+    questionBox.classList.add(joueur === 'X' ? 'tour-x' : 'tour-o');
+    dessinerSymbole(tourJeton, joueur);
+    if (iaOccupee) {
+      turnMain.textContent = 'L’ordinateur réfléchit…';
+    } else {
+      const nom = joueur === 'X' ? 'Au tour des croix' : 'Au tour des ronds';
+      turnMain.textContent = nom + (mode === 'ia' && joueur !== campHumain ? ' (ordinateur)' : '');
+    }
+  }
+  turnSub.textContent = 'Parties gagnées — croix : ' + scores.X +
+                        ' · ronds : ' + scores.O +
+                        ' · nulles : ' + scores.nulles;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   4. TOUR DE L'ORDINATEUR
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function jouerIaSiBesoin() {
+  if (finie || mode !== 'ia' || joueur === campHumain) return;
+
+  iaOccupee = true;
+  rendre();
+  /* Laisse le navigateur peindre « L'ordinateur réfléchit… » avant le calcul. */
+  setTimeout(() => {
+    const c = choisirCoup(plateau, joueur, difficulte);
+    iaOccupee = false;
+    if (c === null) { rendre(); return; }
+    jouer(c);
+  }, 320);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   5. COMMANDES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+document.querySelectorAll('.level-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    mode = btn.dataset.mode;
+    document.querySelectorAll('.level-btn').forEach((b) => {
+      b.classList.remove('active');
+      b.setAttribute('aria-pressed', 'false');
+    });
+    btn.classList.add('active');
+    btn.setAttribute('aria-pressed', 'true');
+    const contreIa = mode === 'ia';
+    optionBar.hidden = !contreIa;
+    lblDiff.hidden = !contreIa;
+    diffBtns.forEach((b) => { b.hidden = !contreIa; });
+    campBtn.hidden = !contreIa;
+    nouvelleSerie();
+  });
+});
+
+diffBtns.forEach((btn) => {
+  btn.addEventListener('click', () => {
+    difficulte = parseInt(btn.dataset.diff, 10);
+    diffBtns.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+    nouvelleSerie();
+  });
+});
+
+/* Les croix commencent toujours : changer de camp revient donc aussi à choisir
+   qui joue en premier. Le libellé le dit en toutes lettres. */
+campBtn.addEventListener('click', () => {
+  campHumain = AUTRE[campHumain];
+  campBtn.setAttribute('aria-pressed', String(campHumain === 'X'));
+  campBtn.textContent = campHumain === 'X'
+    ? 'Tu joues les croix'
+    : 'Tu joues les ronds : l’ordinateur commence';
+  nouvelleSerie();
+});
+
+/* Annuler remonte jusqu'au dernier état où c'était à l'humain de jouer :
+   contre l'ordinateur, un seul appui annule bien le coup du joueur. */
+undoBtn.addEventListener('click', () => {
+  if (historique.length === 0) return;
+  /* Annuler le coup qui vient de clore la partie : le point marqué est repris. */
+  if (finie && dernierResultat) { scores[dernierResultat]--; dernierResultat = null; }
+  do {
+    const prec = historique.pop();
+    plateau = prec.p; joueur = prec.j;
+  } while (historique.length > 0 && mode === 'ia' && joueur !== campHumain);
+  finie = false; gagne = null; iaOccupee = false;
+  undoBtn.disabled = historique.length === 0;
+  feedbackEl.className = 'feedback';
+  feedbackEl.textContent = '';
+  rendre();
+});
+
+newBtn.addEventListener('click', nouvellePartie);
+
+/* ── Démarrage ─────────────────────────────────────────────────────────────── */
+mode = '2j';
+difficulte = 1;
+campHumain = 'X';
+construireGrille();
+nouvellePartie();
+</script>
+<!-- feedbackUtils.js DOIT être chargé APRÈS le script de l'app, juste avant </body> -->
+<script src="feedbackUtils.js"></script>
+</body>
+</html>

@@ -68,7 +68,7 @@ Chaque carte du portail pointe vers un fichier réel de `apps/` — il n'y a plu
 
 ## Les activités du portail
 
-**`index.html` fait foi.** Cet inventaire en est le reflet et doit être régénéré à chaque ajout ou retrait de carte — ne jamais l'utiliser comme source à la place des cartes elles-mêmes. Dernier relevé : 13.09.2026, **46 activités**.
+**`index.html` fait foi.** Cet inventaire en est le reflet et doit être régénéré à chaque ajout ou retrait de carte — ne jamais l'utiliser comme source à la place des cartes elles-mêmes. Dernier relevé : 17.09.2026, **47 activités**.
 
 Le groupe d'années est celui qu'affiche le bandeau de la carte (`.header-cycle-badge`) ; `data-harmos` ne porte que le cycle (`c1` pour 1H–4H, `c2` pour 5H–8H). Une cellule PER vide signale une carte sans `data-per` — c'est volontaire, jamais un oubli à combler au jugé (voir « Hors charte PER — Jeux »).
 
@@ -175,11 +175,12 @@ Le groupe d'années est celui qu'affiche le bandeau de la carte (`.header-cycle-
 |-------|--------|-----|---------|
 | Trie les animaux | 3H–4H | MSN 16 | `tri-animaux-3h4h.html` |
 
-### Jeux (2)
+### Jeux (3)
 
 | Titre | Groupe | PER | Fichier |
 |-------|--------|-----|---------|
 | Kukuli | 7H–8H | — | `kukuli-7h8h.html` |
+| Le morpion | 7H–8H | — | `morpion-7h8h.html` |
 | Le moulin | 7H–8H | — | `moulin-7h8h.html` |
 
 ### Ajouter une nouvelle activité
