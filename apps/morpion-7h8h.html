@@ -535,19 +535,15 @@ function terminer(resultat) {
           'Appuie sur « Nouvelle partie » pour rejouer.';
   }
 
-  /* Le son marque la fin de partie dans les deux cas : une nulle n'est pas une
-     erreur (contre « Malin », c'est même le meilleur résultat possible), mais
-     elle ne déclenche pas de confettis, réservés à une victoire. */
-  if (resultat === 'nulle') {
-    feedbackEl.className = 'feedback info';
-    feedbackEl.textContent = msg;
-    playCorrect();
-  } else {
-    feedbackEl.className = 'feedback correct';
-    feedbackEl.textContent = msg;
-    playCorrect();
-    launchConfetti();
-  }
+  /* Même convention que Kukuli et Le moulin : on ne célèbre que la victoire du
+     camp du joueur. À deux joueurs, un camp humain l'emporte toujours, sauf
+     partie nulle. Une défaite ou une nulle reste sur le tint neutre, jamais sur
+     le rouge des erreurs : perdre une partie n'est pas se tromper. Les deux
+     canaux du skill accessibilité, visuel et sonore, restent servis. */
+  const fete = resultat !== 'nulle' && (mode === '2j' || resultat.symbole === campHumain);
+  feedbackEl.className = fete ? 'feedback correct' : 'feedback info';
+  feedbackEl.textContent = msg;
+  if (fete) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
   rendre();
   newBtn.focus();
 }
