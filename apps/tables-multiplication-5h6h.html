@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<!--
+  tables-multiplication-5h6h.html — Les tables de multiplication (5H–6H).
+  Objectif PER : MSN 23 – Opérations (répertoire multiplicatif mémorisé).
+  Attente fondamentale fin C2 visée : « Maîtrise le répertoire additif et multiplicatif ».
+  Construit depuis _template.html (design « Couleur franche »).
+-->
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Les tables de multiplication</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<!-- Styles partagés (reset, header, level-bar, feedback, boutons d'action…) -->
+<link rel="stylesheet" href="app-base.css">
+<style>
+  /* ── Couleur du domaine : Mathématiques ─────────────────────────────────── */
+  :root {
+    --app-accent:      #C0272D;
+    --app-accent-dark: #A01F23;
+    --app-tint-bg:     #FDECEA;
+    --app-tint-fg:     #8B0000;
+  }
+
+  /* ── Progression de la série (emplacement fixe) ─────────────────────────── */
+  .progress {
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #33415A;
+    text-align: center;
+    min-height: 30px;
+  }
+
+  /* ── Calcul affiché ─────────────────────────────────────────────────────── */
+  .equation {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 14px;
+    font-size: clamp(40px, 9vw, 60px);
+    font-weight: 800;
+    line-height: 1.1;
+  }
+  .equation:focus { outline: none; }
+  .answer-slot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.6em;
+    height: 1.35em;
+    padding: 0 12px;
+    border-radius: 16px;
+    border: 3px solid var(--app-accent);
+    background: var(--app-tint-bg);
+    color: var(--app-text);
+  }
+  .answer-slot.empty { color: #64748B; }
+
+  /* ── Pavé numérique ─────────────────────────────────────────────────────── */
+  .keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    width: 100%;
+    max-width: 380px;
+  }
+  .key {
+    min-height: 72px;
+    min-width: 64px;
+    border: 2px solid var(--app-border);
+    border-radius: 16px;
+    background: #fff;
+    color: var(--app-text);
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(20,32,46,0.08);
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+  .key:hover         { background: #F4F6FA; }
+  .key:active        { background: var(--app-tint-bg); }
+  .key:focus-visible { outline: 3px solid var(--app-accent); outline-offset: 3px; }
+  .key:disabled      { opacity: 0.45; cursor: default; }
+  .key.erase         { font-size: 22px; color: var(--app-tint-fg); background: var(--app-tint-bg); border-color: transparent; }
+  .key.zero          { grid-column: 2; }
+  @media (prefers-reduced-motion: no-preference) {
+    .key        { transition: background 0.12s, transform 0.12s; }
+    .key:active { transform: scale(0.96); }
+  }
+
+  /* ── Aide visuelle après une erreur : quadrillage de points ─────────────── */
+  .array-help {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    background: #fff;
+    border-radius: 20px;
+    padding: 18px;
+    box-shadow: 0 2px 8px rgba(20,32,46,0.08);
+  }
+  .array-help.visible { display: flex; }
+  .array-caption {
+    font-size: 18px;
+    font-weight: 600;
+    color: #33415A;
+    text-align: center;
+    line-height: 1.5;
+  }
+  .dot-grid { display: flex; flex-direction: column; gap: 5px; }
+  .dot-row  { display: flex; gap: 5px; }
+  .dot-row.gap-after { margin-bottom: 9px; }
+  .dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #33415A;
+  }
+  .dot.gap-after { margin-right: 9px; }
+
+  /* ── Bilan de fin de série ──────────────────────────────────────────────── */
+  .summary-title { font-size: clamp(26px, 5vw, 34px); font-weight: 800; }
+  .summary-line  { margin-top: 10px; font-family: 'Source Sans 3', sans-serif; font-size: 20px; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────────── -->
+<header class="app-header" role="banner">
+  <a href="../index.html" class="back-link"><span aria-hidden="true">←</span> Retour</a>
+  <h1>Les tables de multiplication</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<!-- ── Sélecteur de niveau ─────────────────────────────────────────────────── -->
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1 · 2, 5, 10</button>
+  <button class="level-btn"        data-level="2" aria-pressed="false">Niveau 2 · 3, 4</button>
+  <button class="level-btn"        data-level="3" aria-pressed="false">Niveau 3 · 6 à 9</button>
+  <button class="level-btn"        data-level="4" aria-pressed="false">Niveau 4 · toutes</button>
+</div>
+
+<!-- ── Contenu principal ───────────────────────────────────────────────────── -->
+<main>
+  <p class="progress" id="progress"></p>
+
+  <div class="question-box" id="question-box">Chargement…</div>
+
+  <div class="keypad" id="keypad" role="group" aria-label="Pavé de chiffres">
+    <button class="key" data-digit="1">1</button>
+    <button class="key" data-digit="2">2</button>
+    <button class="key" data-digit="3">3</button>
+    <button class="key" data-digit="4">4</button>
+    <button class="key" data-digit="5">5</button>
+    <button class="key" data-digit="6">6</button>
+    <button class="key" data-digit="7">7</button>
+    <button class="key" data-digit="8">8</button>
+    <button class="key" data-digit="9">9</button>
+    <button class="key zero" data-digit="0">0</button>
+    <button class="key erase" id="erase-btn" aria-label="Effacer le dernier chiffre"><span aria-hidden="true">⌫</span> Effacer</button>
+  </div>
+
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="array-help" id="array-help"></div>
+
+  <div class="action-row">
+    <button class="verify-btn" id="verify-btn" disabled>Vérifier</button>
+    <button class="new-btn"    id="new-btn"><span aria-hidden="true">▶</span> Nouvel exercice</button>
+  </div>
+</main>
+
+<!-- ── Script de l'app ─────────────────────────────────────────────────────── -->
+<script src="appUtils.js"></script>
+<script>
+  // ── Références DOM ─────────────────────────────────────────────────────────
+  const questionBox = document.getElementById('question-box');
+  const feedbackEl  = document.getElementById('feedback');
+  const verifyBtn   = document.getElementById('verify-btn');
+  const newBtn      = document.getElementById('new-btn');
+  const progressEl  = document.getElementById('progress');
+  const keypadEl    = document.getElementById('keypad');
+  const eraseBtn    = document.getElementById('erase-btn');
+  const arrayHelp   = document.getElementById('array-help');
+
+  // ── Type de tâche ─────────────────────────────────────────────────────────
+  // Restitution de faits numériques mémorisés : l'erreur clôt l'item.
+  // Le calcul manqué n'est pas perdu : il revient plus loin dans la série.
+  const TYPE_TACHE = 'drill';
+
+  // ── Paramètres des niveaux ─────────────────────────────────────────────────
+  // tables : tables travaillées ; others : l'autre facteur ;
+  // missing : part des calculs à facteur manquant (« 7 × ? = 42 »).
+  const LEVELS = {
+    1: { tables: [2, 5, 10],                    others: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], missing: 0 },
+    2: { tables: [3, 4],                        others: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], missing: 0 },
+    3: { tables: [6, 7, 8, 9],                  others: [2, 3, 4, 5, 6, 7, 8, 9, 10],    missing: 0 },
+    4: { tables: [2, 3, 4, 5, 6, 7, 8, 9, 10],  others: [2, 3, 4, 5, 6, 7, 8, 9, 10],    missing: 1 / 3 }
+  };
+  const SERIES_LENGTH = 10;
+  const RETRY_OFFSET  = 3;   // un calcul manqué revient 3 calculs plus tard
+  const MAX_DIGITS    = 3;
+
+  // ── État ────────────────────────────────────────────────────────────────────
+  let currentLevel = 1;
+  let state = {};
+
+  // ── Feedback unifié ─────────────────────────────────────────────────────────
+  function showFeedback(correct, msg) {
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = msg;
+    if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+
+    if (correct || TYPE_TACHE === 'drill') {
+      // Item clos : on propose la suite.
+      verifyBtn.style.display = 'none';
+      newBtn.classList.add('visible');
+      newBtn.focus();
+    } else {
+      // 'instance' + incorrect : l'élève corrige et revérifie la même instance.
+      verifyBtn.style.display = '';
+      verifyBtn.disabled = false;
+      newBtn.classList.remove('visible');
+      feedbackEl.setAttribute('tabindex', '-1');
+      feedbackEl.focus();
+    }
+  }
+
+  function resetFeedback() {
+    feedbackEl.className = 'feedback';
+    feedbackEl.textContent = '';
+    verifyBtn.style.display = '';
+    verifyBtn.disabled = true;
+    newBtn.classList.remove('visible');
+    arrayHelp.className = 'array-help';
+    arrayHelp.innerHTML = '';
+  }
+
+  // ── Sélecteur de niveau ─────────────────────────────────────────────────────
+  // NE PAS MODIFIER ce bloc — convention partagée entre toutes les apps.
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLevel = parseInt(btn.dataset.level);
+      document.querySelectorAll('.level-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+      newExercise();
+    });
+  });
+
+  // Après le bilan (state.item === null), le bouton relance une série complète.
+  newBtn.addEventListener('click', () => {
+    if (state.item === null) newExercise(); else nextItem();
+    focusQuestion();
+  });
+  verifyBtn.addEventListener('click', verify);
+
+  // ── Série de calculs ────────────────────────────────────────────────────────
+  // Construit une série de calculs distincts. L'ordre des facteurs varie
+  // (7 × 8 ou 8 × 7) pour s'appuyer sur la commutativité.
+  function buildSeries(level) {
+    const cfg = LEVELS[level];
+    const facts = [];
+    cfg.tables.forEach(t => cfg.others.forEach(n => {
+      const key = Math.min(t, n) + 'x' + Math.max(t, n);
+      if (!facts.some(f => f.key === key)) facts.push({ key, t, n });
+    }));
+    return pick(facts, SERIES_LENGTH).map(f => {
+      const [a, b] = Math.random() < 0.5 ? [f.t, f.n] : [f.n, f.t];
+      const missing = Math.random() < cfg.missing;
+      return { a, b, missing, retry: false };
+    });
+  }
+
+  function newExercise() {
+    state = {
+      queue: buildSeries(currentLevel),
+      done: 0,          // calculs distincts traités
+      firstTry: 0,      // réussis du premier coup
+      toReview: [],     // calculs manqués (bilan)
+      item: null,
+      answer: '',
+      answered: false
+    };
+    nextItem();
+  }
+
+  function nextItem() {
+    resetFeedback();
+    setNewBtnLabel('Nouvel exercice');
+    if (state.queue.length === 0) { showSummary(); return; }
+    state.item = state.queue.shift();
+    state.answer = '';
+    state.answered = false;
+    renderItem();
+    setKeypadEnabled(true);
+  }
+
+  // ── Affichage ───────────────────────────────────────────────────────────────
+  function renderProgress() {
+    progressEl.textContent = state.item.retry
+      ? `On revoit un calcul manqué`
+      : `Calcul ${state.done + 1} sur ${SERIES_LENGTH}`;
+  }
+
+  function renderItem() {
+    const { a, b, missing } = state.item;
+    renderProgress();
+    const consigne = missing ? 'Trouve le nombre manquant.' : 'Calcule le produit.';
+    const slot = `<span class="answer-slot" id="answer-slot" aria-label="Ta réponse"></span>`;
+    const eq = missing
+      ? `<span>${a}</span><span aria-hidden="true">×</span>${slot}<span aria-hidden="true">=</span><span>${a * b}</span>`
+      : `<span>${a}</span><span aria-hidden="true">×</span><span>${b}</span><span aria-hidden="true">=</span>${slot}`;
+    const spoken = missing
+      ? `${a} fois combien égale ${a * b} ?`
+      : `Combien font ${a} fois ${b} ?`;
+    questionBox.innerHTML =
+      `<div>${consigne}</div>` +
+      `<div class="equation" id="equation" tabindex="-1" role="group" aria-label="${spoken}">${eq}</div>`;
+    renderAnswer();
+  }
+
+  function renderAnswer() {
+    const slot = document.getElementById('answer-slot');
+    if (!slot) return;
+    slot.textContent = state.answer || '?';
+    slot.classList.toggle('empty', state.answer === '');
+    if (!state.answered) verifyBtn.disabled = state.answer === '';
+  }
+
+  function focusQuestion() {
+    const eq = document.getElementById('equation') || questionBox;
+    eq.focus();
+  }
+
+  function setKeypadEnabled(on) {
+    keypadEl.style.display = on ? '' : 'none';
+    keypadEl.querySelectorAll('.key').forEach(k => { k.disabled = !on; });
+  }
+
+  // ── Saisie ──────────────────────────────────────────────────────────────────
+  function typeDigit(d) {
+    if (state.answered || !state.item) return;
+    if (state.answer.length >= MAX_DIGITS) return;
+    if (state.answer === '0') state.answer = '';
+    state.answer += d;
+    renderAnswer();
+  }
+
+  function eraseDigit() {
+    if (state.answered || !state.item) return;
+    state.answer = state.answer.slice(0, -1);
+    renderAnswer();
+  }
+
+  keypadEl.querySelectorAll('[data-digit]').forEach(k => {
+    k.addEventListener('click', () => typeDigit(k.dataset.digit));
+  });
+  eraseBtn.addEventListener('click', eraseDigit);
+
+  // Clavier physique (optionnel) : chiffres, retour arrière, Entrée.
+  document.addEventListener('keydown', e => {
+    if (e.key >= '0' && e.key <= '9') { typeDigit(e.key); e.preventDefault(); }
+    else if (e.key === 'Backspace')   { eraseDigit(); e.preventDefault(); }
+    else if (e.key === 'Enter' && !verifyBtn.disabled && verifyBtn.style.display !== 'none'
+             && e.target.tagName !== 'BUTTON') { verify(); e.preventDefault(); }
+  });
+
+  // ── Astuces de calcul (feedback formatif) ───────────────────────────────────
+  // On s'appuie sur une table « facile » déjà connue pour retrouver le résultat.
+  const STRATEGY_ORDER = [1, 10, 2, 5, 4, 9, 3, 8, 6, 7];
+
+  function strategy(a, b) {
+    const t = STRATEGY_ORDER.find(x => x === a || x === b);
+    const n = (t === a) ? b : a;
+    const p = a * b;
+    switch (t) {
+      case 1:  return `Multiplier par 1 ne change pas le nombre.`;
+      case 10: return `Astuce : ${n} × 10, c'est ${n} dizaines, donc ${p}.`;
+      case 2:  return `Astuce : × 2, c'est le double. ${n} + ${n} = ${p}.`;
+      case 5:  return `Astuce : × 5, c'est la moitié de × 10. ${n} × 10 = ${n * 10}, la moitié donne ${p}.`;
+      case 4:  return `Astuce : × 4, c'est le double du double. ${n} × 2 = ${n * 2}, puis ${n * 2} + ${n * 2} = ${p}.`;
+      case 9:  return `Astuce : × 9, c'est × 10 moins une fois. ${n} × 10 = ${n * 10}, puis ${n * 10} − ${n} = ${p}.`;
+      case 3:  return `Astuce : × 3, c'est × 2 plus une fois. ${n * 2} + ${n} = ${p}.`;
+      case 8:  return `Astuce : × 8, c'est le double de × 4. ${n} × 4 = ${n * 4}, puis ${n * 4} + ${n * 4} = ${p}.`;
+      case 6:  return `Astuce : × 6, c'est × 5 plus une fois. ${n * 5} + ${n} = ${p}.`;
+      default: return `Astuce : × 7, c'est × 5 plus × 2. ${n * 5} + ${n * 2} = ${p}.`;
+    }
+  }
+
+  // Quadrillage : a rangées de b points (« a fois b »), repère visuel tous les 5.
+  function renderArray(a, b) {
+    let rows = '';
+    for (let r = 0; r < a; r++) {
+      let dots = '';
+      for (let c = 0; c < b; c++) {
+        dots += `<span class="dot${c === 4 && b > 5 ? ' gap-after' : ''}"></span>`;
+      }
+      rows += `<div class="dot-row${r === 4 && a > 5 ? ' gap-after' : ''}">${dots}</div>`;
+    }
+    const rangee = a > 1 ? 'rangées' : 'rangée';
+    arrayHelp.innerHTML =
+      `<p class="array-caption">${a} ${rangee} de ${b} points : ${a} × ${b} = ${a * b}</p>` +
+      `<div class="dot-grid" role="img" aria-label="${a} ${rangee} de ${b} points, en tout ${a * b} points">${rows}</div>`;
+    arrayHelp.className = 'array-help visible';
+  }
+
+  // ── Validation ──────────────────────────────────────────────────────────────
+  function verify() {
+    if (state.answered || state.answer === '') return;
+    state.answered = true;
+    verifyBtn.disabled = true;
+    setKeypadEnabled(false);
+
+    const { a, b, missing } = state.item;
+    const p = a * b;
+    const expected = missing ? b : p;
+    const correct = parseInt(state.answer, 10) === expected;
+    const full = `${a} × ${b} = ${p}`;
+
+    if (!state.item.retry) {
+      state.done++;
+      if (correct) state.firstTry++;
+      else state.toReview.push(`${a} × ${b}`);
+    }
+
+    if (correct) {
+      const extra = missing
+        ? ` Le nombre manquant est bien ${b}.`
+        : (a !== b ? ` Et ${b} × ${a} = ${p} aussi.` : '');
+      showFeedback(true, `Bravo ! ${full}.${extra}`);
+    } else {
+      // Le calcul manqué revient plus loin dans la série (une seule fois).
+      if (!state.item.retry) {
+        const again = { a, b, missing, retry: true };
+        state.queue.splice(Math.min(RETRY_OFFSET - 1, state.queue.length), 0, again);
+      }
+      const intro = missing
+        ? `Pas tout à fait. ${full} : le nombre manquant est ${b}.`
+        : `Pas tout à fait. ${full}.`;
+      const suite = state.item.retry ? '' : ' Ce calcul reviendra bientôt.';
+      showFeedback(false, `${intro} ${strategy(a, b)}${suite}`);
+      renderArray(a, b);
+    }
+  }
+
+  // ── Bilan de fin de série ───────────────────────────────────────────────────
+  function showSummary() {
+    state.item = null;
+    setKeypadEnabled(false);
+    progressEl.textContent = `Série terminée`;
+    const reussis = state.firstTry;
+    let revoir;
+    if (state.toReview.length === 0) {
+      revoir = 'Tu as tout réussi du premier coup. Tu peux passer au niveau suivant !';
+    } else {
+      revoir = `À revoir : ${state.toReview.join(' ; ')}.`;
+    }
+    questionBox.innerHTML =
+      `<div class="summary-title">Bravo, tu as fini la série !</div>` +
+      `<div class="summary-line">Réussis du premier coup : ${reussis} sur ${SERIES_LENGTH}.</div>` +
+      `<div class="summary-line">${revoir}</div>`;
+    verifyBtn.style.display = 'none';
+    setNewBtnLabel('Nouvelle série');
+    newBtn.classList.add('visible');
+    newBtn.focus();
+  }
+
+  function setNewBtnLabel(text) {
+    newBtn.innerHTML = `<span aria-hidden="true">▶</span> ${text}`;
+  }
+
+  // ── Démarrage ───────────────────────────────────────────────────────────────
+  newExercise();
+</script>
+<!-- feedbackUtils.js DOIT être chargé APRÈS le script de l'app, juste avant </body> -->
+<script src="feedbackUtils.js"></script>
+</body>
+</html>
