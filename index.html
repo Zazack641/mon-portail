@@ -248,6 +248,7 @@
   .filter-btn[data-domain="maths"]    { background: var(--dom-maths-tint);    color: var(--dom-maths-fg); }
   .filter-btn[data-domain="francais"] { background: var(--dom-francais-tint); color: var(--dom-francais-fg); }
   .filter-btn[data-domain="allemand"] { background: #EEF3DC; color: #3A4A12; }
+  .filter-btn[data-domain="anglais"]  { background: #F7EAD9; color: #6E3A0C; }
   .filter-btn[data-domain="sciences"] { background: var(--dom-sciences-tint); color: var(--dom-sciences-fg); }
   .filter-btn[data-domain="geo"]      { background: var(--dom-geo-tint);      color: var(--dom-geo-fg); }
   .filter-btn[data-domain="jeux"]     { background: var(--dom-jeux-tint);     color: var(--dom-jeux-fg); }
@@ -379,6 +380,7 @@
   .app-card[data-domain="maths"]    .card-header { background: var(--dom-maths); }
   .app-card[data-domain="francais"] .card-header { background: var(--dom-francais); }
   .app-card[data-domain="allemand"] .card-header { background: #4F6320; }
+  .app-card[data-domain="anglais"]  .card-header { background: #8C4A10; }
   .app-card[data-domain="sciences"] .card-header { background: var(--dom-sciences); }
   .app-card[data-domain="geo"]      .card-header { background: var(--dom-geo); }
   .app-card[data-domain="jeux"]     .card-header { background: var(--dom-jeux); }
@@ -601,6 +603,7 @@
         <button class="filter-btn" data-domain="maths" aria-pressed="false">Mathématiques</button>
         <button class="filter-btn" data-domain="francais" aria-pressed="false">Français</button>
         <button class="filter-btn" data-domain="allemand" aria-pressed="false">Allemand</button>
+        <button class="filter-btn" data-domain="anglais" aria-pressed="false">Anglais</button>
         <button class="filter-btn" data-domain="sciences" aria-pressed="false">Sciences</button>
         <button class="filter-btn" data-domain="geo" aria-pressed="false">Géographie</button>
         <button class="filter-btn" data-domain="jeux" aria-pressed="false">Jeux</button>
@@ -1280,9 +1283,25 @@
       <a href="apps/vocabulaire-allemand-7h8h.html" class="launch-btn allemand" aria-label="Lancer l'activité : Vocabulaire allemand (7H-8H)">Jouer <span aria-hidden="true">→</span></a>
     </article>
 
+    <!-- ======= ANGLAIS (C2) ======= -->
+
+    <article class="app-card" data-domain="anglais" data-harmos="c2" data-per="L3 21-38" data-keywords="anglais english vocabulaire mots qcm unit unités révision traduction prononciation audio langues my words" style="animation-delay: 1260ms;">
+      <div class="card-header">
+        <h2 class="card-title">Vocabulaire anglais</h2>
+        <span class="header-cycle-badge">7H–8H</span>
+      </div>
+      <p class="card-desc">Révise le vocabulaire anglais unité par unité, avec écoute audio et choix de la bonne traduction française.</p>
+      <div class="card-badges">
+        <span class="badge badge-anglais">Anglais</span>
+        <span class="badge badge-theme">Vocabulaire</span>
+        <span class="badge badge-per">L3 21-38</span>
+      </div>
+      <a href="apps/vocabulaire-anglais-7h8h.html" class="launch-btn anglais" aria-label="Lancer l'activité : Vocabulaire anglais (7H-8H)">Jouer <span aria-hidden="true">→</span></a>
+    </article>
+
     <!-- ======= JEUX ======= -->
 
-    <article class="app-card" data-domain="jeux" data-harmos="c2" data-keywords="kukuli jeu plateau pérou quechua andes ukuku ours stratégie règle du jeu prise saut deux joueurs damier alquerque" style="animation-delay: 1260ms;">
+    <article class="app-card" data-domain="jeux" data-harmos="c2" data-keywords="kukuli jeu plateau pérou quechua andes ukuku ours stratégie règle du jeu prise saut deux joueurs damier alquerque" style="animation-delay: 1290ms;">
       <div class="card-header">
         <h2 class="card-title">Kukuli</h2>
         <span class="header-cycle-badge">7H–8H</span>
@@ -1295,7 +1314,7 @@
       <a href="apps/kukuli-7h8h.html" class="launch-btn jeux" aria-label="Lancer l'activité : Kukuli">Jouer <span aria-hidden="true">→</span></a>
     </article>
 
-    <article class="app-card" data-domain="jeux" data-harmos="c2" data-keywords="moulin merelles mérelles jeu plateau stratégie alignement aligner trois jetons règle du jeu deux joueurs pose déplacement capture carrés emboîtés" style="animation-delay: 1290ms;">
+    <article class="app-card" data-domain="jeux" data-harmos="c2" data-keywords="moulin merelles mérelles jeu plateau stratégie alignement aligner trois jetons règle du jeu deux joueurs pose déplacement capture carrés emboîtés" style="animation-delay: 1320ms;">
       <div class="card-header">
         <h2 class="card-title">Le moulin</h2>
         <span class="header-cycle-badge">7H–8H</span>
@@ -1308,7 +1327,7 @@
       <a href="apps/moulin-7h8h.html" class="launch-btn jeux" aria-label="Lancer l'activité : Le moulin">Jouer <span aria-hidden="true">→</span></a>
     </article>
 
-    <article class="app-card" data-domain="jeux" data-harmos="c2" data-keywords="morpion tic tac toe croix ronds grille alignement stratégie règle du jeu deux joueurs papier crayon" style="animation-delay: 1320ms;">
+    <article class="app-card" data-domain="jeux" data-harmos="c2" data-keywords="morpion tic tac toe croix ronds grille alignement stratégie règle du jeu deux joueurs papier crayon" style="animation-delay: 1350ms;">
       <div class="card-header">
         <h2 class="card-title">Le morpion</h2>
         <span class="header-cycle-badge">7H–8H</span>
@@ -1321,7 +1340,7 @@
       <a href="apps/morpion-7h8h.html" class="launch-btn jeux" aria-label="Lancer l'activité : Le morpion">Jouer <span aria-hidden="true">→</span></a>
     </article>
 
-    <article class="app-card" data-domain="maths" data-harmos="c2" data-per="MSN 23" data-keywords="tables multiplication multiplier livrets fois produit répertoire multiplicatif calcul mental opérations facteur manquant" style="animation-delay: 1350ms;">
+    <article class="app-card" data-domain="maths" data-harmos="c2" data-per="MSN 23" data-keywords="tables multiplication multiplier livrets fois produit répertoire multiplicatif calcul mental opérations facteur manquant" style="animation-delay: 1380ms;">
       <div class="card-header">
         <h2 class="card-title">Les tables de multiplication</h2>
         <span class="header-cycle-badge">5H–6H</span>

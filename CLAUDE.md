@@ -68,7 +68,7 @@ Chaque carte du portail pointe vers un fichier réel de `apps/` — il n'y a plu
 
 ## Les activités du portail
 
-**`index.html` fait foi.** Cet inventaire en est le reflet et doit être régénéré à chaque ajout ou retrait de carte — ne jamais l'utiliser comme source à la place des cartes elles-mêmes. Dernier relevé : 25.09.2026, **48 activités**.
+**`index.html` fait foi.** Cet inventaire en est le reflet et doit être régénéré à chaque ajout ou retrait de carte — ne jamais l'utiliser comme source à la place des cartes elles-mêmes. Dernier relevé : 27.09.2026, **49 activités**.
 
 Le groupe d'années est celui qu'affiche le bandeau de la carte (`.header-cycle-badge`) ; `data-harmos` ne porte que le cycle (`c1` pour 1H–4H, `c2` pour 5H–8H). Une cellule PER vide signale une carte sans `data-per` — c'est volontaire, jamais un oubli à combler au jugé (voir « Hors charte PER — Jeux »).
 
@@ -163,6 +163,12 @@ Le groupe d'années est celui qu'affiche le bandeau de la carte (`.header-cycle-
 | Titre | Groupe | PER | Fichier |
 |-------|--------|-----|---------|
 | Vocabulaire allemand | 7H–8H | L2 21-38 | `vocabulaire-allemand-7h8h.html` |
+
+### Anglais (1)
+
+| Titre | Groupe | PER | Fichier |
+|-------|--------|-----|---------|
+| Vocabulaire anglais | 7H–8H | L3 21-38 | `vocabulaire-anglais-7h8h.html` |
 
 ### Géographie (1)
 
