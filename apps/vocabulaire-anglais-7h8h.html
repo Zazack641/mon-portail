@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Vocabulaire anglais (7H-8H)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-base.css">
+<style>
+  :root {
+    --app-accent:      #8C4A10;
+    --app-accent-dark: #6E3A0C;
+    --app-tint-bg:     #F7EAD9;
+    --app-tint-fg:     #6E3A0C;
+  }
+
+  /* ── Écrans ──────────────────────────────────────────────────────────────
+     Cette app ne suit pas le schéma standard « niveaux internes + question
+     unique » : la structure demandée est un menu à deux niveaux (7 unités,
+     chacune divisée en petits blocs de mots), puis une session bornée par
+     bloc (spec pédagogique, pas un choix de design, voir hiérarchie des
+     skills). Pas de .level-bar. 4 écrans : accueil (unités) → blocs d'une
+     unité → question (session d'un bloc) → résultat (puis retour direct à
+     l'accueil, jamais de relance automatique, voir le JS plus bas). */
+  .screen { display: none; width: 100%; flex-direction: column; align-items: center; gap: 24px; }
+  .screen.active { display: flex; }
+
+  .home-intro {
+    font-size: 18px;
+    line-height: 1.6;
+    text-align: center;
+    color: var(--app-text);
+    background: #fff;
+    border-radius: 20px;
+    padding: 20px 24px;
+    width: 100%;
+    box-shadow: 0 2px 8px rgba(20,32,46,0.08);
+  }
+
+  .unit-list { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+  .unit-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    text-align: left;
+    background: #fff;
+    border: 2px solid var(--app-border);
+    border-radius: 16px;
+    padding: 16px 20px;
+    min-height: 72px;
+    font-family: 'Source Sans 3', sans-serif;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+  .unit-card:hover           { border-color: var(--app-accent); }
+  .unit-card:focus-visible   { outline: 3px solid var(--app-accent); outline-offset: 3px; }
+  .unit-card-main  { display: flex; flex-direction: column; gap: 4px; }
+  .unit-card-num   { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 22px; color: var(--app-text); }
+  .unit-card-theme { font-size: 18px; color: #4A5A6C; }
+  .unit-status {
+    flex-shrink: 0;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 16px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .unit-status.status-new      { background: #EEF2F7;           color: #5A6B80; }
+  .unit-status.status-progress { background: var(--app-tint-bg); color: var(--app-tint-fg); }
+  .unit-status.status-done     { background: var(--app-correct-bg); color: var(--app-correct-fg); }
+
+  .back-to-units {
+    align-self: flex-start;
+    background: none;
+    border: none;
+    color: var(--app-text);
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    cursor: pointer;
+    min-height: 44px;
+    padding: 0 12px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+  .back-to-units:hover         { color: var(--app-accent); }
+  .back-to-units:focus-visible { outline: 3px solid var(--app-accent); outline-offset: 3px; }
+
+  .remaining-indicator {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--app-tint-fg);
+    background: var(--app-tint-bg);
+    border-radius: 999px;
+    padding: 8px 20px;
+    align-self: flex-start;
+  }
+
+  .question-english { display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; }
+  .listen-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--app-tint-bg);
+    color: var(--app-tint-fg);
+    border: none;
+    border-radius: 999px;
+    padding: 0 22px;
+    min-height: 56px;
+    min-width: 64px;
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+  .listen-btn:hover           { filter: brightness(0.95); }
+  .listen-btn:focus-visible   { outline: 3px solid var(--app-accent); outline-offset: 3px; }
+  .listen-btn:disabled        { opacity: 0.5; cursor: default; }
+
+  .choices { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+  .choice-btn {
+    width: 100%;
+    min-height: 64px;
+    padding: 14px 22px;
+    border-radius: 16px;
+    border: 2px solid var(--app-border);
+    background: #fff;
+    color: var(--app-text);
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    line-height: 1.3;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+  .choice-btn:hover:not(:disabled) { border-color: var(--app-accent); }
+  .choice-btn:focus-visible        { outline: 3px solid var(--app-accent); outline-offset: 3px; }
+  .choice-btn:disabled             { cursor: default; }
+  .choice-btn.choice-correct { background: var(--app-correct-bg); color: var(--app-correct-fg); border-color: var(--app-correct-fg); }
+  .choice-btn.choice-wrong   { background: var(--app-wrong-bg);   color: var(--app-wrong-fg);   border-color: var(--app-wrong-fg); }
+
+  .end-message { font-family: 'Baloo 2', sans-serif; font-size: clamp(22px, 4vw, 28px); font-weight: 800; text-align: center; color: var(--app-text); }
+  .end-sub     { font-size: 18px; text-align: center; color: #4A5A6C; }
+
+  .results-lists { display: flex; flex-direction: column; gap: 16px; width: 100%; }
+  .results-group {
+    background: #fff;
+    border-radius: 16px;
+    padding: 18px 22px;
+    box-shadow: 0 2px 8px rgba(20,32,46,0.08);
+  }
+  .results-group-title { font-family: 'Baloo 2', sans-serif; font-size: 19px; font-weight: 800; margin-bottom: 10px; }
+  .results-known   .results-group-title { color: var(--app-correct-fg); }
+  .results-unknown .results-group-title { color: var(--app-wrong-fg); }
+  .results-word-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .results-word-list li { font-size: 18px; color: var(--app-text); line-height: 1.4; }
+  .results-word-list .en-word { font-weight: 700; }
+  .results-empty { font-size: 16px; color: #8A97A8; font-style: italic; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .unit-card, .choice-btn, .listen-btn { transition: all 0.15s; }
+    .unit-card:active, .choice-btn:active, .listen-btn:active { transform: scale(0.98); }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header" role="banner">
+  <a href="../index.html" class="back-link"><span aria-hidden="true">←</span> Retour</a>
+  <h1>Vocabulaire anglais</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<main>
+
+  <!-- ── Écran d'accueil : menu des 7 unités ─────────────────────────────── -->
+  <div class="screen" id="screen-home">
+    <p class="home-intro">Choisis une unité, puis un petit bloc de mots. Tu entends ou tu lis un mot en anglais, puis tu choisis sa traduction française parmi 3 réponses.</p>
+    <div class="unit-list" id="unit-list"></div>
+  </div>
+
+  <!-- ── Écran des blocs d'une unité ──────────────────────────────────────── -->
+  <div class="screen" id="screen-blocks">
+    <button type="button" class="back-to-units" id="back-to-home-btn"><span aria-hidden="true">←</span> Unités</button>
+    <p class="home-intro" id="blocks-intro"></p>
+    <div class="unit-list" id="block-list"></div>
+  </div>
+
+  <!-- ── Écran de question (session d'un bloc) ────────────────────────────── -->
+  <div class="screen" id="screen-question">
+    <button type="button" class="back-to-units" id="back-to-blocks-btn"><span aria-hidden="true">←</span> Bloc</button>
+    <!-- Pas d'aria-live ici : mise à jour à chaque question, une annonce
+         systématique concurrencerait le point d'attention unique (la
+         question elle-même, focalisée juste après). -->
+    <p class="remaining-indicator" id="remaining-indicator"></p>
+
+    <div class="question-box" id="question-box">
+      <div class="question-english">
+        <span id="english-text" lang="en"></span>
+        <button type="button" class="listen-btn" id="listen-btn"><span aria-hidden="true">🔊</span> Écouter</button>
+      </div>
+    </div>
+
+    <div class="choices" id="choices"></div>
+
+    <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <div class="action-row">
+      <button class="new-btn visible-toggle" id="new-btn"><span aria-hidden="true">▶</span> <span id="new-btn-label">Suivant</span></button>
+    </div>
+  </div>
+
+  <!-- ── Écran de résultat d'un bloc ──────────────────────────────────────── -->
+  <!-- Jamais de relance automatique ici : un seul bouton, qui ramène au menu
+       principal. Recommencer est un choix délibéré de l'élève, pas un
+       enchaînement automatique (évite le clic « pilote automatique »). -->
+  <div class="screen" id="screen-results">
+    <p class="end-message" id="results-title">Bloc terminé !</p>
+    <p class="end-sub" id="results-sub"></p>
+    <div class="results-lists">
+      <div class="results-group results-known">
+        <h2 class="results-group-title">Mots que tu connais</h2>
+        <ul class="results-word-list" id="known-list"></ul>
+      </div>
+      <div class="results-group results-unknown">
+        <h2 class="results-group-title">Mots à revoir</h2>
+        <ul class="results-word-list" id="unknown-list"></ul>
+      </div>
+    </div>
+    <div class="action-row">
+      <button class="new-btn visible" id="home-btn"><span aria-hidden="true">▶</span> Retour au menu</button>
+    </div>
+  </div>
+
+</main>
+
+<script src="appUtils.js"></script>
+<script>
+  // ── Type de tâche ───────────────────────────────────────────────────────
+  // 'drill' : une erreur ne se corrige pas sur place : elle ferme la question
+  // et on passe au mot suivant de la session, pas de retry immédiat sur la
+  // même instance.
+  const TYPE_TACHE = 'drill';
+
+  function W(cat, en, fr) { return { cat, en, fr }; }
+
+  const UNITS = [
+    { id: 1, words: [
+      // School subjects
+      W("School subjects", "English", "anglais"),
+      W("School subjects", "French", "français"),
+      W("School subjects", "Maths", "maths"),
+      W("School subjects", "Music", "musique"),
+      W("School subjects", "PE", "éducation physique"),
+      // The time
+      W("The time", "What's the time?", "Quelle heure est-il ?"),
+      W("The time", "(one) o'clock", "(une) heure"),
+      W("The time", "half past (one)", "(une) heure et demie"),
+      // Daily routines
+      W("Daily routines", "get up", "se lever"),
+      W("Daily routines", "go to school", "aller à l'école"),
+      W("Daily routines", "go to bed", "aller se coucher"),
+      // In the classroom
+      W("In the classroom", "backpack", "sac à dos"),
+      W("In the classroom", "classroom", "(salle de) classe"),
+      W("In the classroom", "teacher", "instituteur (trice), enseignant(e)"),
+      W("In the classroom", "whiteboard", "tableau blanc"),
+      // Words and phrases
+      W("Words and phrases", "arrive", "arriver"),
+      W("Words and phrases", "break (n)", "pause"),
+      W("Words and phrases", "subject", "matière"),
+      W("Words and phrases", "timetable", "horaire de classe"),
+      W("Words and phrases", "write", "écrire"),
+      W("Words and phrases", "I've got (English) on (Mondays).", "J'ai (l'anglais) le (lundi).")
+    ]},
+    { id: 2, words: [
+      // Sports
+      W("Sports", "do judo", "faire du judo"),
+      W("Sports", "go skiing", "faire du ski"),
+      W("Sports", "go snowboarding", "faire du snowboard"),
+      W("Sports", "play basketball", "jouer au basketball"),
+      W("Sports", "play ice hockey", "faire du hockey sur glace"),
+      W("Sports", "play volleyball", "jouer au volleyball"),
+      // The body
+      W("The body", "back", "dos"),
+      W("The body", "elbow", "coude"),
+      W("The body", "knee", "genou"),
+      W("The body", "neck", "cou"),
+      W("The body", "wrist", "poignet"),
+      // Words and phrases
+      W("Words and phrases", "every day", "tous les jours"),
+      W("Words and phrases", "fit", "en forme"),
+      W("Words and phrases", "go swimming", "faire de la natation"),
+      W("Words and phrases", "lesson", "cours"),
+      W("Words and phrases", "match", "match"),
+      W("Words and phrases", "play football", "jouer au football"),
+      W("Words and phrases", "play tennis", "jouer au tennis"),
+      W("Words and phrases", "sport", "sport"),
+      W("Words and phrases", "team", "équipe"),
+      W("Words and phrases", "I quite like (football).", "J'aime bien (le football).")
+    ]},
+    { id: 3, words: [
+      // Skills verbs
+      W("Skills verbs", "cook", "cuisiner"),
+      W("Skills verbs", "draw", "dessiner"),
+      W("Skills verbs", "ride a bike", "faire du vélo"),
+      W("Skills verbs", "sing", "chanter"),
+      W("Skills verbs", "swim", "nager"),
+      // Countries
+      W("Countries", "Canada", "Canada"),
+      W("Countries", "Switzerland", "Suisse"),
+      W("Countries", "the United States", "les États-Unis"),
+      // Languages
+      W("Languages", "English", "anglais"),
+      W("Languages", "French", "français"),
+      W("Languages", "(Swiss) German", "(suisse) allemand"),
+      // Words and phrases
+      W("Words and phrases", "aunt", "tante"),
+      W("Words and phrases", "cousin", "cousin(e)"),
+      W("Words and phrases", "grandparents", "grands-parents"),
+      W("Words and phrases", "language", "langue"),
+      W("Words and phrases", "parents", "parents"),
+      W("Words and phrases", "speak", "parler"),
+      W("Words and phrases", "uncle", "oncle"),
+      W("Words and phrases", "Here it is.", "Le/La voilà."),
+      W("Words and phrases", "How about you?", "Et toi/vous ?"),
+      // Musical instruments
+      W("Musical instruments", "drum", "tambour"),
+      W("Musical instruments", "flute", "flûte"),
+      W("Musical instruments", "trumpet", "trompette"),
+      W("Musical instruments", "violin", "violon")
+    ]},
+    { id: 4, words: [
+      // Free-time activities
+      W("Free-time activities", "go shopping", "faire du shopping"),
+      W("Free-time activities", "listen to music", "écouter de la musique"),
+      W("Free-time activities", "read a book", "lire un livre"),
+      W("Free-time activities", "use a computer", "utiliser un ordinateur"),
+      W("Free-time activities", "watch TV", "regarder la télé"),
+      // Shops
+      W("Shops", "bookshop", "librairie"),
+      W("Shops", "café", "café"),
+      W("Shops", "supermarket", "supermarché"),
+      W("Shops", "shoe shop", "magasin de chaussures"),
+      // Words and phrases
+      W("Words and phrases", "come", "venir"),
+      W("Words and phrases", "fantastic", "fantastique"),
+      W("Words and phrases", "go out", "sortir"),
+      W("Words and phrases", "guitar", "guitare"),
+      W("Words and phrases", "meet", "rencontrer"),
+      W("Words and phrases", "wait", "attendre"),
+      W("Words and phrases", "want", "vouloir"),
+      W("Words and phrases", "I'm busy.", "Je suis occupé(e)."),
+      W("Words and phrases", "I'm sorry.", "Je suis désolé(e)."),
+      W("Words and phrases", "Right.", "D'accord."),
+      W("Words and phrases", "Sure.", "Oui, bien sûr."),
+      W("Words and phrases", "Because (I'm hungry).", "Parce que (j'ai faim).")
+    ]},
+    { id: 5, words: [
+      // Personal objects
+      W("Personal objects", "keys", "clés"),
+      W("Personal objects", "mobile phone", "téléphone portable"),
+      W("Personal objects", "money", "argent"),
+      W("Personal objects", "tablet", "tablette"),
+      W("Personal objects", "video game", "jeu vidéo"),
+      // Clothes
+      W("Clothes", "dress", "robe"),
+      W("Clothes", "jacket", "veste"),
+      W("Clothes", "jeans", "jeans"),
+      W("Clothes", "shirt", "chemise"),
+      W("Clothes", "shoes", "chaussures"),
+      W("Clothes", "sweater", "pullover"),
+      W("Clothes", "T-shirt", "T-shirt"),
+      // Numbers 21–100
+      W("Numbers 21–100", "twenty-one", "vingt-et-un"),
+      W("Numbers 21–100", "thirty", "trente"),
+      W("Numbers 21–100", "fifty", "cinquante"),
+      W("Numbers 21–100", "seventy", "septante"),
+      W("Numbers 21–100", "one hundred", "cent"),
+      // Words and phrases
+      W("Words and phrases", "buy", "acheter"),
+      W("Words and phrases", "clothes", "habits"),
+      W("Words and phrases", "dollars", "dollars"),
+      W("Words and phrases", "euros", "euros"),
+      W("Words and phrases", "(Swiss) francs", "francs (Suisse)"),
+      W("Words and phrases", "market", "marché"),
+      W("Words and phrases", "some", "de, de la, des, du"),
+      W("Words and phrases", "these", "ceux-ci"),
+      W("Words and phrases", "Excuse me, …", "Excuse-moi / Excusez-moi, …"),
+      W("Words and phrases", "How much is it?", "C'est combien ?"),
+      W("Words and phrases", "I'd like (an apple).", "J'aimerais (une pomme)."),
+      W("Words and phrases", "That's all.", "C'est tout."),
+      // Everyday arithmetic
+      W("Everyday arithmetic", "equals", "égale"),
+      W("Everyday arithmetic", "minus", "moins"),
+      W("Everyday arithmetic", "plus", "plus"),
+      W("Everyday arithmetic", "times", "fois")
+    ]},
+    { id: 6, words: [
+      // Places in town
+      W("Places in town", "cinema", "cinéma"),
+      W("Places in town", "park", "parc"),
+      W("Places in town", "school", "école"),
+      W("Places in town", "swimming pool", "piscine"),
+      // Months of the year
+      W("Months of the year", "January", "janvier"),
+      W("Months of the year", "March", "mars"),
+      W("Months of the year", "May", "mai"),
+      W("Months of the year", "July", "juillet"),
+      W("Months of the year", "September", "septembre"),
+      W("Months of the year", "December", "décembre"),
+      // Seasons
+      W("Seasons", "summer", "été"),
+      W("Seasons", "winter", "hiver"),
+      // Ordinal numbers
+      W("Ordinal numbers", "first", "premier"),
+      W("Ordinal numbers", "second", "deuxième"),
+      W("Ordinal numbers", "third", "troisième"),
+      W("Ordinal numbers", "fourth", "quatrième"),
+      W("Ordinal numbers", "fifth", "cinquième"),
+      W("Ordinal numbers", "sixth", "sixième"),
+      W("Ordinal numbers", "seventh", "septième"),
+      W("Ordinal numbers", "eighth", "huitième"),
+      W("Ordinal numbers", "ninth", "neuvième"),
+      W("Ordinal numbers", "tenth", "dixième"),
+      W("Ordinal numbers", "eleventh", "onzième"),
+      W("Ordinal numbers", "twelfth", "douzième"),
+      W("Ordinal numbers", "twentieth", "vingtième"),
+      W("Ordinal numbers", "twenty-first", "vingt-et-unième"),
+      W("Ordinal numbers", "thirtieth", "trentième"),
+      // Adjectives
+      W("Adjectives", "beautiful", "beau"),
+      W("Adjectives", "cheap", "bon marché"),
+      W("Adjectives", "exciting", "passionnant"),
+      W("Adjectives", "expensive", "cher (coûteux)"),
+      W("Adjectives", "fast", "rapide"),
+      W("Adjectives", "funny", "drôle"),
+      // Words and phrases
+      W("Words and phrases", "birthday", "anniversaire"),
+      W("Words and phrases", "celebrate", "fêter, célébrer"),
+      W("Words and phrases", "Christmas", "Noël"),
+      W("Words and phrases", "give", "donner"),
+      W("Words and phrases", "have a party", "organiser une fête"),
+      W("Words and phrases", "present", "cadeau"),
+      W("Words and phrases", "What's the date?", "Quelle est la date ?"),
+      W("Words and phrases", "When's your birthday?", "C'est quand, ton/votre anniversaire ?")
+    ]},
+    { id: 7, words: [
+      // Prepositions
+      W("Prepositions", "behind", "derrière"),
+      W("Prepositions", "between", "entre"),
+      W("Prepositions", "in", "dans"),
+      W("Prepositions", "on", "sur"),
+      // Holiday words
+      W("Holiday words", "camera", "appareil photo"),
+      W("Holiday words", "sleeping bag", "sac de couchage"),
+      W("Holiday words", "swimsuit", "maillot de bain"),
+      W("Holiday words", "tent", "tente"),
+      W("Holiday words", "towel", "linge de bain"),
+      // On holiday
+      W("On holiday", "beach", "plage"),
+      W("On holiday", "boat", "bateau"),
+      W("On holiday", "city", "ville"),
+      W("On holiday", "hotel", "hôtel"),
+      W("On holiday", "mountains", "montagnes"),
+      W("On holiday", "sea", "mer"),
+      // Words and phrases
+      W("Words and phrases", "go on holiday", "aller en vacances"),
+      W("Words and phrases", "plan (n)", "plan"),
+      W("Words and phrases", "stay", "rester, loger"),
+      W("Words and phrases", "take", "prendre"),
+      W("Words and phrases", "tomorrow", "demain"),
+      W("Words and phrases", "travel", "voyager"),
+      W("Words and phrases", "Are you (all) ready?", "Êtes-vous (tous) prêts ?"),
+      W("Words and phrases", "Don't forget (your toothbrush)!", "N'oublie / N'oubliez pas (ta/votre brosse à dents) !"),
+      W("Words and phrases", "It's time to (go).", "C'est l'heure de (partir)."),
+      // The Earth and the sun
+      W("The Earth and the sun", "the Earth", "la Terre"),
+      W("The Earth and the sun", "equator", "équateur"),
+      W("The Earth and the sun", "planet", "planète"),
+      W("The Earth and the sun", "rotate", "tourner (sur un axe)"),
+      W("The Earth and the sun", "the sun", "le soleil")
+    ]}
+  ];
+
+  // ── Persistance (localStorage) ─────────────────────────────────────────
+  const STORAGE_KEY = 'mon-portail-vocab-anglais-7h8h-v1';
+
+  function loadProgress() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) { return {}; }
+  }
+  function saveProgress() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); } catch (e) { /* stockage indisponible, session non persistée */ }
+  }
+  // progress[unitId] = liste des indices de mots « connus » à ce jour, c'est-
+  // à-dire réussis à leur dernier passage. Reflète l'état ACTUEL, pas un
+  // historique : un mot réussi puis raté plus tard ressort de la liste.
+  function isKnown(unitId, wordIdx) { return (progress[unitId] || []).includes(wordIdx); }
+  function setKnown(unitId, wordIdx, known) {
+    const set = new Set(progress[unitId] || []);
+    if (known) set.add(wordIdx); else set.delete(wordIdx);
+    progress[unitId] = Array.from(set);
+    saveProgress();
+  }
+
+  let progress = loadProgress();
+
+  // Découpe une unité en petits blocs de sens plutôt qu'une seule grosse
+  // session : répartition égale (pas de petit reliquat de 1-2 mots), en
+  // conservant l'ordre du manuel : les mots qui se suivent dans la même
+  // unité appartiennent déjà au même sous-thème de la leçon.
+  const BLOCK_SIZE = 6;
+  function chunkEvenly(arr, maxSize) {
+    const numBlocks = Math.max(1, Math.ceil(arr.length / maxSize));
+    const base = Math.floor(arr.length / numBlocks);
+    const remainder = arr.length % numBlocks;
+    const blocks = [];
+    let start = 0;
+    for (let b = 0; b < numBlocks; b++) {
+      const size = base + (b < remainder ? 1 : 0);
+      blocks.push(arr.slice(start, start + size));
+      start += size;
+    }
+    return blocks;
+  }
+  function getBlocks(unit) {
+    return chunkEvenly(unit.words.map((_, i) => i), BLOCK_SIZE);
+  }
+
+  // Rubriques du manuel (« School subjects », « The time »…) couvertes par une
+  // liste d'indices, dans l'ordre du manuel et sans doublon : sert de repère
+  // thématique sur les cartes d'unité et de bloc.
+  function unitCategories(unit, indices) {
+    return [...new Set(indices.map(i => unit.words[i].cat))];
+  }
+
+  // ── Références DOM ───────────────────────────────────────────────────────
+  const screenHome      = document.getElementById('screen-home');
+  const screenBlocks    = document.getElementById('screen-blocks');
+  const screenQuestion  = document.getElementById('screen-question');
+  const screenResults   = document.getElementById('screen-results');
+  const unitListEl      = document.getElementById('unit-list');
+  const blocksIntroEl   = document.getElementById('blocks-intro');
+  const blockListEl     = document.getElementById('block-list');
+  const remainingEl     = document.getElementById('remaining-indicator');
+  const questionBox     = document.getElementById('question-box');
+  const englishTextEl   = document.getElementById('english-text');
+  const listenBtn       = document.getElementById('listen-btn');
+  const choicesEl       = document.getElementById('choices');
+  const feedbackEl      = document.getElementById('feedback');
+  const newBtn          = document.getElementById('new-btn');
+  const newBtnLabel     = document.getElementById('new-btn-label');
+  const homeBtn         = document.getElementById('home-btn');
+  const backToHomeBtn   = document.getElementById('back-to-home-btn');
+  const backToBlocksBtn = document.getElementById('back-to-blocks-btn');
+  const resultsTitleEl  = document.getElementById('results-title');
+  const resultsSubEl    = document.getElementById('results-sub');
+  const knownListEl     = document.getElementById('known-list');
+  const unknownListEl   = document.getElementById('unknown-list');
+
+  // ── État de la session en cours ─────────────────────────────────────────
+  // Une session = UN passage dans un bloc, jamais relancée automatiquement.
+  // À la fin, on affiche le résultat (mots connus / mots à revoir) et on
+  // revient au menu : recommencer est un choix délibéré de l'élève, pas un
+  // enchaînement automatique (évite le pilotage automatique).
+  let currentUnit = null;
+  let currentBlock = [];        // indices des mots du bloc en cours
+  let sessionQueue = [];        // ordre de passage restant dans la session
+  let sessionTotal = 0;         // nb de mots du bloc (fixe pour la session)
+  let sessionAnsweredCount = 0;
+  let sessionResults = [];      // [{ idx, correct }] dans l'ordre de passage
+  let currentWordIdx = null;
+
+  function showScreen(name) {
+    [screenHome, screenBlocks, screenQuestion, screenResults].forEach(s => s.classList.remove('active'));
+    ({ home: screenHome, blocks: screenBlocks, question: screenQuestion, results: screenResults })[name].classList.add('active');
+  }
+
+  // ── Écran d'accueil ──────────────────────────────────────────────────────
+  function renderHome() {
+    unitListEl.innerHTML = '';
+    UNITS.forEach(unit => {
+      const total = unit.words.length;
+      const known = unit.words.filter((_, i) => isKnown(unit.id, i)).length;
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'unit-card';
+
+      const main = document.createElement('span');
+      main.className = 'unit-card-main';
+      const num = document.createElement('span');
+      num.className = 'unit-card-num';
+      num.textContent = 'Unit ' + unit.id;
+      const theme = document.createElement('span');
+      theme.className = 'unit-card-theme';
+      theme.lang = 'en';
+      theme.textContent = unitCategories(unit, unit.words.map((_, i) => i)).join(' · ');
+      main.append(num, theme);
+
+      const status = document.createElement('span');
+      if (known === 0) {
+        status.className = 'unit-status status-new';
+        status.textContent = 'Pas commencée';
+      } else if (known === total) {
+        status.className = 'unit-status status-done';
+        status.textContent = 'Terminée ✓';
+      } else {
+        status.className = 'unit-status status-progress';
+        status.textContent = known + ' / ' + total + ' connus';
+      }
+
+      btn.append(main, status);
+      btn.addEventListener('click', () => renderBlocks(unit));
+      unitListEl.appendChild(btn);
+    });
+    showScreen('home');
+  }
+
+  // ── Écran des blocs d'une unité ──────────────────────────────────────────
+  function renderBlocks(unit) {
+    currentUnit = unit;
+    blocksIntroEl.textContent = 'Unit ' + unit.id + ', choisis un bloc de mots à réviser.';
+    blockListEl.innerHTML = '';
+    getBlocks(unit).forEach((block, i) => {
+      const total = block.length;
+      const known = block.filter(idx => isKnown(unit.id, idx)).length;
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'unit-card';
+
+      const main = document.createElement('span');
+      main.className = 'unit-card-main';
+      const num = document.createElement('span');
+      num.className = 'unit-card-num';
+      num.textContent = 'Bloc ' + (i + 1);
+      const theme = document.createElement('span');
+      theme.className = 'unit-card-theme';
+      theme.textContent = total + ' mots · ';
+      const cats = document.createElement('span');
+      cats.lang = 'en';
+      cats.textContent = unitCategories(unit, block).join(', ');
+      theme.appendChild(cats);
+      main.append(num, theme);
+
+      const status = document.createElement('span');
+      if (known === 0) {
+        status.className = 'unit-status status-new';
+        status.textContent = 'Pas commencé';
+      } else if (known === total) {
+        status.className = 'unit-status status-done';
+        status.textContent = 'Tous connus ✓';
+      } else {
+        status.className = 'unit-status status-progress';
+        status.textContent = known + ' / ' + total + ' connus';
+      }
+
+      btn.append(main, status);
+      btn.addEventListener('click', () => startBlock(unit, block));
+      blockListEl.appendChild(btn);
+    });
+    showScreen('blocks');
+  }
+
+  // ── Démarrage d'une session (un bloc) ────────────────────────────────────
+  function startBlock(unit, block) {
+    currentUnit = unit;
+    currentBlock = block;
+    sessionQueue = shuffle(block);
+    sessionTotal = block.length;
+    sessionAnsweredCount = 0;
+    sessionResults = [];
+    showScreen('question');
+    nextQuestion();
+  }
+
+  // ── Question suivante ────────────────────────────────────────────────────
+  function nextQuestion() {
+    resetFeedback();
+    if (sessionQueue.length === 0) { renderResults(); return; }
+    currentWordIdx = sessionQueue.shift();
+    renderQuestion();
+  }
+
+  // Combien de questions restent à faire dans CETTE session, n'a rien à voir
+  // avec la maîtrise, juste un compte à rebours simple pour que l'élève
+  // sache où il en est dans la série de questions.
+  function updateRemaining() {
+    const remaining = sessionTotal - sessionAnsweredCount;
+    remainingEl.textContent = remaining <= 1
+      ? 'Encore ' + remaining + ' mot à réviser'
+      : 'Encore ' + remaining + ' mots à réviser';
+  }
+
+  // Un distracteur « proche » (même unité, même univers thématique) et un
+  // distracteur « hors sujet » (pioché dans une autre unité) : mélanger deux
+  // distracteurs de la même unité laissait deviner la réponse par élimination
+  // de forme plutôt que par connaissance du mot.
+  function pickDistractors(unit, correctIdx) {
+    const correctFr = unit.words[correctIdx].fr;
+
+    const closeCandidates = unit.words
+      .map((_, i) => i)
+      .filter(i => i !== correctIdx && unit.words[i].fr !== correctFr);
+    const closeIdx = pick(closeCandidates, 1)[0];
+    const closeFr = unit.words[closeIdx].fr;
+
+    const otherUnits = shuffle(UNITS.filter(u => u.id !== unit.id));
+    let offTopicUnit = null;
+    let offTopicIdx = null;
+    for (const candidateUnit of otherUnits) {
+      const candidates = candidateUnit.words
+        .map((_, i) => i)
+        .filter(i => candidateUnit.words[i].fr !== correctFr && candidateUnit.words[i].fr !== closeFr);
+      if (candidates.length > 0) {
+        offTopicUnit = candidateUnit;
+        offTopicIdx = pick(candidates, 1)[0];
+        break;
+      }
+    }
+
+    return {
+      close:    { unit, idx: closeIdx },
+      offTopic: { unit: offTopicUnit, idx: offTopicIdx }
+    };
+  }
+
+  function renderQuestion() {
+    const word = currentUnit.words[currentWordIdx];
+    englishTextEl.textContent = word.en;
+    listenBtn.disabled = !('speechSynthesis' in window);
+
+    updateRemaining();
+
+    const distractors = pickDistractors(currentUnit, currentWordIdx);
+    const options = shuffle([
+      { unit: currentUnit,             idx: currentWordIdx,        correct: true },
+      { unit: distractors.close.unit,    idx: distractors.close.idx,    correct: false },
+      { unit: distractors.offTopic.unit, idx: distractors.offTopic.idx, correct: false }
+    ]);
+
+    choicesEl.innerHTML = '';
+    options.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'choice-btn';
+      btn.dataset.correct = String(opt.correct);
+      btn.textContent = opt.unit.words[opt.idx].fr;
+      btn.addEventListener('click', () => selectAnswer(btn));
+      choicesEl.appendChild(btn);
+    });
+
+    // Focus requis après réécriture du DOM (skills/accessibilite/SKILL.md §6) :
+    // la boîte de question porte la nouvelle info, on l'annonce au lecteur d'écran.
+    questionBox.setAttribute('tabindex', '-1');
+    questionBox.focus();
+  }
+
+  function speakEnglish(text) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = 'en-GB';
+    utter.rate = 0.95;
+    window.speechSynthesis.speak(utter);
+  }
+  listenBtn.addEventListener('click', () => speakEnglish(currentUnit.words[currentWordIdx].en));
+
+  function selectAnswer(chosenBtn) {
+    const buttons = Array.from(choicesEl.querySelectorAll('.choice-btn'));
+    buttons.forEach(b => { b.disabled = true; });
+
+    const correct = chosenBtn.dataset.correct === 'true';
+    const correctBtn = buttons.find(b => b.dataset.correct === 'true');
+    const correctIcon = document.createElement('span');
+    correctIcon.setAttribute('aria-hidden', 'true');
+    correctIcon.textContent = '✓ ';
+    correctBtn.prepend(correctIcon);
+    correctBtn.classList.add('choice-correct');
+    correctBtn.setAttribute('aria-label', correctBtn.textContent + ', bonne réponse');
+
+    if (!correct) {
+      const wrongIcon = document.createElement('span');
+      wrongIcon.setAttribute('aria-hidden', 'true');
+      wrongIcon.textContent = '✗ ';
+      chosenBtn.prepend(wrongIcon);
+      chosenBtn.classList.add('choice-wrong');
+      chosenBtn.setAttribute('aria-label', chosenBtn.textContent + ', pas la bonne réponse');
+    }
+
+    const englishWord = currentUnit.words[currentWordIdx].en;
+    const correctFr  = currentUnit.words[currentWordIdx].fr;
+
+    setKnown(currentUnit.id, currentWordIdx, correct);
+    sessionResults.push({ idx: currentWordIdx, correct });
+    sessionAnsweredCount++;
+
+    const msg = correct
+      ? 'Bravo ! « ' + englishWord + ' » veut dire « ' + correctFr + ' ».'
+      : 'Pas tout à fait. « ' + englishWord + ' » veut dire « ' + correctFr + ' ». Appuie sur « Suivant » pour continuer.';
+
+    // Le libellé du bouton change pour la dernière question de la session :
+    // un « Voir le score » prévient l'élève qu'on ne va pas juste enchaîner
+    // sur une nouvelle question, sans surprise ni clic automatique.
+    newBtnLabel.textContent = sessionQueue.length === 0 ? 'Voir le score' : 'Suivant';
+
+    showFeedback(correct, msg);
+    updateRemaining();
+  }
+
+  function showFeedback(correct, msg) {
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.textContent = msg;
+    if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+    newBtn.classList.add('visible');
+    newBtn.focus();
+  }
+
+  function resetFeedback() {
+    feedbackEl.className = 'feedback';
+    feedbackEl.textContent = '';
+    newBtn.classList.remove('visible');
+  }
+
+  newBtn.addEventListener('click', nextQuestion);
+
+  // ── Écran de résultat (fin de session, jamais de relance automatique) ────
+  function buildResultItem(idx) {
+    const word = currentUnit.words[idx];
+    const li = document.createElement('li');
+    const en = document.createElement('span');
+    en.className = 'en-word';
+    en.lang = 'en';
+    en.textContent = word.en;
+    li.append(en, document.createTextNode(' : ' + word.fr));
+    return li;
+  }
+
+  function renderResultList(listEl, entries, emptyMsg) {
+    listEl.innerHTML = '';
+    if (entries.length === 0) {
+      const li = document.createElement('li');
+      li.className = 'results-empty';
+      li.textContent = emptyMsg;
+      listEl.appendChild(li);
+      return;
+    }
+    entries.forEach(r => listEl.appendChild(buildResultItem(r.idx)));
+  }
+
+  function renderResults() {
+    const known = sessionResults.filter(r => r.correct);
+    const unknown = sessionResults.filter(r => !r.correct);
+
+    resultsTitleEl.textContent = 'Bloc terminé !';
+    resultsSubEl.textContent = known.length + ' sur ' + sessionTotal + ' mots connus.';
+    renderResultList(knownListEl, known, 'Aucun pour l’instant, ce n’est pas grave, ça viendra.');
+    renderResultList(unknownListEl, unknown, 'Aucun, bravo !');
+
+    showScreen('results');
+    homeBtn.focus();
+  }
+
+  homeBtn.addEventListener('click', renderHome);
+  backToHomeBtn.addEventListener('click', renderHome);
+  backToBlocksBtn.addEventListener('click', () => renderBlocks(currentUnit));
+
+  // ── Démarrage ────────────────────────────────────────────────────────────
+  renderHome();
+</script>
+<script src="feedbackUtils.js"></script>
+</body>
+</html>
