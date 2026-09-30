@@ -60,6 +60,22 @@
     color: var(--app-text);
   }
   .answer-slot.empty { color: #64748B; }
+  /* Après une erreur : la bonne réponse prend la place de la case, bien en vue. */
+  .answer-slot.revealed {
+    background: var(--app-correct-bg);
+    color: var(--app-correct-fg);
+    border-color: var(--app-correct-fg);
+    border-width: 5px;
+  }
+  .your-answer {
+    margin-top: 8px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--app-wrong-fg);
+    text-align: center;
+  }
+  .your-answer s { font-weight: 700; }
 
   /* ── Pavé numérique ─────────────────────────────────────────────────────── */
   .keypad {
@@ -451,8 +467,24 @@
         : `Pas tout à fait. ${full}.`;
       const suite = state.item.retry ? '' : ' Ce calcul reviendra bientôt.';
       showFeedback(false, `${intro} ${strategy(a, b)}${suite}`);
+      revealAnswer(expected);
       renderArray(a, b);
     }
+  }
+
+  // Met la bonne réponse en évidence dans la case, et rappelle celle de l'élève.
+  function revealAnswer(expected) {
+    const slot = document.getElementById('answer-slot');
+    if (!slot) return;
+    const mine = state.answer;
+    slot.textContent = expected;
+    slot.classList.remove('empty');
+    slot.classList.add('revealed');
+    slot.setAttribute('aria-label', `Bonne réponse : ${expected}`);
+    const note = document.createElement('div');
+    note.className = 'your-answer';
+    note.innerHTML = `Bonne réponse : <strong>${expected}</strong> · Ta réponse : <s>${mine}</s>`;
+    questionBox.appendChild(note);
   }
 
   // ── Bilan de fin de série ───────────────────────────────────────────────────
