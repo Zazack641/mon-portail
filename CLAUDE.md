@@ -68,11 +68,11 @@ Chaque carte du portail pointe vers un fichier réel de `apps/` — il n'y a plu
 
 ## Les activités du portail
 
-**`index.html` fait foi.** Cet inventaire en est le reflet et doit être régénéré à chaque ajout ou retrait de carte — ne jamais l'utiliser comme source à la place des cartes elles-mêmes. Dernier relevé : 27.09.2026, **49 activités**.
+**`index.html` fait foi.** Cet inventaire en est le reflet et doit être régénéré à chaque ajout ou retrait de carte — ne jamais l'utiliser comme source à la place des cartes elles-mêmes. Dernier relevé : 30.09.2026, **50 activités**.
 
 Le groupe d'années est celui qu'affiche le bandeau de la carte (`.header-cycle-badge`) ; `data-harmos` ne porte que le cycle (`c1` pour 1H–4H, `c2` pour 5H–8H). Une cellule PER vide signale une carte sans `data-per` — c'est volontaire, jamais un oubli à combler au jugé (voir « Hors charte PER — Jeux »).
 
-### Mathématiques (35)
+### Mathématiques (36)
 
 **Nombres**
 
@@ -104,6 +104,7 @@ Le groupe d'années est celui qu'affiche le bandeau de la carte (`.header-cycle-
 | Additions en colonne | 5H–6H | MSN 23 | `vertical-calculation.html` |
 | Soustraction en colonne | 5H–6H | MSN 23 | `soustraction-colonne.html` |
 | Les tables de multiplication | 5H–6H | MSN 23 | `tables-multiplication-5h6h.html` |
+| Les tables de 10 à 12 | 7H–8H | MSN 23 | `tables-multiplication-10-12-7h8h.html` |
 
 **Grandeurs et mesures**
 
