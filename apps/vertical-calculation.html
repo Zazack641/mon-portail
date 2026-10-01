@@ -161,9 +161,10 @@
 
 <div class="level-bar" role="group" aria-label="Choisir le niveau">
   <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1 · 2 chiffres</button>
-  <button class="level-btn" data-level="2" aria-pressed="false">Niveau 2 · 3 chiffres</button>
-  <button class="level-btn" data-level="3" aria-pressed="false">Niveau 3 · avec retenue</button>
-  <button class="level-btn" data-level="4" aria-pressed="false">Niveau 4 · 3 nombres</button>
+  <button class="level-btn" data-level="2" aria-pressed="false">Niveau 2 · 2 chiffres avec retenue</button>
+  <button class="level-btn" data-level="3" aria-pressed="false">Niveau 3 · 3 chiffres</button>
+  <button class="level-btn" data-level="4" aria-pressed="false">Niveau 4 · 3 chiffres avec retenue</button>
+  <button class="level-btn" data-level="5" aria-pressed="false">Niveau 5 · 3 nombres</button>
 </div>
 
 <main class="app-main">
@@ -231,6 +232,18 @@
     }
 
     if (lvl === 2) {
+      // 2 numbers, 2 digits, carry from units to tens, sum < 100
+      do {
+        a = ri(11, 89); b = ri(11, 89);
+      } while (
+        (a % 10) + (b % 10) < 10 ||
+        a + b >= 100
+      );
+      cols = 2;
+      return [a, b];
+    }
+
+    if (lvl === 3) {
       // 2 numbers, 3 digits, no carry in any column
       do {
         a = ri(111, 899); b = ri(111, 899);
@@ -243,7 +256,7 @@
       return [a, b];
     }
 
-    if (lvl === 3) {
+    if (lvl === 4) {
       // 2 numbers, 2–3 digits, at least one carry, sum < 1000
       let hasCarry;
       do {
@@ -256,7 +269,7 @@
       return [a, b];
     }
 
-    // lvl 4: 3 numbers, 3 digits, at least 2 carries, sum < 1000
+    // lvl 5: 3 numbers, 3 digits, at least 2 carries, sum < 1000
     let carries;
     do {
       a = ri(100, 399); b = ri(100, 399); c = ri(100, 399);
