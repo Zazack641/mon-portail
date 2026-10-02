@@ -200,20 +200,16 @@
   }
 
   function newExercise() {
-    let a, b;
-    const max = currentLevel === 1 ? 9 : 99;
-    const min = currentLevel === 1 ? 0 : 10;
-    do {
-      a = randInt(min, max);
-      b = randInt(min, max);
-    } while (a === b);
+    // Niveau 2 : ~3/4 de nombres à 2 chiffres des deux côtés, ~1/4 d'un nombre à 2 chiffres contre un à 1 chiffre.
+    const maxDigits = currentLevel === 1 ? 1 : 2;
+    const [a, b] = randPairMixedDigits(maxDigits);
 
     const correct = a < b ? '<' : '>';
     state = { a, b, correct, answered: false };
 
     renderNumber(numLeft, a);
     renderNumber(numRight, b);
-    renderLegend(String(max).length);
+    renderLegend(maxDigits);
 
     symbolZone.innerHTML = '';
     ['<', '>'].forEach((sym, i) => {
@@ -237,6 +233,12 @@
       return correct
         ? `Bravo ! ${a} ${sym} ${b}, c'est juste.`
         : `Pas tout à fait. Il fallait « ${sym} » car ${a} ${label} ${b}. Appuie sur « Nouvel exercice » pour continuer.`;
+    }
+    if (String(a).length !== String(b).length) {
+      const [big, small] = a > b ? [a, b] : [b, a];
+      return correct
+        ? `Bravo ! ${a} ${sym} ${b}. ${big} a 2 chiffres et ${small} n'en a qu'un : ${big} est plus grand que ${small}.`
+        : `Pas tout à fait. ${big} a 2 chiffres et ${small} n'en a qu'un, donc ${big} est plus grand que ${small} : on a ${a} ${sym} ${b}. Appuie sur « Nouvel exercice » pour continuer.`;
     }
     const tensA = Math.floor(a / 10), unitsA = a % 10;
     const tensB = Math.floor(b / 10), unitsB = b % 10;

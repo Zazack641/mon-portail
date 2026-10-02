@@ -118,8 +118,9 @@
 </header>
 
 <div class="level-bar" role="group" aria-label="Choisir le niveau">
-  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1 · jusqu'à 999</button>
-  <button class="level-btn" data-level="2" aria-pressed="false">Niveau 2 · jusqu'à 1000</button>
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1 · jusqu'à 99</button>
+  <button class="level-btn" data-level="2" aria-pressed="false">Niveau 2 · jusqu'à 999</button>
+  <button class="level-btn" data-level="3" aria-pressed="false">Niveau 3 · jusqu'à 9999</button>
 </div>
 
 <main>
@@ -209,20 +210,17 @@
   }
 
   function newExercise() {
-    let a, b;
-    const max = currentLevel === 1 ? 999 : 1000;
-    const min = 100;
-    do {
-      a = randInt(min, max);
-      b = randInt(min, max);
-    } while (a === b);
+    // Niveau 1 : révision (jusqu'à 99) ; niveau 2 : jusqu'à 999 ; niveau 3 : jusqu'à 9999.
+    // ~3/4 de paires de même longueur, ~1/4 avec un nombre plus court (souvent un chiffre de moins).
+    const maxDigits = currentLevel + 1;
+    const [a, b] = randPairMixedDigits(maxDigits);
 
     const correct = a < b ? '<' : '>';
     state = { a, b, correct, answered: false };
 
     renderNumber(numLeft, a);
     renderNumber(numRight, b);
-    renderLegend(String(max).length);
+    renderLegend(maxDigits);
 
     symbolZone.innerHTML = '';
     ['<', '>'].forEach(sym => {
@@ -239,10 +237,17 @@
     newBtn.classList.remove('visible');
   }
 
-  // Construit le message de feedback en expliquant le rang décisif (centaines → dizaines → unités,
-  // ou milliers si l'un des nombres est 1000). sym = le symbole correct ('<' ou '>').
+  // Construit le message de feedback en expliquant le rang décisif (milliers → centaines → dizaines → unités).
+  // sym = le symbole correct ('<' ou '>').
   function buildMsg(correct, a, b, sym) {
     const rankNames = ['unités', 'dizaines', 'centaines', 'milliers'];
+    if (String(a).length !== String(b).length) {
+      const [big, small] = a > b ? [a, b] : [b, a];
+      const nb = n => { const l = String(n).length; return l === 1 ? "n'a qu'un chiffre" : `a ${l} chiffres`; };
+      const intro = correct ? `Bravo ! ${a} ${sym} ${b}. ` : 'Pas tout à fait. ';
+      const outro = correct ? '' : ` On a donc ${a} ${sym} ${b}. Appuie sur « Nouvel exercice » pour continuer.`;
+      return `${intro}${big} ${nb(big)} et ${small} ${nb(small)} : ${big} est plus grand que ${small}.${outro}`;
+    }
     const maxLen = Math.max(String(a).length, String(b).length);
     for (let r = maxLen - 1; r >= 0; r--) {
       const da = Math.floor(a / Math.pow(10, r)) % 10;
