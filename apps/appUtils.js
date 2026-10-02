@@ -58,6 +58,16 @@ function randPairMixedDigits(maxDigits, shareSame = 0.75) {
 }
 
 /**
+ * Formate un entier à la suisse : apostrophe entre les groupes de trois chiffres
+ * (3'456, 34'575). Les nombres de moins de 4 chiffres sont inchangés.
+ * @param {number} n
+ * @returns {string}
+ */
+function formatNumberCH(n) {
+  return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, "'");
+}
+
+/**
  * Mélange un tableau (copie, ne mute pas l'original).
  * @template T
  * @param {T[]} arr
