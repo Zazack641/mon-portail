@@ -26,6 +26,38 @@ function randBetween(a, b, exclude = []) {
 }
 
 /**
+ * Entier aléatoire ayant exactement `digits` chiffres (0–9 pour 1 chiffre).
+ * @param {number} digits
+ * @returns {number}
+ */
+function randIntWithDigits(digits) {
+  return randInt(digits === 1 ? 0 : Math.pow(10, digits - 1), Math.pow(10, digits) - 1);
+}
+
+/**
+ * Deux entiers distincts jusqu'à `maxDigits` chiffres, pour les exercices de comparaison.
+ * Environ 3/4 des paires ont le même nombre de chiffres ; le reste mélange un nombre à
+ * `maxDigits` chiffres et un nombre plus court (le plus souvent d'un chiffre de moins),
+ * sans jamais dépasser le maximum (10^maxDigits − 1). Le côté gauche/droit est aléatoire.
+ * @param {number} maxDigits
+ * @param {number} [shareSame=0.75] part des paires de même longueur
+ * @returns {[number, number]}
+ */
+function randPairMixedDigits(maxDigits, shareSame = 0.75) {
+  let a, b;
+  if (maxDigits < 2 || Math.random() < shareSame) {
+    do { a = randIntWithDigits(maxDigits); b = randIntWithDigits(maxDigits); } while (a === b);
+    return [a, b];
+  }
+  const shorter = (maxDigits < 3 || Math.random() < 0.7)
+    ? maxDigits - 1
+    : randInt(1, maxDigits - 2);
+  a = randIntWithDigits(maxDigits);
+  b = randIntWithDigits(shorter);
+  return Math.random() < 0.5 ? [a, b] : [b, a];
+}
+
+/**
  * Mélange un tableau (copie, ne mute pas l'original).
  * @template T
  * @param {T[]} arr
