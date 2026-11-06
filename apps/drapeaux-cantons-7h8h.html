@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<!--
+  drapeaux-cantons-7h8h.html : associer les 26 cantons suisses et leur drapeau.
+  Créé depuis _template.html (design « Couleur franche »).
+
+  Objectif PER : SHS 21 (Relation Homme-espace, Géographie, Cycle 2, 7H-8H)
+    Se repérer dans l'espace suisse : identifier les cantons et leurs symboles.
+  Type de tâche : drill (reconnaissance rapide). L'erreur clôt l'item, mais le
+    canton raté revient une fois en fin de série.
+
+  Niveaux (tous 7H-8H, du familier vers l'inconnu, principe didactique SHS) :
+    1 · Suisse romande : les 7 cantons romands et bilingues.
+    2 · 26 cantons : propositions tirées au hasard.
+    3 · Drapeaux ressemblants : propositions choisies parmi les drapeaux
+        qui partagent couleurs ou motifs avec la bonne réponse.
+
+  Drapeaux : apps/drapeaux-cantons/*.svg, fichiers « Flag of Canton of … »
+  de Wikimedia Commons (domaine public), stockés localement pour un usage
+  hors ligne sur iPad.
+-->
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Les drapeaux des cantons</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<!-- Styles partagés (reset, header, level-bar, feedback, boutons d'action…) -->
+<link rel="stylesheet" href="app-base.css">
+<style>
+  /* ── Couleur du domaine : Géographie ─────────────────────────────────────── */
+  :root {
+    --app-accent:      #1A6B4A;
+    --app-accent-dark: #145438;
+    --app-tint-bg:     #E6F2ED;
+    --app-tint-fg:     #0D4A30;
+  }
+
+  /* ── Choix du sens du jeu (contrôle propre à cette app) ─────────────────── */
+  .mode-bar {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .mode-btn {
+    flex: 1 1 240px;
+    min-height: 64px;
+    padding: 8px 20px;
+    border-radius: 16px;
+    border: 2px solid var(--app-tint-fg);
+    background: #fff;
+    color: var(--app-tint-fg);
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.2;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+  .mode-btn[aria-pressed="true"] { background: var(--app-accent); border-color: var(--app-accent); color: #fff; }
+  .mode-btn:not([aria-pressed="true"]):hover { background: var(--app-tint-bg); }
+  .mode-btn:focus-visible { outline: 3px solid var(--app-accent); outline-offset: 3px; }
+
+  /* ── Progression (toujours au même endroit) ─────────────────────────────── */
+  .progress {
+    font-size: 20px;
+    font-weight: 600;
+    color: #33415A;
+    line-height: 1.5;
+    text-align: center;
+  }
+
+  /* ── Drapeau de la question ─────────────────────────────────────────────── */
+  .question-box .consigne { display: block; }
+  .question-flag {
+    display: block;
+    width: min(220px, 55vw);
+    height: auto;
+    aspect-ratio: 1;
+    margin: 18px auto 4px;
+    border: 2px solid #64748B; /* les drapeaux à fond blanc restent délimités */
+  }
+  .question-name {
+    display: block;
+    margin-top: 8px;
+    font-size: clamp(26px, 5vw, 34px);
+    font-weight: 800;
+    color: var(--app-tint-fg);
+  }
+
+  /* ── Propositions ───────────────────────────────────────────────────────── */
+  .choices {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    width: 100%;
+  }
+  .choice-btn {
+    position: relative;
+    min-height: 80px;
+    padding: 12px 16px;
+    border-radius: 16px;
+    border: 3px solid var(--app-border);
+    background: #fff;
+    color: var(--app-text);
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.25;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(20,32,46,0.08);
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+  .choice-btn:hover:not(:disabled)  { border-color: var(--app-accent); }
+  .choice-btn:focus-visible         { outline: 3px solid var(--app-accent); outline-offset: 3px; }
+  .choice-btn:disabled              { cursor: default; }
+  .choice-btn .abbr                 { color: var(--app-tint-fg); }
+  .choice-flag {
+    width: min(140px, 32vw);
+    height: auto;
+    aspect-ratio: 1;
+    border: 2px solid #64748B;
+  }
+  .choice-name { display: none; font-size: 22px; }
+  .choices.revealed .choice-name { display: block; }
+
+  /* Marques après réponse : couleur doublée d'un symbole et d'un texte. */
+  .choice-btn.is-correct { border-color: var(--app-correct-fg); background: var(--app-correct-bg); color: var(--app-correct-fg); }
+  .choice-btn.is-wrong   { border-color: var(--app-wrong-fg);   background: var(--app-wrong-bg);   color: var(--app-wrong-fg); }
+  .choice-btn.is-correct .abbr, .choice-btn.is-wrong .abbr { color: inherit; }
+  /* Seuls les drapeaux non retenus s'estompent ; le texte garde son contraste. */
+  .choice-btn:disabled:not(.is-correct):not(.is-wrong) .choice-flag { opacity: 0.5; }
+  .mark {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  /* ── Comparaison des deux drapeaux après une erreur ─────────────────────── */
+  .compare {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .compare[hidden] { display: none; }
+  .compare figure {
+    flex: 1 1 200px;
+    max-width: 260px;
+    background: #fff;
+    border-radius: 16px;
+    padding: 14px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(20,32,46,0.08);
+    border: 3px solid transparent;
+  }
+  .compare figure.good { border-color: var(--app-correct-fg); }
+  .compare figure.bad  { border-color: var(--app-wrong-fg); }
+  .compare img {
+    width: min(140px, 32vw);
+    height: auto;
+    aspect-ratio: 1;
+    border: 2px solid #64748B;
+  }
+  .compare figcaption {
+    margin-top: 8px;
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  .compare .good figcaption { color: var(--app-correct-fg); }
+  .compare .bad  figcaption { color: var(--app-wrong-fg); }
+
+  @media (max-width: 480px) {
+    .choices { grid-template-columns: 1fr; }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .choice-btn, .mode-btn { transition: border-color 0.15s, background 0.15s, transform 0.15s; }
+    .choice-btn:active:not(:disabled) { transform: scale(0.97); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────────── -->
+<header class="app-header" role="banner">
+  <a href="../index.html" class="back-link"><span aria-hidden="true">←</span> Retour</a>
+  <h1>Les drapeaux des cantons</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<!-- ── Sélecteur de niveau ─────────────────────────────────────────────────── -->
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1 · Suisse romande</button>
+  <button class="level-btn"        data-level="2" aria-pressed="false">Niveau 2 · 26 cantons</button>
+  <button class="level-btn"        data-level="3" aria-pressed="false">Niveau 3 · Drapeaux ressemblants</button>
+</div>
+
+<!-- ── Contenu principal ───────────────────────────────────────────────────── -->
+<main>
+  <div class="mode-bar" role="group" aria-label="Choisir le sens du jeu">
+    <button class="mode-btn" data-mode="flag" aria-pressed="true" aria-label="Du drapeau vers le canton">Drapeau <span aria-hidden="true">→</span> canton</button>
+    <button class="mode-btn" data-mode="name" aria-pressed="false" aria-label="Du canton vers le drapeau">Canton <span aria-hidden="true">→</span> drapeau</button>
+  </div>
+
+  <p class="progress" id="progress"></p>
+
+  <div class="question-box" id="question-box">Chargement…</div>
+
+  <div class="choices" id="choices" role="group" aria-label="Propositions"></div>
+
+  <div class="compare" id="compare" hidden></div>
+
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="action-row">
+    <!-- Pas de bouton « Vérifier » : la réponse est validée au toucher. -->
+    <button class="new-btn" id="new-btn"><span aria-hidden="true">▶</span> <span id="new-btn-label">Nouvel exercice</span></button>
+  </div>
+</main>
+
+<!-- ── Script de l'app ─────────────────────────────────────────────────────── -->
+<!-- appUtils.js expose : randInt, randBetween, shuffle, pick, colorForRank    -->
+<script src="appUtils.js"></script>
+<script>
+  // ── Références DOM ─────────────────────────────────────────────────────────
+  const questionBox = document.getElementById('question-box');
+  const feedbackEl  = document.getElementById('feedback');
+  const newBtn      = document.getElementById('new-btn');
+  const newBtnLabel = document.getElementById('new-btn-label');
+  const choicesEl   = document.getElementById('choices');
+  const compareEl   = document.getElementById('compare');
+  const progressEl  = document.getElementById('progress');
+
+  // ── Type de tâche ─────────────────────────────────────────────────────────
+  // Reconnaissance rapide : l'erreur clôt l'item (pas de retry à l'aveugle).
+  // Le canton raté revient une fois en fin de série.
+  const TYPE_TACHE = 'drill';
+
+  // ── Données ─────────────────────────────────────────────────────────────────
+  // couleurs : couleurs dominantes du drapeau ; motifs : éléments marquants.
+  // Ces deux listes servent à choisir les propositions « ressemblantes » (N3).
+  // desc : description courte reprise dans le feedback formatif.
+  const CANTONS = [
+    { code: 'ZH', nom: 'Zurich',                       couleurs: ['blanc', 'bleu'],                   motifs: ['partition'], desc: 'partagé en diagonale, blanc en haut et bleu en bas' },
+    { code: 'BE', nom: 'Berne',                        couleurs: ['rouge', 'jaune', 'noir'],          motifs: ['ours'],      desc: 'un ours noir sur une bande jaune, fond rouge' },
+    { code: 'LU', nom: 'Lucerne',                      couleurs: ['blanc', 'bleu'],                   motifs: ['partition'], desc: 'blanc en haut et bleu en bas' },
+    { code: 'UR', nom: 'Uri',                          couleurs: ['jaune', 'noir'],                   motifs: ['animal'],    desc: 'une tête de taureau noire sur fond jaune' },
+    { code: 'SZ', nom: 'Schwyz',                       couleurs: ['rouge', 'blanc'],                  motifs: ['croix'],     desc: 'rouge avec une petite croix blanche en haut à gauche' },
+    { code: 'OW', nom: 'Obwald',                       couleurs: ['rouge', 'blanc'],                  motifs: ['cle', 'partition'], desc: 'rouge en haut et blanc en bas, avec une clé' },
+    { code: 'NW', nom: 'Nidwald',                      couleurs: ['rouge', 'blanc'],                  motifs: ['cle'],       desc: 'une double clé blanche sur fond rouge' },
+    { code: 'GL', nom: 'Glaris',                       couleurs: ['rouge', 'noir'],                   motifs: ['personnage'], desc: 'saint Fridolin, un pèlerin habillé de noir, sur fond rouge' },
+    { code: 'ZG', nom: 'Zoug',                         couleurs: ['blanc', 'bleu'],                   motifs: ['partition'], desc: 'blanc avec une bande bleue au milieu' },
+    { code: 'FR', nom: 'Fribourg',                     couleurs: ['noir', 'blanc'],                   motifs: ['partition'], desc: 'noir en haut et blanc en bas' },
+    { code: 'SO', nom: 'Soleure',                      couleurs: ['rouge', 'blanc'],                  motifs: ['partition'], desc: 'rouge en haut et blanc en bas' },
+    { code: 'BS', nom: 'Bâle-Ville',                   couleurs: ['blanc', 'noir'],                   motifs: ['crosse'],    desc: 'une crosse noire sur fond blanc' },
+    { code: 'BL', nom: 'Bâle-Campagne',                couleurs: ['blanc', 'rouge'],                  motifs: ['crosse'],    desc: 'une crosse rouge à sept boules sur fond blanc' },
+    { code: 'SH', nom: 'Schaffhouse',                  couleurs: ['jaune', 'noir'],                   motifs: ['animal'],    desc: 'un bélier noir couronné sur fond jaune' },
+    { code: 'AR', nom: 'Appenzell Rhodes-Extérieures', couleurs: ['blanc', 'noir'],                   motifs: ['ours'],      desc: 'un ours noir debout entre les lettres V et R' },
+    { code: 'AI', nom: 'Appenzell Rhodes-Intérieures', couleurs: ['blanc', 'noir'],                   motifs: ['ours'],      desc: 'un ours noir debout, sans lettres, sur fond blanc' },
+    { code: 'SG', nom: 'Saint-Gall',                   couleurs: ['vert', 'blanc'],                   motifs: ['objet'],     desc: 'un faisceau de baguettes avec une hache, blanc sur fond vert' },
+    { code: 'GR', nom: 'Grisons',                      couleurs: ['noir', 'blanc', 'jaune', 'bleu'],  motifs: ['animal', 'croix'], desc: 'trois écussons : noir et blanc, une croix jaune et bleue, un bouquetin' },
+    { code: 'AG', nom: 'Argovie',                      couleurs: ['noir', 'blanc', 'bleu'],           motifs: ['etoiles'],   desc: 'une rivière blanche sur noir et trois étoiles blanches sur bleu' },
+    { code: 'TG', nom: 'Thurgovie',                    couleurs: ['vert', 'blanc', 'jaune'],          motifs: ['animal'],    desc: 'deux lions jaunes sur un fond vert et blanc' },
+    { code: 'TI', nom: 'Tessin',                       couleurs: ['rouge', 'bleu'],                   motifs: ['partition'], desc: 'rouge en haut et bleu en bas' },
+    { code: 'VD', nom: 'Vaud',                         couleurs: ['blanc', 'vert', 'jaune'],          motifs: ['partition'], desc: 'blanc en haut avec « Liberté et patrie », vert en bas' },
+    { code: 'VS', nom: 'Valais',                       couleurs: ['blanc', 'rouge'],                  motifs: ['etoiles'],   desc: 'blanc et rouge, avec treize étoiles' },
+    { code: 'NE', nom: 'Neuchâtel',                    couleurs: ['vert', 'blanc', 'rouge'],          motifs: ['croix'],     desc: 'trois bandes verte, blanche et rouge, avec une petite croix blanche' },
+    { code: 'GE', nom: 'Genève',                       couleurs: ['jaune', 'noir', 'rouge'],          motifs: ['cle', 'animal'], desc: 'une moitié d’aigle noir et une clé jaune' },
+    { code: 'JU', nom: 'Jura',                         couleurs: ['blanc', 'rouge'],                  motifs: ['crosse'],    desc: 'une crosse rouge à gauche et des bandes rouges et blanches à droite' },
+  ];
+
+  // Niveau 1 : cantons romands et bilingues (partir du familier, principe SHS).
+  const ROMANDS = ['GE', 'VD', 'VS', 'NE', 'JU', 'FR', 'BE'];
+
+  // ── État ────────────────────────────────────────────────────────────────────
+  let currentLevel = 1;
+  let mode = 'flag';  // 'flag' : drapeau → canton ; 'name' : canton → drapeau
+  let state = {};
+
+  function flagSrc(c)  { return 'drapeaux-cantons/' + c.code.toLowerCase() + '.svg'; }
+  function label(c)    { return c.nom + ' (' + c.code + ')'; }
+  function labelHtml(c){ return '<strong>' + c.nom + ' (' + c.code + ')</strong>'; }
+  function poolForLevel(level) {
+    return level === 1 ? CANTONS.filter(c => ROMANDS.includes(c.code)) : CANTONS;
+  }
+
+  // Ressemblance entre deux drapeaux : couleurs communes + motifs communs (×2).
+  function similarity(a, b) {
+    const col = a.couleurs.filter(x => b.couleurs.includes(x)).length;
+    const mot = a.motifs.filter(x => b.motifs.includes(x)).length;
+    return col + 2 * mot;
+  }
+
+  function distractorsFor(answer) {
+    const others = state.pool.filter(c => c.code !== answer.code);
+    if (currentLevel !== 3) return pick(others, 3);
+    // N3 : le drapeau le plus ressemblant est toujours proposé (ex. AI/AR,
+    // BS/BL), puis 2 autres tirés parmi les 5 suivants (le hasard évite que
+    // la même série revienne à chaque fois).
+    const ranked = shuffle(others).sort((x, y) => similarity(answer, y) - similarity(answer, x));
+    return [ranked[0], ...pick(ranked.slice(1, 6), 2)];
+  }
+
+  // ── Feedback unifié ─────────────────────────────────────────────────────────
+  // msg est du HTML statique construit à partir des constantes ci-dessus
+  // (jamais une saisie élève) : innerHTML est donc sans risque.
+  function showFeedback(correct, msg) {
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.innerHTML = msg;
+    if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+
+    if (correct || TYPE_TACHE === 'drill') {
+      // Item clos : on propose la suite.
+      newBtn.classList.add('visible');
+      newBtn.focus();
+    } else {
+      // 'instance' + incorrect : branche morte ici (app drill), conservée pour
+      // la portabilité du contrat showFeedback.
+      newBtn.classList.remove('visible');
+      feedbackEl.setAttribute('tabindex', '-1');
+      feedbackEl.focus();
+    }
+  }
+
+  function resetFeedback() {
+    feedbackEl.className = 'feedback';
+    feedbackEl.textContent = '';
+    newBtn.classList.remove('visible');
+    newBtnLabel.textContent = 'Nouvel exercice';
+    compareEl.hidden = true;
+    compareEl.innerHTML = '';
+  }
+
+  // ── Sélecteur de niveau ─────────────────────────────────────────────────────
+  // NE PAS MODIFIER ce bloc — convention partagée entre toutes les apps.
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLevel = parseInt(btn.dataset.level);
+      document.querySelectorAll('.level-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+      newExercise();
+    });
+  });
+
+  // ── Sélecteur de sens ───────────────────────────────────────────────────────
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      mode = btn.dataset.mode;
+      document.querySelectorAll('.mode-btn').forEach(b => b.setAttribute('aria-pressed', 'false'));
+      btn.setAttribute('aria-pressed', 'true');
+      newExercise();
+    });
+  });
+
+  // « Nouvel exercice » : question suivante, ou nouvelle série si la série est finie.
+  newBtn.addEventListener('click', () => {
+    if (state.finished) { newExercise(true); return; }
+    state.index++;
+    nextQuestion(true);
+  });
+
+  // ── Logique de l'app ────────────────────────────────────────────────────────
+
+  // Nouvelle série : remet TOUT l'état à zéro (niveau, sens ou fin de série).
+  function newExercise(moveFocus) {
+    const pool = poolForLevel(currentLevel);
+    state = {
+      pool,
+      queue: shuffle(pool),
+      requeued: new Set(),   // un canton raté ne revient qu'une fois
+      total: pool.length,
+      index: 0,
+      firstTry: 0,
+      finished: false,
+      answered: false,
+    };
+    nextQuestion(moveFocus);
+  }
+
+  function updateProgress() {
+    progressEl.textContent = 'Drapeau ' + Math.min(state.index + 1, state.queue.length) +
+      ' sur ' + state.queue.length + ' · Réussis du premier coup : ' + state.firstTry + ' sur ' + state.total;
+  }
+
+  function nextQuestion(moveFocus) {
+    resetFeedback();
+    if (state.index >= state.queue.length) { endSeries(); return; }
+
+    const answer = state.queue[state.index];
+    const options = shuffle([answer, ...distractorsFor(answer)]);
+    state.answer = answer;
+    state.answered = false;
+    updateProgress();
+
+    choicesEl.classList.remove('revealed');
+    if (mode === 'flag') {
+      questionBox.innerHTML =
+        '<span class="consigne">Quel canton a ce drapeau ?</span>' +
+        '<img class="question-flag" src="' + flagSrc(answer) + '" alt="Drapeau à reconnaître">';
+      choicesEl.innerHTML = options.map((c, i) =>
+        '<button class="choice-btn" data-code="' + c.code + '"' + (i === 0 ? ' data-focus-target' : '') + '>' +
+          '<span>' + c.nom + ' <span class="abbr">(' + c.code + ')</span></span>' +
+        '</button>').join('');
+    } else {
+      questionBox.innerHTML =
+        '<span class="consigne">Touche le drapeau de ce canton :</span>' +
+        '<span class="question-name">' + label(answer) + '</span>';
+      choicesEl.innerHTML = options.map((c, i) =>
+        '<button class="choice-btn" data-code="' + c.code + '" aria-label="Drapeau ' + (i + 1) + '"' +
+          (i === 0 ? ' data-focus-target' : '') + '>' +
+          '<img class="choice-flag" src="' + flagSrc(c) + '" alt="">' +
+          '<span class="choice-name">' + label(c) + '</span>' +
+        '</button>').join('');
+    }
+
+    choicesEl.querySelectorAll('.choice-btn').forEach(b =>
+      b.addEventListener('click', () => answerWith(b.dataset.code)));
+
+    // Focus sur la première proposition, sauf au chargement de la page.
+    if (moveFocus) {
+      const target = choicesEl.querySelector('[data-focus-target]');
+      if (target) target.focus();
+    }
+  }
+
+  function markButton(btn, ok, c) {
+    btn.classList.add(ok ? 'is-correct' : 'is-wrong');
+    btn.insertAdjacentHTML('afterbegin',
+      '<span class="mark" aria-hidden="true">' + (ok ? '✓' : '✗') + '</span>');
+    btn.setAttribute('aria-label', label(c) + (ok ? ', bonne réponse' : ', ton choix'));
+  }
+
+  function answerWith(code) {
+    if (state.answered) return;
+    state.answered = true;
+    const answer = state.answer;
+    const chosen = CANTONS.find(c => c.code === code);
+    const correct = code === answer.code;
+
+    // Verrouille les propositions et marque la bonne (et le choix erroné).
+    choicesEl.querySelectorAll('.choice-btn').forEach(b => {
+      b.disabled = true;
+      if (mode === 'name') b.setAttribute('aria-label', label(CANTONS.find(c => c.code === b.dataset.code)));
+      if (b.dataset.code === answer.code) markButton(b, true, answer);
+      else if (b.dataset.code === code)   markButton(b, false, chosen);
+    });
+    // En mode « canton → drapeau », on révèle le nom sous chaque drapeau.
+    if (mode === 'name') choicesEl.classList.add('revealed');
+
+    if (correct) {
+      if (!state.requeued.has(answer.code)) state.firstTry++;
+      updateProgress();
+      const msg = mode === 'flag'
+        ? 'Bravo ! Ce drapeau est celui de ' + labelHtml(answer) + ' : ' + answer.desc + '.'
+        : 'Bravo ! Le drapeau de ' + labelHtml(answer) + ' montre ' + answer.desc + '.';
+      showFeedback(true, msg);
+      return;
+    }
+
+    // Erreur : le canton reviendra une fois en fin de série.
+    let retour = '';
+    if (!state.requeued.has(answer.code)) {
+      state.requeued.add(answer.code);
+      state.queue.push(answer);
+      retour = ' Ce canton reviendra plus tard.';
+    }
+    updateProgress();
+
+    // Comparaison visuelle des deux drapeaux, côte à côte.
+    compareEl.innerHTML =
+      '<figure class="good"><img src="' + flagSrc(answer) + '" alt="Drapeau de ' + label(answer) + '">' +
+        '<figcaption><span aria-hidden="true">✓</span> ' + label(answer) + '</figcaption></figure>' +
+      '<figure class="bad"><img src="' + flagSrc(chosen) + '" alt="Drapeau de ' + label(chosen) + '">' +
+        '<figcaption><span aria-hidden="true">✗</span> ' + label(chosen) + '</figcaption></figure>';
+    compareEl.hidden = false;
+
+    const msg = mode === 'flag'
+      ? 'Pas tout à fait. Ce drapeau est celui de ' + labelHtml(answer) + ' : ' + answer.desc + '. ' +
+        'Celui de ' + labelHtml(chosen) + ' : ' + chosen.desc + '. Compare les deux drapeaux.' + retour +
+        ' Appuie sur « Nouvel exercice » pour continuer.'
+      : 'Pas tout à fait. Le drapeau de ' + labelHtml(answer) + ' montre ' + answer.desc + '. ' +
+        'Tu as touché celui de ' + labelHtml(chosen) + ' : ' + chosen.desc + '.' + retour +
+        ' Appuie sur « Nouvel exercice » pour continuer.';
+    showFeedback(false, msg);
+  }
+
+  function endSeries() {
+    state.finished = true;
+    choicesEl.innerHTML = '';
+    progressEl.textContent = 'Série terminée · Réussis du premier coup : ' + state.firstTry + ' sur ' + state.total;
+    const tous = state.firstTry === state.total;
+    questionBox.textContent = tous
+      ? 'Bravo ! Tu as reconnu tous les drapeaux du premier coup.'
+      : 'Série terminée ! Tu as revu les drapeaux difficiles. Recommence pour progresser encore.';
+    feedbackEl.className = 'feedback';
+    newBtnLabel.textContent = 'Nouvelle série';
+    newBtn.classList.add('visible');
+    newBtn.focus();
+  }
+
+  // ── Démarrage ───────────────────────────────────────────────────────────────
+  newExercise(false);
+</script>
+<!-- feedbackUtils.js DOIT être chargé APRÈS le script de l'app, juste avant </body> -->
+<script src="feedbackUtils.js"></script>
+</body>
+</html>
