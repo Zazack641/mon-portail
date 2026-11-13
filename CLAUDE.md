@@ -68,7 +68,7 @@ Chaque carte du portail pointe vers un fichier réel de `apps/` — il n'y a plu
 
 ## Les activités du portail
 
-**`index.html` fait foi.** Cet inventaire en est le reflet et doit être régénéré à chaque ajout ou retrait de carte — ne jamais l'utiliser comme source à la place des cartes elles-mêmes. Dernier relevé : 06.11.2026, **51 activités**.
+**`index.html` fait foi.** Cet inventaire en est le reflet et doit être régénéré à chaque ajout ou retrait de carte — ne jamais l'utiliser comme source à la place des cartes elles-mêmes. Dernier relevé : 13.11.2026, **52 activités**.
 
 Le groupe d'années est celui qu'affiche le bandeau de la carte (`.header-cycle-badge`) ; `data-harmos` ne porte que le cycle (`c1` pour 1H–4H, `c2` pour 5H–8H). Une cellule PER vide signale une carte sans `data-per` — c'est volontaire, jamais un oubli à combler au jugé (voir « Hors charte PER — Jeux »).
 
@@ -171,12 +171,13 @@ Le groupe d'années est celui qu'affiche le bandeau de la carte (`.header-cycle-
 |-------|--------|-----|---------|
 | Vocabulaire anglais | 7H–8H | L3 21-38 | `vocabulaire-anglais-7h8h.html` |
 
-### Géographie (2)
+### Géographie (3)
 
 | Titre | Groupe | PER | Fichier |
 |-------|--------|-----|---------|
 | Ville et campagne | 5H–6H | SHS 21 | `ville-et-campagne-5h6h.html` |
 | Les drapeaux des cantons | 7H–8H | SHS 21 | `drapeaux-cantons-7h8h.html` |
+| Les cantons suisses | 7H–8H | SHS 21 | `cantons-suisses-7h8h.html` |
 
 ### Sciences de la nature (1)
 
