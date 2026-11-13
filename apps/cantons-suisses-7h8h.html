@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<!--
+  cantons-suisses-7h8h.html : situer les 26 cantons sur la carte de la Suisse.
+  Créé depuis _template.html (design « Couleur franche »).
+
+  Inspiration : activité éduclasse n° 165 « Les cantons suisses » (9e), où
+  l'élève glisse 26 étiquettes sur une carte muette. Version repensée pour le
+  portail : aucun glisser-déposer (un seul toucher par réponse, cibles larges),
+  un canton à la fois, feedback formatif qui décrit la position du canton.
+
+  Objectif PER : SHS 21 (Relation Homme-espace, Géographie, Cycle 2, 7H-8H)
+    Se repérer dans l'espace suisse : situer les cantons sur une carte,
+    utiliser les repères (frontières, lacs, points cardinaux).
+  Type de tâche : drill (localisation). L'erreur clôt l'item, mais le canton
+    raté revient une fois en fin de série.
+
+  Niveaux (tous 7H-8H, du familier vers l'inconnu, principe didactique SHS) :
+    1 · Suisse romande : les 7 cantons romands et bilingues.
+    2 · 26 cantons : propositions tirées au hasard.
+    3 · Cantons voisins : les propositions sont des cantons qui touchent la
+        bonne réponse (la vraie difficulté de la localisation).
+
+  Carte : cantons-suisses/carte-cantons.js (limites OFS / swisstopo via le
+  paquet npm swiss-maps, BSD-3-Clause), stockée localement pour un usage
+  hors ligne sur iPad.
+-->
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Les cantons suisses</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<!-- Styles partagés (reset, header, level-bar, feedback, boutons d'action…) -->
+<link rel="stylesheet" href="app-base.css">
+<style>
+  /* ── Couleur du domaine : Géographie ─────────────────────────────────────── */
+  :root {
+    --app-accent:      #1A6B4A;
+    --app-accent-dark: #145438;
+    --app-tint-bg:     #E6F2ED;
+    --app-tint-fg:     #0D4A30;
+    /* Carte : fond neutre clair, frontières à 3:1 minimum sur ce fond. */
+    --map-land:        #F4F6F9;
+    --map-border:      #64748B;
+    --map-lake:        #BFDDF2;
+  }
+
+  /* ── Choix du sens du jeu (contrôle propre à cette app) ─────────────────── */
+  .mode-bar {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .mode-btn {
+    flex: 1 1 240px;
+    min-height: 64px;
+    padding: 8px 20px;
+    border-radius: 16px;
+    border: 2px solid var(--app-tint-fg);
+    background: #fff;
+    color: var(--app-tint-fg);
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.2;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+  .mode-btn[aria-pressed="true"] { background: var(--app-accent); border-color: var(--app-accent); color: #fff; }
+  .mode-btn:not([aria-pressed="true"]):hover { background: var(--app-tint-bg); }
+  .mode-btn:focus-visible { outline: 3px solid var(--app-accent); outline-offset: 3px; }
+
+  /* ── Progression (toujours au même endroit) ─────────────────────────────── */
+  .progress {
+    font-size: 20px;
+    font-weight: 600;
+    color: #33415A;
+    line-height: 1.5;
+    text-align: center;
+  }
+
+  /* ── Carte ──────────────────────────────────────────────────────────────── */
+  .question-box .consigne { display: block; }
+  .question-name {
+    display: block;
+    margin-top: 8px;
+    font-size: clamp(26px, 5vw, 34px);
+    font-weight: 800;
+    color: var(--app-tint-fg);
+  }
+  .map {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .map-main {
+    margin: 14px auto 0;
+    max-width: 760px;
+  }
+  .map .canton { fill: var(--map-land); stroke: var(--map-border); stroke-width: 1.4; stroke-linejoin: round; }
+  .map .lac    { fill: var(--map-lake); stroke: none; pointer-events: none; }
+  .map .canton.is-target { fill: var(--app-accent); stroke: var(--app-tint-fg); stroke-width: 2.5; }
+  /* Anneau de repérage : rend visibles les petits cantons (Bâle-Ville, Zoug…). */
+  .map .ring   { fill: none; stroke: var(--app-accent); stroke-width: 7; pointer-events: none; }
+  .map .pays   {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    fill: #475569;
+  }
+  /* Couleurs des cartes de comparaison (bonne réponse / choix erroné). */
+  .map.good .canton.is-target { fill: var(--app-correct-fg); stroke: var(--app-correct-fg); }
+  .map.good .ring              { stroke: var(--app-correct-fg); }
+  .map.bad  .canton.is-target { fill: var(--app-wrong-fg); stroke: var(--app-wrong-fg); }
+  .map.bad  .ring              { stroke: var(--app-wrong-fg); }
+
+  /* ── Propositions ───────────────────────────────────────────────────────── */
+  .choices {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    width: 100%;
+  }
+  .choice-btn {
+    position: relative;
+    min-height: 80px;
+    padding: 12px 16px;
+    border-radius: 16px;
+    border: 3px solid var(--app-border);
+    background: #fff;
+    color: var(--app-text);
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.25;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(20,32,46,0.08);
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+  .choice-btn:hover:not(:disabled)  { border-color: var(--app-accent); }
+  .choice-btn:focus-visible         { outline: 3px solid var(--app-accent); outline-offset: 3px; }
+  .choice-btn:disabled              { cursor: default; }
+  .choice-btn .abbr                 { color: var(--app-tint-fg); }
+  .choice-btn .map                  { max-width: 280px; }
+  .choice-name { display: none; font-size: 22px; }
+  .choices.revealed .choice-name { display: block; }
+
+  /* Marques après réponse : couleur doublée d'un symbole et d'un texte. */
+  .choice-btn.is-correct { border-color: var(--app-correct-fg); background: var(--app-correct-bg); color: var(--app-correct-fg); }
+  .choice-btn.is-wrong   { border-color: var(--app-wrong-fg);   background: var(--app-wrong-bg);   color: var(--app-wrong-fg); }
+  .choice-btn.is-correct .abbr, .choice-btn.is-wrong .abbr { color: inherit; }
+  /* Seules les cartes non retenues s'estompent ; le texte garde son contraste. */
+  .choice-btn:disabled:not(.is-correct):not(.is-wrong) .map { opacity: 0.5; }
+  .mark {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  /* ── Comparaison des deux cantons après une erreur ──────────────────────── */
+  .compare {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .compare[hidden] { display: none; }
+  .compare figure {
+    flex: 1 1 220px;
+    max-width: 320px;
+    background: #fff;
+    border-radius: 16px;
+    padding: 14px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(20,32,46,0.08);
+    border: 3px solid transparent;
+  }
+  .compare figure.good { border-color: var(--app-correct-fg); }
+  .compare figure.bad  { border-color: var(--app-wrong-fg); }
+  .compare figcaption {
+    margin-top: 8px;
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  .compare .good figcaption { color: var(--app-correct-fg); }
+  .compare .bad  figcaption { color: var(--app-wrong-fg); }
+
+  @media (max-width: 480px) {
+    .choices { grid-template-columns: 1fr; }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .choice-btn, .mode-btn { transition: border-color 0.15s, background 0.15s, transform 0.15s; }
+    .choice-btn:active:not(:disabled) { transform: scale(0.97); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────────── -->
+<header class="app-header" role="banner">
+  <a href="../index.html" class="back-link"><span aria-hidden="true">←</span> Retour</a>
+  <h1>Les cantons suisses</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<!-- ── Sélecteur de niveau ─────────────────────────────────────────────────── -->
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1 · Suisse romande</button>
+  <button class="level-btn"        data-level="2" aria-pressed="false">Niveau 2 · 26 cantons</button>
+  <button class="level-btn"        data-level="3" aria-pressed="false">Niveau 3 · Cantons voisins</button>
+</div>
+
+<!-- ── Contenu principal ───────────────────────────────────────────────────── -->
+<main>
+  <div class="mode-bar" role="group" aria-label="Choisir le sens du jeu">
+    <button class="mode-btn" data-mode="map"  aria-pressed="true"  aria-label="De la carte vers le nom du canton">Carte <span aria-hidden="true">→</span> nom</button>
+    <button class="mode-btn" data-mode="name" aria-pressed="false" aria-label="Du nom du canton vers la carte">Nom <span aria-hidden="true">→</span> carte</button>
+  </div>
+
+  <p class="progress" id="progress"></p>
+
+  <div class="question-box" id="question-box">Chargement…</div>
+
+  <div class="choices" id="choices" role="group" aria-label="Propositions"></div>
+
+  <div class="compare" id="compare" hidden></div>
+
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="action-row">
+    <!-- Pas de bouton « Vérifier » : la réponse est validée au toucher. -->
+    <button class="new-btn" id="new-btn"><span aria-hidden="true">▶</span> <span id="new-btn-label">Nouvel exercice</span></button>
+  </div>
+</main>
+
+<!-- ── Données de la carte (CARTE_CANTONS) ─────────────────────────────────── -->
+<script src="cantons-suisses/carte-cantons.js"></script>
+<!-- ── Script de l'app ─────────────────────────────────────────────────────── -->
+<!-- appUtils.js expose : randInt, randBetween, shuffle, pick, colorForRank    -->
+<script src="appUtils.js"></script>
+<script>
+  // ── Références DOM ─────────────────────────────────────────────────────────
+  const questionBox = document.getElementById('question-box');
+  const feedbackEl  = document.getElementById('feedback');
+  const newBtn      = document.getElementById('new-btn');
+  const newBtnLabel = document.getElementById('new-btn-label');
+  const choicesEl   = document.getElementById('choices');
+  const compareEl   = document.getElementById('compare');
+  const progressEl  = document.getElementById('progress');
+
+  // ── Type de tâche ─────────────────────────────────────────────────────────
+  // Localisation : l'erreur clôt l'item (pas de retry à l'aveugle).
+  // Le canton raté revient une fois en fin de série.
+  const TYPE_TACHE = 'drill';
+
+  // ── Données ─────────────────────────────────────────────────────────────────
+  // pos : position du canton, reprise dans le feedback formatif
+  // (« Ce canton se trouve … »). Repères : points cardinaux, lacs, frontières.
+  const CANTONS = [
+    { code: 'ZH', nom: 'Zurich',                       pos: 'au nord, au bord du lac de Zurich' },
+    { code: 'BE', nom: 'Berne',                        pos: 'au centre-ouest et s’étend des Alpes jusqu’au Jura' },
+    { code: 'LU', nom: 'Lucerne',                      pos: 'au centre, au bord du lac des Quatre-Cantons' },
+    { code: 'UR', nom: 'Uri',                          pos: 'au centre, dans les Alpes, au sud du lac des Quatre-Cantons' },
+    { code: 'SZ', nom: 'Schwyz',                       pos: 'au centre, entre le lac des Quatre-Cantons et le lac de Zurich' },
+    { code: 'OW', nom: 'Obwald',                       pos: 'au centre, au sud de Lucerne et de Nidwald' },
+    { code: 'NW', nom: 'Nidwald',                      pos: 'au centre, au bord du lac des Quatre-Cantons, juste au nord d’Obwald' },
+    { code: 'GL', nom: 'Glaris',                       pos: 'à l’est, dans les Alpes, entre Schwyz, Saint-Gall et les Grisons' },
+    { code: 'ZG', nom: 'Zoug',                         pos: 'au centre, entre Zurich, Lucerne et Schwyz : c’est un tout petit canton' },
+    { code: 'FR', nom: 'Fribourg',                     pos: 'à l’ouest, entre Vaud et Berne' },
+    { code: 'SO', nom: 'Soleure',                      pos: 'au nord-ouest, entre Berne, le Jura et l’Argovie' },
+    { code: 'BS', nom: 'Bâle-Ville',                   pos: 'tout au nord, au bord du Rhin, à la frontière de la France et de l’Allemagne : c’est le plus petit canton' },
+    { code: 'BL', nom: 'Bâle-Campagne',                pos: 'au nord, autour de Bâle-Ville' },
+    { code: 'SH', nom: 'Schaffhouse',                  pos: 'tout au nord, de l’autre côté du Rhin, presque entouré par l’Allemagne' },
+    { code: 'AR', nom: 'Appenzell Rhodes-Extérieures', pos: 'au nord-est, autour d’Appenzell Rhodes-Intérieures' },
+    { code: 'AI', nom: 'Appenzell Rhodes-Intérieures', pos: 'au nord-est, entouré par Appenzell Rhodes-Extérieures et Saint-Gall' },
+    { code: 'SG', nom: 'Saint-Gall',                   pos: 'au nord-est, autour des deux Appenzell' },
+    { code: 'GR', nom: 'Grisons',                      pos: 'tout à l’est, à la frontière de l’Italie et de l’Autriche : c’est le plus grand canton' },
+    { code: 'AG', nom: 'Argovie',                      pos: 'au nord, au bord du Rhin, entre Bâle-Campagne et Zurich' },
+    { code: 'TG', nom: 'Thurgovie',                    pos: 'au nord-est, au bord du lac de Constance' },
+    { code: 'TI', nom: 'Tessin',                       pos: 'au sud des Alpes, à la frontière de l’Italie' },
+    { code: 'VD', nom: 'Vaud',                         pos: 'à l’ouest, au bord du lac Léman et du lac de Neuchâtel' },
+    { code: 'VS', nom: 'Valais',                       pos: 'au sud-ouest, dans les Alpes, le long du Rhône' },
+    { code: 'NE', nom: 'Neuchâtel',                    pos: 'au nord-ouest, entre le lac de Neuchâtel et la France' },
+    { code: 'GE', nom: 'Genève',                       pos: 'tout au sud-ouest, au bout du lac Léman, presque entouré par la France' },
+    { code: 'JU', nom: 'Jura',                         pos: 'au nord-ouest, à la frontière de la France' },
+  ];
+
+  // Niveau 1 : cantons romands et bilingues (partir du familier, principe SHS).
+  const ROMANDS = ['GE', 'VD', 'VS', 'NE', 'JU', 'FR', 'BE'];
+
+  // Pays voisins, affichés comme repères sur la grande carte uniquement.
+  const PAYS = [
+    { nom: 'FRANCE',    x: -50,  y: 300, anchor: 'start'  },
+    { nom: 'ALLEMAGNE', x: 330,  y: -14, anchor: 'middle' },
+    { nom: 'AUTRICHE',  x: 1090, y: 250, anchor: 'end'    },
+    { nom: 'ITALIE',    x: 560,  y: 708, anchor: 'middle' },
+  ];
+
+  // Un canton dont la carte mesure moins que ce seuil reçoit un anneau de repérage.
+  const PETIT_CANTON = 110;
+
+  // ── État ────────────────────────────────────────────────────────────────────
+  let currentLevel = 1;
+  let mode = 'map';  // 'map' : carte → nom ; 'name' : nom → carte
+  let state = {};
+
+  function byCode(code) { return CANTONS.find(c => c.code === code); }
+  function label(c)     { return c.nom + ' (' + c.code + ')'; }
+  function labelHtml(c) { return '<strong>' + label(c) + '</strong>'; }
+  function poolForLevel(level) {
+    return level === 1 ? CANTONS.filter(c => ROMANDS.includes(c.code)) : CANTONS;
+  }
+
+  // ── Dessin de la carte ──────────────────────────────────────────────────────
+  // grande : carte de la question (pays voisins en repère, marges pour les noms)
+  // sinon  : petite carte (propositions, comparaison), anneau plus épais.
+  function mapSvg(targetCode, opts) {
+    const o = opts || {};
+    const W = CARTE_CANTONS.largeur, H = CARTE_CANTONS.hauteur;
+    // Marges : place pour les noms des pays (grande carte) et pour l'anneau
+    // des petits cantons situés au bord (Genève, Bâle-Ville, Schaffhouse).
+    const vb = o.grande ? '-70 -55 ' + (W + 140) + ' ' + (H + 110) : '-40 -40 ' + (W + 80) + ' ' + (H + 80);
+    let s = '<svg class="map ' + (o.cls || '') + '" viewBox="' + vb + '" ' +
+      (o.label ? 'role="img" aria-label="' + o.label + '"' : 'aria-hidden="true"') +
+      ' focusable="false">';
+    for (const code in CARTE_CANTONS.cantons) {
+      if (code !== targetCode) s += '<path class="canton" d="' + CARTE_CANTONS.cantons[code].d + '"/>';
+    }
+    s += '<path class="lac" d="' + CARTE_CANTONS.lacs + '"/>';
+    // Le canton ciblé est redessiné au-dessus pour que son contour reste entier.
+    const t = CARTE_CANTONS.cantons[targetCode];
+    if (t) {
+      s += '<path class="canton is-target" d="' + t.d + '"/>';
+      if (t.taille < PETIT_CANTON) {
+        const r = Math.max(t.taille / 2 + 18, o.grande ? 42 : 60);
+        s += '<circle class="ring" cx="' + t.cx + '" cy="' + t.cy + '" r="' + r + '"' +
+          (o.grande ? '' : ' style="stroke-width:12"') + '/>';
+      }
+    }
+    if (o.grande) {
+      PAYS.forEach(p => {
+        s += '<text class="pays" x="' + p.x + '" y="' + p.y + '" text-anchor="' + p.anchor + '">' + p.nom + '</text>';
+      });
+    }
+    return s + '</svg>';
+  }
+
+  // ── Choix des propositions ──────────────────────────────────────────────────
+  function distractorsFor(answer) {
+    const others = state.pool.filter(c => c.code !== answer.code);
+    if (currentLevel !== 3) return pick(others, 3);
+    // N3 : cantons qui touchent la bonne réponse ; si moins de 3 voisins
+    // (Genève, Bâle-Ville…), on complète avec les voisins des voisins.
+    const v1 = CARTE_CANTONS.cantons[answer.code].voisins;
+    let codes = shuffle(v1).slice(0, 3);
+    if (codes.length < 3) {
+      const v2 = [];
+      v1.forEach(v => CARTE_CANTONS.cantons[v].voisins.forEach(w => {
+        if (w !== answer.code && !v1.includes(w) && !v2.includes(w)) v2.push(w);
+      }));
+      codes = codes.concat(shuffle(v2).slice(0, 3 - codes.length));
+    }
+    if (codes.length < 3) {
+      const rest = others.filter(c => !codes.includes(c.code));
+      codes = codes.concat(pick(rest, 3 - codes.length).map(c => c.code));
+    }
+    return codes.map(byCode);
+  }
+
+  // ── Feedback unifié ─────────────────────────────────────────────────────────
+  // msg est du HTML statique construit à partir des constantes ci-dessus
+  // (jamais une saisie élève) : innerHTML est donc sans risque.
+  function showFeedback(correct, msg) {
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.innerHTML = msg;
+    if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+
+    if (correct || TYPE_TACHE === 'drill') {
+      // Item clos : on propose la suite.
+      newBtn.classList.add('visible');
+      newBtn.focus();
+    } else {
+      // 'instance' + incorrect : branche morte ici (app drill), conservée pour
+      // la portabilité du contrat showFeedback.
+      newBtn.classList.remove('visible');
+      feedbackEl.setAttribute('tabindex', '-1');
+      feedbackEl.focus();
+    }
+  }
+
+  function resetFeedback() {
+    feedbackEl.className = 'feedback';
+    feedbackEl.textContent = '';
+    newBtn.classList.remove('visible');
+    newBtnLabel.textContent = 'Nouvel exercice';
+    compareEl.hidden = true;
+    compareEl.innerHTML = '';
+  }
+
+  // ── Sélecteur de niveau ─────────────────────────────────────────────────────
+  // NE PAS MODIFIER ce bloc — convention partagée entre toutes les apps.
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLevel = parseInt(btn.dataset.level);
+      document.querySelectorAll('.level-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+      newExercise();
+    });
+  });
+
+  // ── Sélecteur de sens ───────────────────────────────────────────────────────
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      mode = btn.dataset.mode;
+      document.querySelectorAll('.mode-btn').forEach(b => b.setAttribute('aria-pressed', 'false'));
+      btn.setAttribute('aria-pressed', 'true');
+      newExercise();
+    });
+  });
+
+  // « Nouvel exercice » : question suivante, ou nouvelle série si la série est finie.
+  newBtn.addEventListener('click', () => {
+    if (state.finished) { newExercise(true); return; }
+    state.index++;
+    nextQuestion(true);
+  });
+
+  // ── Logique de l'app ────────────────────────────────────────────────────────
+
+  // Nouvelle série : remet TOUT l'état à zéro (niveau, sens ou fin de série).
+  function newExercise(moveFocus) {
+    const pool = poolForLevel(currentLevel);
+    state = {
+      pool,
+      queue: shuffle(pool),
+      requeued: new Set(),   // un canton raté ne revient qu'une fois
+      total: pool.length,
+      index: 0,
+      firstTry: 0,
+      finished: false,
+      answered: false,
+    };
+    nextQuestion(moveFocus);
+  }
+
+  function updateProgress() {
+    progressEl.textContent = 'Canton ' + Math.min(state.index + 1, state.queue.length) +
+      ' sur ' + state.queue.length + ' · Réussis du premier coup : ' + state.firstTry + ' sur ' + state.total;
+  }
+
+  function nextQuestion(moveFocus) {
+    resetFeedback();
+    if (state.index >= state.queue.length) { endSeries(); return; }
+
+    const answer = state.queue[state.index];
+    const options = shuffle([answer, ...distractorsFor(answer)]);
+    state.answer = answer;
+    state.answered = false;
+    updateProgress();
+
+    choicesEl.classList.remove('revealed');
+    if (mode === 'map') {
+      questionBox.innerHTML =
+        '<span class="consigne">Quel est le canton coloré sur la carte ?</span>' +
+        mapSvg(answer.code, { grande: true, cls: 'map-main',
+          label: 'Carte de la Suisse : un canton est coloré et entouré si besoin.' });
+      choicesEl.innerHTML = options.map((c, i) =>
+        '<button class="choice-btn" data-code="' + c.code + '"' + (i === 0 ? ' data-focus-target' : '') + '>' +
+          '<span>' + c.nom + ' <span class="abbr">(' + c.code + ')</span></span>' +
+        '</button>').join('');
+    } else {
+      questionBox.innerHTML =
+        '<span class="consigne">Touche la carte où ce canton est coloré :</span>' +
+        '<span class="question-name">' + label(answer) + '</span>';
+      choicesEl.innerHTML = options.map((c, i) =>
+        '<button class="choice-btn" data-code="' + c.code + '" aria-label="Carte ' + (i + 1) + '"' +
+          (i === 0 ? ' data-focus-target' : '') + '>' +
+          mapSvg(c.code) +
+          '<span class="choice-name">' + label(c) + '</span>' +
+        '</button>').join('');
+    }
+
+    choicesEl.querySelectorAll('.choice-btn').forEach(b =>
+      b.addEventListener('click', () => answerWith(b.dataset.code)));
+
+    // Focus sur la première proposition, sauf au chargement de la page.
+    if (moveFocus) {
+      const target = choicesEl.querySelector('[data-focus-target]');
+      if (target) target.focus();
+    }
+  }
+
+  function markButton(btn, ok, c) {
+    btn.classList.add(ok ? 'is-correct' : 'is-wrong');
+    btn.insertAdjacentHTML('afterbegin',
+      '<span class="mark" aria-hidden="true">' + (ok ? '✓' : '✗') + '</span>');
+    btn.setAttribute('aria-label', label(c) + (ok ? ', bonne réponse' : ', ton choix'));
+  }
+
+  function answerWith(code) {
+    if (state.answered) return;
+    state.answered = true;
+    const answer = state.answer;
+    const chosen = byCode(code);
+    const correct = code === answer.code;
+
+    // Verrouille les propositions et marque la bonne (et le choix erroné).
+    choicesEl.querySelectorAll('.choice-btn').forEach(b => {
+      b.disabled = true;
+      if (mode === 'name') b.setAttribute('aria-label', label(byCode(b.dataset.code)));
+      if (b.dataset.code === answer.code) markButton(b, true, answer);
+      else if (b.dataset.code === code)   markButton(b, false, chosen);
+    });
+    // En mode « nom → carte », on révèle le nom sous chaque carte.
+    if (mode === 'name') choicesEl.classList.add('revealed');
+
+    if (correct) {
+      if (!state.requeued.has(answer.code)) state.firstTry++;
+      updateProgress();
+      showFeedback(true, 'Bravo ! C’est bien ' + labelHtml(answer) + '. Ce canton se trouve ' + answer.pos + '.');
+      return;
+    }
+
+    // Erreur : le canton reviendra une fois en fin de série.
+    let retour = '';
+    if (!state.requeued.has(answer.code)) {
+      state.requeued.add(answer.code);
+      state.queue.push(answer);
+      retour = ' Ce canton reviendra plus tard.';
+    }
+    updateProgress();
+
+    // Comparaison visuelle des deux cantons, côte à côte.
+    compareEl.innerHTML =
+      '<figure class="good">' + mapSvg(answer.code, { cls: 'good', label: 'Carte : ' + label(answer) }) +
+        '<figcaption><span aria-hidden="true">✓</span> ' + label(answer) + '</figcaption></figure>' +
+      '<figure class="bad">' + mapSvg(chosen.code, { cls: 'bad', label: 'Carte : ' + label(chosen) }) +
+        '<figcaption><span aria-hidden="true">✗</span> ' + label(chosen) + '</figcaption></figure>';
+    compareEl.hidden = false;
+
+    const msg = mode === 'map'
+      ? 'Pas tout à fait. Ce canton est ' + labelHtml(answer) + ' : il se trouve ' + answer.pos + '. ' +
+        labelHtml(chosen) + ' se trouve ' + chosen.pos + '. Compare les deux cartes.' + retour +
+        ' Appuie sur « Nouvel exercice » pour continuer.'
+      : 'Pas tout à fait. ' + labelHtml(answer) + ' se trouve ' + answer.pos + '. ' +
+        'Tu as touché ' + labelHtml(chosen) + ', qui se trouve ' + chosen.pos + '.' + retour +
+        ' Appuie sur « Nouvel exercice » pour continuer.';
+    showFeedback(false, msg);
+  }
+
+  function endSeries() {
+    state.finished = true;
+    choicesEl.innerHTML = '';
+    progressEl.textContent = 'Série terminée · Réussis du premier coup : ' + state.firstTry + ' sur ' + state.total;
+    const tous = state.firstTry === state.total;
+    questionBox.textContent = tous
+      ? 'Bravo ! Tu as situé tous les cantons du premier coup.'
+      : 'Série terminée ! Tu as revu les cantons difficiles. Recommence pour progresser encore.';
+    feedbackEl.className = 'feedback';
+    newBtnLabel.textContent = 'Nouvelle série';
+    newBtn.classList.add('visible');
+    newBtn.focus();
+  }
+
+  // ── Démarrage ───────────────────────────────────────────────────────────────
+  newExercise(false);
+</script>
+<!-- feedbackUtils.js DOIT être chargé APRÈS le script de l'app, juste avant </body> -->
+<script src="feedbackUtils.js"></script>
+</body>
+</html>
