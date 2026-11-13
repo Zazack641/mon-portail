@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<!--
+  lacs-cours-eau-7h8h.html : situer les principaux lacs et cours d'eau de Suisse.
+  Créé depuis _template.html (design « Couleur franche »).
+
+  Inspiration : activité éduclasse n° 608 « Lacs et cours d'eau de Suisse » (8e),
+  où l'élève glisse 23 étiquettes sur une carte muette. Version repensée pour
+  le portail : aucun glisser-déposer (un seul toucher par réponse, cibles
+  larges), un élément à la fois, feedback formatif qui décrit où se trouve le
+  lac ou le parcours du cours d'eau.
+
+  Objectif PER : SHS 21 (Relation Homme-espace, Géographie, Cycle 2, 7H-8H)
+    Se repérer dans l'espace suisse : situer les grands lacs et cours d'eau sur
+    une carte, utiliser les repères (frontières, points cardinaux, liens entre
+    lacs et cours d'eau).
+  Type de tâche : drill (localisation). L'erreur clôt l'item, mais l'élément
+    raté revient une fois en fin de série.
+
+  Niveaux (tous 7H-8H, du familier vers l'inconnu, principe didactique SHS) :
+    1 · Suisse romande : 4 lacs et 3 cours d'eau de l'ouest du pays.
+    2 · Toute la Suisse : les 13 lacs et 10 cours d'eau, propositions du même
+        type (lac ou cours d'eau) tirées au hasard.
+    3 · Éléments proches : les propositions sont les lacs ou cours d'eau les
+        plus proches de la bonne réponse.
+
+  Carte : lacs-cours-eau/carte-eaux.js. Lacs, cantons et frontière : limites
+  OFS / swisstopo (paquet npm swiss-maps, BSD-3-Clause). Cours d'eau : tracé
+  simplifié par points de passage. Stockée localement pour un usage hors ligne.
+-->
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Lacs et cours d'eau</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<!-- Styles partagés (reset, header, level-bar, feedback, boutons d'action…) -->
+<link rel="stylesheet" href="app-base.css">
+<style>
+  /* ── Couleur du domaine : Géographie ─────────────────────────────────────── */
+  :root {
+    --app-accent:      #1A6B4A;
+    --app-accent-dark: #145438;
+    --app-tint-bg:     #E6F2ED;
+    --app-tint-fg:     #0D4A30;
+    /* Carte : fond neutre clair, eau en bleu, élément demandé en vert. */
+    --map-land:        #F4F6F9;
+    --map-canton:      #D5DCE5;
+    --map-border:      #64748B;
+    --map-lake:        #A9D2EF;
+    --map-river:       #5B9BD3;
+  }
+
+  /* ── Choix du sens du jeu (contrôle propre à cette app) ─────────────────── */
+  .mode-bar {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .mode-btn {
+    flex: 1 1 240px;
+    min-height: 64px;
+    padding: 8px 20px;
+    border-radius: 16px;
+    border: 2px solid var(--app-tint-fg);
+    background: #fff;
+    color: var(--app-tint-fg);
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.2;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+  .mode-btn[aria-pressed="true"] { background: var(--app-accent); border-color: var(--app-accent); color: #fff; }
+  .mode-btn:not([aria-pressed="true"]):hover { background: var(--app-tint-bg); }
+  .mode-btn:focus-visible { outline: 3px solid var(--app-accent); outline-offset: 3px; }
+
+  /* ── Progression (toujours au même endroit) ─────────────────────────────── */
+  .progress {
+    font-size: 20px;
+    font-weight: 600;
+    color: #33415A;
+    line-height: 1.5;
+    text-align: center;
+  }
+
+  /* ── Carte ──────────────────────────────────────────────────────────────── */
+  .question-box .consigne { display: block; }
+  .question-name {
+    display: block;
+    margin-top: 8px;
+    font-size: clamp(26px, 5vw, 34px);
+    font-weight: 800;
+    color: var(--app-tint-fg);
+  }
+  .map {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .map-main {
+    margin: 14px auto 0;
+    max-width: 760px;
+  }
+  .map .terre   { fill: var(--map-land); stroke: var(--map-canton); stroke-width: 1; stroke-linejoin: round; }
+  .map .suisse  { fill: none; stroke: var(--map-border); stroke-width: 2; stroke-linejoin: round; }
+  .map .lac     { fill: var(--map-lake); }
+  .map .riviere { fill: none; stroke: var(--map-river); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+  .map path     { pointer-events: none; }
+  /* Élément demandé : vert plein (lac) ou trait épais bordé de blanc (cours d'eau). */
+  .map .lac.is-target       { fill: var(--app-accent); stroke: var(--app-tint-fg); stroke-width: 2; }
+  .map .riviere.lisere      { stroke: #fff; stroke-width: 16; }
+  .map .riviere.is-target   { stroke: var(--app-accent); stroke-width: 9; }
+  .map.mini .riviere        { stroke-width: 5; }
+  .map.mini .riviere.lisere { stroke-width: 26; }
+  .map.mini .riviere.is-target { stroke-width: 15; }
+  .map.mini .lac.is-target  { stroke-width: 10; stroke-linejoin: round; }
+  /* Anneau de repérage : rend visibles les petits lacs et les cours d'eau courts. */
+  .map .ring    { fill: none; stroke: var(--app-accent); stroke-width: 7; }
+  .map.mini .ring { stroke-width: 12; }
+  .map .pays    {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    fill: #475569;
+  }
+  /* Couleurs des cartes de comparaison (bonne réponse / choix erroné). */
+  .map.good .is-target, .map.good .ring { stroke: var(--app-correct-fg); }
+  .map.good .lac.is-target              { fill: var(--app-correct-fg); }
+  .map.bad  .is-target, .map.bad  .ring { stroke: var(--app-wrong-fg); }
+  .map.bad  .lac.is-target              { fill: var(--app-wrong-fg); }
+
+  /* ── Propositions ───────────────────────────────────────────────────────── */
+  .choices {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    width: 100%;
+  }
+  .choice-btn {
+    position: relative;
+    min-height: 80px;
+    padding: 12px 16px;
+    border-radius: 16px;
+    border: 3px solid var(--app-border);
+    background: #fff;
+    color: var(--app-text);
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.25;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(20,32,46,0.08);
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+  .choice-btn:hover:not(:disabled)  { border-color: var(--app-accent); }
+  .choice-btn:focus-visible         { outline: 3px solid var(--app-accent); outline-offset: 3px; }
+  .choice-btn:disabled              { cursor: default; }
+  .choice-btn .map                  { max-width: 280px; }
+  .choice-name { display: none; font-size: 22px; }
+  .choices.revealed .choice-name { display: block; }
+
+  /* Marques après réponse : couleur doublée d'un symbole et d'un texte. */
+  .choice-btn.is-correct { border-color: var(--app-correct-fg); background: var(--app-correct-bg); color: var(--app-correct-fg); }
+  .choice-btn.is-wrong   { border-color: var(--app-wrong-fg);   background: var(--app-wrong-bg);   color: var(--app-wrong-fg); }
+  /* Seules les cartes non retenues s'estompent ; le texte garde son contraste. */
+  .choice-btn:disabled:not(.is-correct):not(.is-wrong) .map { opacity: 0.5; }
+  .mark {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  /* ── Comparaison des deux éléments après une erreur ─────────────────────── */
+  .compare {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .compare[hidden] { display: none; }
+  .compare figure {
+    flex: 1 1 220px;
+    max-width: 320px;
+    background: #fff;
+    border-radius: 16px;
+    padding: 14px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(20,32,46,0.08);
+    border: 3px solid transparent;
+  }
+  .compare figure.good { border-color: var(--app-correct-fg); }
+  .compare figure.bad  { border-color: var(--app-wrong-fg); }
+  .compare figcaption {
+    margin-top: 8px;
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  .compare .good figcaption { color: var(--app-correct-fg); }
+  .compare .bad  figcaption { color: var(--app-wrong-fg); }
+
+  @media (max-width: 480px) {
+    .choices { grid-template-columns: 1fr; }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .choice-btn, .mode-btn { transition: border-color 0.15s, background 0.15s, transform 0.15s; }
+    .choice-btn:active:not(:disabled) { transform: scale(0.97); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────────── -->
+<header class="app-header" role="banner">
+  <a href="../index.html" class="back-link"><span aria-hidden="true">←</span> Retour</a>
+  <h1>Lacs et cours d'eau</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<!-- ── Sélecteur de niveau ─────────────────────────────────────────────────── -->
+<div class="level-bar" role="group" aria-label="Choisir le niveau">
+  <button class="level-btn active" data-level="1" aria-pressed="true">Niveau 1 · Suisse romande</button>
+  <button class="level-btn"        data-level="2" aria-pressed="false">Niveau 2 · Toute la Suisse</button>
+  <button class="level-btn"        data-level="3" aria-pressed="false">Niveau 3 · Éléments proches</button>
+</div>
+
+<!-- ── Contenu principal ───────────────────────────────────────────────────── -->
+<main>
+  <div class="mode-bar" role="group" aria-label="Choisir le sens du jeu">
+    <button class="mode-btn" data-mode="map"  aria-pressed="true"  aria-label="De la carte vers le nom">Carte <span aria-hidden="true">→</span> nom</button>
+    <button class="mode-btn" data-mode="name" aria-pressed="false" aria-label="Du nom vers la carte">Nom <span aria-hidden="true">→</span> carte</button>
+  </div>
+
+  <p class="progress" id="progress"></p>
+
+  <div class="question-box" id="question-box">Chargement…</div>
+
+  <div class="choices" id="choices" role="group" aria-label="Propositions"></div>
+
+  <div class="compare" id="compare" hidden></div>
+
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="action-row">
+    <!-- Pas de bouton « Vérifier » : la réponse est validée au toucher. -->
+    <button class="new-btn" id="new-btn"><span aria-hidden="true">▶</span> <span id="new-btn-label">Nouvel exercice</span></button>
+  </div>
+</main>
+
+<!-- ── Données de la carte (CARTE_EAUX) ────────────────────────────────────── -->
+<script src="lacs-cours-eau/carte-eaux.js"></script>
+<!-- ── Script de l'app ─────────────────────────────────────────────────────── -->
+<!-- appUtils.js expose : randInt, randBetween, shuffle, pick, colorForRank    -->
+<script src="appUtils.js"></script>
+<script>
+  // ── Références DOM ─────────────────────────────────────────────────────────
+  const questionBox = document.getElementById('question-box');
+  const feedbackEl  = document.getElementById('feedback');
+  const newBtn      = document.getElementById('new-btn');
+  const newBtnLabel = document.getElementById('new-btn-label');
+  const choicesEl   = document.getElementById('choices');
+  const compareEl   = document.getElementById('compare');
+  const progressEl  = document.getElementById('progress');
+
+  // ── Type de tâche ─────────────────────────────────────────────────────────
+  // Localisation : l'erreur clôt l'item (pas de retry à l'aveugle).
+  // L'élément raté revient une fois en fin de série.
+  const TYPE_TACHE = 'drill';
+
+  // ── Données ─────────────────────────────────────────────────────────────────
+  // nom : libellé des boutons ; le : avec article, pour le feedback ;
+  // desc : position ou parcours, en minuscule (reprise après « : »).
+  const ELEMENTS = [
+    // Lacs
+    { code: 'LEM', type: 'lac', nom: 'Lac Léman',              le: 'le lac Léman',              desc: 'il se trouve au sud-ouest, à la frontière de la France. Le Rhône le traverse' },
+    { code: 'NEU', type: 'lac', nom: 'Lac de Neuchâtel',       le: 'le lac de Neuchâtel',       desc: 'il se trouve à l’ouest, au pied du Jura. C’est le plus grand lac entièrement suisse' },
+    { code: 'MOR', type: 'lac', nom: 'Lac de Morat',           le: 'le lac de Morat',           desc: 'il se trouve à l’ouest, tout près du lac de Neuchâtel, entre Fribourg et Vaud' },
+    { code: 'BIE', type: 'lac', nom: 'Lac de Bienne',          le: 'le lac de Bienne',          desc: 'il se trouve au pied du Jura, au nord-est du lac de Neuchâtel. L’Aar le traverse' },
+    { code: 'THO', type: 'lac', nom: 'Lac de Thoune',          le: 'le lac de Thoune',          desc: 'il se trouve au centre, au pied des Alpes bernoises. L’Aar le traverse' },
+    { code: 'BRI', type: 'lac', nom: 'Lac de Brienz',          le: 'le lac de Brienz',          desc: 'il se trouve au centre, dans les Alpes bernoises, juste à l’est du lac de Thoune' },
+    { code: 'QCA', type: 'lac', nom: 'Lac des Quatre-Cantons', le: 'le lac des Quatre-Cantons', desc: 'il se trouve au centre, entre Lucerne, Uri, Schwyz et Nidwald. La Reuss le traverse' },
+    { code: 'ZOU', type: 'lac', nom: 'Lac de Zoug',            le: 'le lac de Zoug',            desc: 'il se trouve au centre, entre le lac de Zurich et le lac des Quatre-Cantons' },
+    { code: 'ZUR', type: 'lac', nom: 'Lac de Zurich',          le: 'le lac de Zurich',          desc: 'il se trouve au nord, en forme de croissant. La Limmat en sort, à Zurich' },
+    { code: 'WAL', type: 'lac', nom: 'Walensee',               le: 'le Walensee',               desc: 'il se trouve au nord-est, à l’est du lac de Zurich, entre Saint-Gall et Glaris' },
+    { code: 'CON', type: 'lac', nom: 'Lac de Constance',       le: 'le lac de Constance',       desc: 'il se trouve tout au nord-est, à la frontière de l’Allemagne et de l’Autriche. Le Rhin le traverse' },
+    { code: 'LUG', type: 'lac', nom: 'Lac de Lugano',          le: 'le lac de Lugano',          desc: 'il se trouve au sud, au Tessin, à la frontière de l’Italie' },
+    { code: 'MAJ', type: 'lac', nom: 'Lac Majeur',             le: 'le lac Majeur',             desc: 'il se trouve au sud, au Tessin, mais sa plus grande partie est en Italie. Le Tessin s’y jette' },
+    // Cours d'eau
+    { code: 'RHI', type: 'cours', nom: 'Rhin',   le: 'le Rhin',   desc: 'il naît dans les Grisons, traverse le lac de Constance, puis forme la frontière avec l’Allemagne jusqu’à Bâle' },
+    { code: 'AAR', type: 'cours', nom: 'Aar',    le: 'l’Aar',     desc: 'elle naît dans les Alpes bernoises, traverse les lacs de Brienz, de Thoune et de Bienne, passe à Berne et se jette dans le Rhin' },
+    { code: 'RHO', type: 'cours', nom: 'Rhône',  le: 'le Rhône',  desc: 'il naît dans un glacier du Valais, traverse tout le Valais puis le lac Léman, et part en France à Genève' },
+    { code: 'REU', type: 'cours', nom: 'Reuss',  le: 'la Reuss',  desc: 'elle naît près du Gothard, traverse le lac des Quatre-Cantons à Lucerne et se jette dans l’Aar' },
+    { code: 'LIM', type: 'cours', nom: 'Limmat', le: 'la Limmat', desc: 'elle sort du lac de Zurich, traverse la ville de Zurich et se jette dans l’Aar' },
+    { code: 'SAR', type: 'cours', nom: 'Sarine', le: 'la Sarine', desc: 'elle naît dans les Alpes, traverse la Gruyère et la ville de Fribourg, et se jette dans l’Aar' },
+    { code: 'THU', type: 'cours', nom: 'Thur',   le: 'la Thur',   desc: 'elle naît dans le canton de Saint-Gall, traverse la Thurgovie et se jette dans le Rhin' },
+    { code: 'INN', type: 'cours', nom: 'Inn',    le: 'l’Inn',     desc: 'cette rivière naît en Engadine, dans les Grisons, et part vers l’Autriche' },
+    { code: 'TES', type: 'cours', nom: 'Tessin', le: 'le Tessin', desc: 'il naît dans les Alpes, traverse le canton du Tessin et se jette dans le lac Majeur' },
+    { code: 'DOU', type: 'cours', nom: 'Doubs',  le: 'le Doubs',  desc: 'il forme la frontière avec la France, puis fait une boucle dans le canton du Jura' },
+  ];
+
+  // Niveau 1 : lacs et cours d'eau de Suisse romande (partir du familier).
+  const ROMANDS = ['LEM', 'NEU', 'MOR', 'BIE', 'RHO', 'SAR', 'DOU'];
+
+  // Pays voisins, affichés comme repères sur la grande carte uniquement.
+  const PAYS = [
+    { nom: 'FRANCE',    x: -50,  y: 300, anchor: 'start'  },
+    { nom: 'ALLEMAGNE', x: 330,  y: -14, anchor: 'middle' },
+    { nom: 'AUTRICHE',  x: 1090, y: 250, anchor: 'end'    },
+    { nom: 'ITALIE',    x: 470,  y: 708, anchor: 'middle' },
+  ];
+
+  // Un élément dont la carte mesure moins que ce seuil reçoit un anneau de repérage
+  // (seuil plus haut pour les petites cartes, où tout est réduit).
+  const PETIT = 70;
+  const PETIT_MINI = 100;
+
+  // ── État ────────────────────────────────────────────────────────────────────
+  let currentLevel = 1;
+  let mode = 'map';  // 'map' : carte → nom ; 'name' : nom → carte
+  let state = {};
+
+  function byCode(code) { return ELEMENTS.find(e => e.code === code); }
+  function geo(e)       { return e.type === 'lac' ? CARTE_EAUX.lacs[e.code] : CARTE_EAUX.coursEau[e.code]; }
+  function quoi(e)      { return e.type === 'lac' ? 'ce lac' : 'ce cours d’eau'; }
+  function majuscule(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+  function poolForLevel(level) {
+    return level === 1 ? ELEMENTS.filter(e => ROMANDS.includes(e.code)) : ELEMENTS;
+  }
+
+  // ── Dessin de la carte ──────────────────────────────────────────────────────
+  // grande : carte de la question (pays voisins en repère) ; sinon petite carte.
+  // Les cours d'eau sont dessinés AVANT les lacs : leurs extrémités passent sous l'eau.
+  function mapSvg(target, opts) {
+    const o = opts || {};
+    const C = CARTE_EAUX, W = C.largeur, H = C.hauteur;
+    const vb = o.grande ? '-70 -55 ' + (W + 140) + ' ' + (H + 110) : '-40 -40 ' + (W + 80) + ' ' + (H + 80);
+    let s = '<svg class="map ' + (o.grande ? '' : 'mini ') + (o.cls || '') + '" viewBox="' + vb + '" ' +
+      (o.label ? 'role="img" aria-label="' + o.label + '"' : 'aria-hidden="true"') + ' focusable="false">';
+    s += '<path class="terre" d="' + C.cantons + '"/>';
+    s += '<path class="suisse" d="' + C.suisse + '"/>';
+    for (const code in C.coursEau) {
+      if (code !== target.code) s += '<path class="riviere" d="' + C.coursEau[code].d + '"/>';
+    }
+    if (target.type === 'cours') {
+      s += '<path class="riviere lisere" d="' + geo(target).d + '"/>';
+      s += '<path class="riviere is-target" d="' + geo(target).d + '"/>';
+    }
+    s += '<path class="lac" d="' + C.autresLacs + '"/>';
+    for (const code in C.lacs) {
+      s += '<path class="lac' + (code === target.code ? ' is-target' : '') + '" d="' + C.lacs[code].d + '"/>';
+    }
+    const g = geo(target);
+    if (g.taille < (o.grande ? PETIT : PETIT_MINI)) {
+      const r = Math.max(g.taille / 2 + 18, o.grande ? 42 : 60);
+      s += '<circle class="ring" cx="' + g.cx + '" cy="' + g.cy + '" r="' + r + '"/>';
+    }
+    if (o.grande) {
+      PAYS.forEach(p => {
+        s += '<text class="pays" x="' + p.x + '" y="' + p.y + '" text-anchor="' + p.anchor + '">' + p.nom + '</text>';
+      });
+    }
+    return s + '</svg>';
+  }
+
+  // ── Choix des propositions ──────────────────────────────────────────────────
+  // Toujours du même type que la réponse (lac ou cours d'eau) quand c'est
+  // possible ; au niveau 1, on complète avec l'autre type si besoin.
+  function distractorsFor(answer) {
+    const others = state.pool.filter(e => e.code !== answer.code);
+    const memeType = others.filter(e => e.type === answer.type);
+    let chosen;
+    if (currentLevel === 3) {
+      // N3 : les 3 éléments du même type les plus proches de la réponse.
+      const a = geo(answer);
+      chosen = memeType
+        .map(e => ({ e, d: Math.hypot(geo(e).cx - a.cx, geo(e).cy - a.cy) }))
+        .sort((x, y) => x.d - y.d).slice(0, 3).map(x => x.e);
+    } else {
+      chosen = pick(memeType, Math.min(3, memeType.length));
+    }
+    if (chosen.length < 3) {
+      const reste = others.filter(e => !chosen.includes(e));
+      chosen = chosen.concat(pick(reste, 3 - chosen.length));
+    }
+    return chosen;
+  }
+
+  // ── Feedback unifié ─────────────────────────────────────────────────────────
+  // msg est du HTML statique construit à partir des constantes ci-dessus
+  // (jamais une saisie élève) : innerHTML est donc sans risque.
+  function showFeedback(correct, msg) {
+    feedbackEl.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    feedbackEl.innerHTML = msg;
+    if (correct) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+
+    if (correct || TYPE_TACHE === 'drill') {
+      // Item clos : on propose la suite.
+      newBtn.classList.add('visible');
+      newBtn.focus();
+    } else {
+      // 'instance' + incorrect : branche morte ici (app drill), conservée pour
+      // la portabilité du contrat showFeedback.
+      newBtn.classList.remove('visible');
+      feedbackEl.setAttribute('tabindex', '-1');
+      feedbackEl.focus();
+    }
+  }
+
+  function resetFeedback() {
+    feedbackEl.className = 'feedback';
+    feedbackEl.textContent = '';
+    newBtn.classList.remove('visible');
+    newBtnLabel.textContent = 'Nouvel exercice';
+    compareEl.hidden = true;
+    compareEl.innerHTML = '';
+  }
+
+  // ── Sélecteur de niveau ─────────────────────────────────────────────────────
+  // NE PAS MODIFIER ce bloc — convention partagée entre toutes les apps.
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLevel = parseInt(btn.dataset.level);
+      document.querySelectorAll('.level-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+      newExercise();
+    });
+  });
+
+  // ── Sélecteur de sens ───────────────────────────────────────────────────────
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      mode = btn.dataset.mode;
+      document.querySelectorAll('.mode-btn').forEach(b => b.setAttribute('aria-pressed', 'false'));
+      btn.setAttribute('aria-pressed', 'true');
+      newExercise();
+    });
+  });
+
+  // « Nouvel exercice » : question suivante, ou nouvelle série si la série est finie.
+  newBtn.addEventListener('click', () => {
+    if (state.finished) { newExercise(true); return; }
+    state.index++;
+    nextQuestion(true);
+  });
+
+  // ── Logique de l'app ────────────────────────────────────────────────────────
+
+  // Nouvelle série : remet TOUT l'état à zéro (niveau, sens ou fin de série).
+  function newExercise(moveFocus) {
+    const pool = poolForLevel(currentLevel);
+    state = {
+      pool,
+      queue: shuffle(pool),
+      requeued: new Set(),   // un élément raté ne revient qu'une fois
+      total: pool.length,
+      index: 0,
+      firstTry: 0,
+      finished: false,
+      answered: false,
+    };
+    nextQuestion(moveFocus);
+  }
+
+  function updateProgress() {
+    progressEl.textContent = 'Question ' + Math.min(state.index + 1, state.queue.length) +
+      ' sur ' + state.queue.length + ' · Réussies du premier coup : ' + state.firstTry + ' sur ' + state.total;
+  }
+
+  function nextQuestion(moveFocus) {
+    resetFeedback();
+    if (state.index >= state.queue.length) { endSeries(); return; }
+
+    const answer = state.queue[state.index];
+    const options = shuffle([answer, ...distractorsFor(answer)]);
+    state.answer = answer;
+    state.answered = false;
+    updateProgress();
+
+    choicesEl.classList.remove('revealed');
+    if (mode === 'map') {
+      const consigne = answer.type === 'lac'
+        ? 'Comment s’appelle le lac coloré sur la carte ?'
+        : 'Comment s’appelle le cours d’eau coloré sur la carte ?';
+      questionBox.innerHTML =
+        '<span class="consigne">' + consigne + '</span>' +
+        mapSvg(answer, { grande: true, cls: 'map-main',
+          label: 'Carte de la Suisse : ' + (answer.type === 'lac' ? 'un lac' : 'un cours d’eau') + ' est coloré.' });
+      choicesEl.innerHTML = options.map((e, i) =>
+        '<button class="choice-btn" data-code="' + e.code + '"' + (i === 0 ? ' data-focus-target' : '') + '>' +
+          '<span>' + e.nom + '</span>' +
+        '</button>').join('');
+    } else {
+      questionBox.innerHTML =
+        '<span class="consigne">Touche la carte où ' + quoi(answer) + ' est coloré :</span>' +
+        '<span class="question-name">' + answer.nom + '</span>';
+      choicesEl.innerHTML = options.map((e, i) =>
+        '<button class="choice-btn" data-code="' + e.code + '" aria-label="Carte ' + (i + 1) + '"' +
+          (i === 0 ? ' data-focus-target' : '') + '>' +
+          mapSvg(e) +
+          '<span class="choice-name">' + e.nom + '</span>' +
+        '</button>').join('');
+    }
+
+    choicesEl.querySelectorAll('.choice-btn').forEach(b =>
+      b.addEventListener('click', () => answerWith(b.dataset.code)));
+
+    // Focus sur la première proposition, sauf au chargement de la page.
+    if (moveFocus) {
+      const target = choicesEl.querySelector('[data-focus-target]');
+      if (target) target.focus();
+    }
+  }
+
+  function markButton(btn, ok, e) {
+    btn.classList.add(ok ? 'is-correct' : 'is-wrong');
+    btn.insertAdjacentHTML('afterbegin',
+      '<span class="mark" aria-hidden="true">' + (ok ? '✓' : '✗') + '</span>');
+    btn.setAttribute('aria-label', e.nom + (ok ? ', bonne réponse' : ', ton choix'));
+  }
+
+  function answerWith(code) {
+    if (state.answered) return;
+    state.answered = true;
+    const answer = state.answer;
+    const chosen = byCode(code);
+    const correct = code === answer.code;
+
+    // Verrouille les propositions et marque la bonne (et le choix erroné).
+    choicesEl.querySelectorAll('.choice-btn').forEach(b => {
+      b.disabled = true;
+      if (mode === 'name') b.setAttribute('aria-label', byCode(b.dataset.code).nom);
+      if (b.dataset.code === answer.code) markButton(b, true, answer);
+      else if (b.dataset.code === code)   markButton(b, false, chosen);
+    });
+    // En mode « nom → carte », on révèle le nom sous chaque carte.
+    if (mode === 'name') choicesEl.classList.add('revealed');
+
+    if (correct) {
+      if (!state.requeued.has(answer.code)) state.firstTry++;
+      updateProgress();
+      showFeedback(true, 'Bravo ! C’est bien <strong>' + answer.le + '</strong>. ' + majuscule(answer.desc) + '.');
+      return;
+    }
+
+    // Erreur : l'élément reviendra une fois en fin de série.
+    let retour = '';
+    if (!state.requeued.has(answer.code)) {
+      state.requeued.add(answer.code);
+      state.queue.push(answer);
+      retour = ' Cette question reviendra plus tard.';
+    }
+    updateProgress();
+
+    // Comparaison visuelle des deux éléments, côte à côte.
+    compareEl.innerHTML =
+      '<figure class="good">' + mapSvg(answer, { cls: 'good', label: 'Carte : ' + answer.nom }) +
+        '<figcaption><span aria-hidden="true">✓</span> ' + answer.nom + '</figcaption></figure>' +
+      '<figure class="bad">' + mapSvg(chosen, { cls: 'bad', label: 'Carte : ' + chosen.nom }) +
+        '<figcaption><span aria-hidden="true">✗</span> ' + chosen.nom + '</figcaption></figure>';
+    compareEl.hidden = false;
+
+    const msg = mode === 'map'
+      ? 'Pas tout à fait. C’est <strong>' + answer.le + '</strong> : ' + answer.desc + '. ' +
+        'Tu as choisi <strong>' + chosen.le + '</strong> : ' + chosen.desc + '. Compare les deux cartes.' + retour +
+        ' Appuie sur « Nouvel exercice » pour continuer.'
+      : 'Pas tout à fait. Voici <strong>' + answer.le + '</strong> : ' + answer.desc + '. ' +
+        'Tu as touché <strong>' + chosen.le + '</strong> : ' + chosen.desc + '.' + retour +
+        ' Appuie sur « Nouvel exercice » pour continuer.';
+    showFeedback(false, msg);
+  }
+
+  function endSeries() {
+    state.finished = true;
+    choicesEl.innerHTML = '';
+    progressEl.textContent = 'Série terminée · Réussies du premier coup : ' + state.firstTry + ' sur ' + state.total;
+    const tous = state.firstTry === state.total;
+    questionBox.textContent = tous
+      ? 'Bravo ! Tu as tout situé du premier coup.'
+      : 'Série terminée ! Tu as revu les lacs et cours d’eau difficiles. Recommence pour progresser encore.';
+    feedbackEl.className = 'feedback';
+    newBtnLabel.textContent = 'Nouvelle série';
+    newBtn.classList.add('visible');
+    newBtn.focus();
+  }
+
+  // ── Démarrage ───────────────────────────────────────────────────────────────
+  newExercise(false);
+</script>
+<!-- feedbackUtils.js DOIT être chargé APRÈS le script de l'app, juste avant </body> -->
+<script src="feedbackUtils.js"></script>
+</body>
+</html>
