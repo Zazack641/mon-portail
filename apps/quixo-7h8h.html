@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<!--
+  quixo-7h8h.html — Quixo, jeu d'alignement et de stratégie sur 5 x 5 cubes.
+  Branche « Jeux » — design « Couleur franche ».
+
+  Règle :
+    - plateau de 25 cubes, tous vierges au départ ;
+    - à son tour, on prend un cube du bord, vierge ou à son symbole
+      (jamais un cube de l'adversaire) ;
+    - on le tourne sur son symbole puis on le réinsère à une extrémité de sa
+      ligne ou de sa colonne, en poussant les autres cubes ; il est interdit de
+      le remettre à l'endroit exact d'où il vient ;
+    - gagne qui aligne cinq cubes à son symbole (ligne, colonne ou diagonale) ;
+    - si un coup aligne cinq symboles de l'adversaire, l'adversaire gagne,
+      même si le joueur a aussi formé son propre alignement.
+
+  Interaction : uniquement des taps simples (skill accessibilité §1) —
+  1er tap sur un cube du bord, 2e tap sur une des flèches de destination.
+
+  Modes : deux joueurs sur le même écran, ou contre l'ordinateur (Facile,
+  Moyen, Malin ; le joueur choisit son camp, les croix commencent toujours).
+
+  Comme les autres apps de la branche « Jeux », c'est un jeu à deux camps et
+  non un exercice : pas de TYPE_TACHE, feedbackUtils.js n'est sollicité qu'aux
+  fins de partie et aux coups refusés.
+-->
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Quixo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-base.css">
+<style>
+  /* ── Couleur du domaine : Jeux ─────────────────────────────────────────── */
+  :root {
+    --app-accent:      #7A2E5C;
+    --app-accent-dark: #5C2145;
+    --app-tint-bg:     #F7E9F1;
+    --app-tint-fg:     #6B2350;
+
+    /* Plateau et cubes en bois clair. Croix et rond reprennent les couleurs du
+       morpion ; les deux symboles restent distincts par la forme. */
+    --qx-plateau:  #8A5A32;
+    --qx-cube:     #F6EAD3;
+    --qx-arete:    #B98E5E;  /* 3,0:1 sur le plateau — contour non textuel */
+    --qx-cube-eteint:   #DCC9A8;  /* cube non jouable : croix 3,1:1, rond 3,4:1 (≥ 3:1) */
+    --qx-arete-eteinte: #9C7A50;
+    --qx-croix:    #1B7F4B;  /* 4,9:1 sur le cube */
+    --qx-rond:     #C0392B;  /* 5,0:1 sur le cube */
+  }
+
+  /* ── Barre d'options secondaire (difficulté, camp) ──────────────────────── */
+  .option-bar {
+    background: #fff;
+    border-top: 2px solid var(--app-border);
+    padding: 12px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .option-bar[hidden] { display: none; }
+  .option-label {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--app-tint-fg);
+  }
+  .option-btn {
+    padding: 0 22px;
+    min-height: 56px;
+    min-width: 64px;
+    border-radius: 999px;
+    border: 2px solid var(--app-tint-fg);
+    background: #fff;
+    color: var(--app-tint-fg);
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+  .option-btn[aria-pressed="true"] {
+    background: var(--app-accent);
+    border-color: var(--app-accent);
+    color: #fff;
+  }
+  .option-btn:focus-visible { outline: 3px solid var(--app-accent); outline-offset: 3px; }
+
+  /* ── Boîte de tour ──────────────────────────────────────────────────────── */
+  .question-box.tour-x   { background: #F1F8F3; box-shadow: inset 0 0 0 5px var(--qx-croix), 0 2px 8px rgba(20,32,46,0.08); }
+  .question-box.tour-o   { background: #FDF1EF; box-shadow: inset 0 0 0 5px var(--qx-rond),  0 2px 8px rgba(20,32,46,0.08); }
+  .question-box.tour-fin { background: var(--app-tint-bg); box-shadow: inset 0 0 0 5px var(--app-accent), 0 2px 8px rgba(20,32,46,0.08); }
+  .tour-ligne {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+  .tour-jeton { width: 48px; height: 48px; flex-shrink: 0; }
+  .tour-jeton:empty { display: none; }
+  .turn-sub, .score-line {
+    display: block;
+    margin-top: 6px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.5;
+    color: #3F4A5C;   /* ≥ 7,6:1 sur les trois fonds teintés de la boîte de tour */
+  }
+  .score-line { font-size: 18px; font-weight: 400; }
+
+  /* Le cube en mouvement fait le tour du plateau par l'extérieur : sur un
+     écran étroit, il ne doit pas créer de défilement horizontal. */
+  body { overflow-x: clip; }
+
+  /* ── Plateau ────────────────────────────────────────────────────────────── */
+  .board {
+    width: min(100%, 480px);
+    aspect-ratio: 1;
+    padding: 8px;
+    border-radius: 20px;
+    background: var(--qx-plateau);
+    box-shadow: 0 3px 10px rgba(20,32,46,0.18);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    gap: 5px;
+    width: 100%;
+    height: 100%;
+  }
+  .cube {
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    padding: 9%;
+    border: 2px solid var(--qx-arete);
+    border-radius: 12px;
+    background: var(--qx-cube);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cube svg { width: 100%; height: 100%; display: block; }
+  .cube[aria-disabled="true"] { cursor: default; }
+  .cube:focus-visible { outline: 4px solid #fff; outline-offset: -2px; box-shadow: 0 0 0 4px var(--app-accent); }
+
+  /* Règle visuelle : ce qui se touche est en relief, le reste s'efface.
+     Pendant le tour d'un humain, les cubes non jouables sont assombris et à
+     plat (symboles toujours ≥ 3:1) ; les cubes jouables et les flèches sont
+     surélevés comme des touches, avec une épaisseur prune dessous.
+     Le relief double la couleur : l'information ne repose pas sur elle seule. */
+  .grid.tour-actif .cube:not(.prenable):not(.cible):not(.choisi) {
+    background: var(--qx-cube-eteint);
+    border-color: var(--qx-arete-eteinte);
+  }
+  .cube.prenable, .cube.cible {
+    border: 3px solid var(--app-accent);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 0 var(--app-accent-dark);
+  }
+  .cube.prenable { background: #FFFBF3; }
+  .cube.prenable:hover { background: #fff; }
+  .cube.prenable:active, .cube.cible:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 0 var(--app-accent-dark);
+  }
+
+  /* Cube choisi : anneau plein et relief. */
+  .cube.choisi {
+    border: 4px solid var(--app-accent);
+    background: var(--app-tint-bg);
+    box-shadow: 0 0 0 3px #fff;
+  }
+
+  /* Destination possible : fond teinté, symbole estompé, flèche accent par-dessus. */
+  .cube.cible { background: var(--app-tint-bg); }
+  .cube.cible > svg:first-child { opacity: 0.45; }
+  .cube .fleche { position: absolute; inset: 0; width: 100%; height: 100%; padding: 8%; }
+
+  /* Animation du coup : le cube choisi se soulève et passe au-dessus des
+     autres ; ceux de la rangée glissent d'une case pour combler le trou. */
+  .cube.en-vol {
+    z-index: 2;
+    border: 4px solid var(--app-accent);
+    box-shadow: 0 10px 22px rgba(20,32,46,0.35);
+  }
+  .cube.glisse { z-index: 1; }
+
+  /* Alignement gagnant. */
+  .cube.gagnant { border: 5px solid var(--app-accent); background: #fff; box-shadow: 0 0 0 3px #fff; }
+
+  /* Message neutre (ni gain ni erreur). */
+  .feedback.info { background: var(--app-tint-bg); color: var(--app-tint-fg); display: block; }
+
+  /* ── Bouton secondaire (annuler) ────────────────────────────────────────── */
+  .second-btn {
+    padding: 0 28px;
+    background: #fff;
+    color: var(--app-tint-fg);
+    border: 3px solid var(--app-tint-fg);
+    border-radius: 16px;
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    cursor: pointer;
+    min-height: 68px;
+    min-width: 64px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+  .second-btn:hover:not(:disabled) { background: var(--app-tint-bg); }
+  .second-btn:disabled { opacity: 0.45; cursor: default; }
+  .second-btn:focus-visible { outline: 3px solid var(--app-accent); outline-offset: 3px; }
+
+  /* ── Panneau des règles ─────────────────────────────────────────────────── */
+  .rules {
+    width: 100%;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(20,32,46,0.08);
+    overflow: hidden;
+  }
+  .rules > summary {
+    list-style: none;
+    padding: 20px 24px;
+    min-height: 68px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--app-tint-fg);
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .rules > summary::-webkit-details-marker { display: none; }
+  .rules > summary::after { content: '▾'; margin-left: auto; font-size: 26px; }
+  .rules[open] > summary::after { content: '▴'; }
+  .rules > summary:focus-visible { outline: 3px solid var(--app-accent); outline-offset: -3px; }
+  .rules-body { padding: 0 24px 24px; font-size: 18px; line-height: 1.6; color: var(--app-text); }
+  .rules-body h2 {
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 21px;
+    font-weight: 700;
+    color: var(--app-tint-fg);
+    margin: 18px 0 6px;
+  }
+  .rules-body ul, .rules-body ol { margin: 0 0 4px 22px; }
+  .rules-body li { margin-bottom: 6px; }
+  .rules-body p { margin-bottom: 6px; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    /* Pas de transition sur transform : le mouvement des cubes est piloté en
+       JS (Web Animations) et leur retour en place après le coup est instantané. */
+    .cube { transition: background 0.15s, border-color 0.15s; }
+    .option-btn { transition: background 0.15s, color 0.15s, border-color 0.15s; }
+    .option-btn:active { transform: scale(0.97); }
+    .second-btn { transition: background 0.15s; }
+    .second-btn:active { transform: scale(0.97); }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header" role="banner">
+  <a href="../index.html" class="back-link"><span aria-hidden="true">←</span> Retour</a>
+  <h1>Quixo</h1>
+  <div class="header-spacer"></div>
+</header>
+
+<div class="level-bar" role="group" aria-label="Choisir le mode de jeu">
+  <button class="level-btn active" data-mode="2j" aria-pressed="true">2 joueurs</button>
+  <button class="level-btn"        data-mode="ia" aria-pressed="false">Contre l’ordinateur</button>
+</div>
+
+<!-- Options du mode « Contre l'ordinateur » : la barre entière reste masquée à deux joueurs. -->
+<div class="option-bar" id="option-bar" hidden>
+  <span class="option-label" id="lbl-diff">Ordinateur :</span>
+  <button class="option-btn" data-diff="1" aria-pressed="true"  aria-describedby="lbl-diff">Facile</button>
+  <button class="option-btn" data-diff="2" aria-pressed="false" aria-describedby="lbl-diff">Moyen</button>
+  <button class="option-btn" data-diff="3" aria-pressed="false" aria-describedby="lbl-diff">Malin</button>
+  <button class="option-btn" id="camp-btn" aria-pressed="true">Tu joues les croix</button>
+</div>
+
+<main>
+  <div class="question-box" id="question-box">
+    <div class="tour-ligne" aria-live="polite" aria-atomic="true">
+      <svg class="tour-jeton" id="tour-jeton" viewBox="0 0 100 100" aria-hidden="true"></svg>
+      <span id="turn-main">Au tour des croix</span>
+    </div>
+    <span class="turn-sub" id="turn-sub"></span>
+    <span class="score-line" id="score-line"></span>
+  </div>
+
+  <div class="board">
+    <div class="grid" id="grid" role="group" aria-label="Plateau de Quixo, 5 lignes et 5 colonnes"></div>
+  </div>
+
+  <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="action-row">
+    <button class="second-btn" id="undo-btn" disabled>Annuler le coup</button>
+    <button class="new-btn visible" id="new-btn"><span aria-hidden="true">▶</span> Nouvelle partie</button>
+  </div>
+
+  <details class="rules" id="rules">
+    <summary>Règles du jeu</summary>
+    <div class="rules-body">
+      <p><strong>But :</strong> aligner cinq cubes qui montrent ton symbole.</p>
+      <p><strong>Matériel :</strong> un plateau de 25 cubes. Au début, toutes
+         les faces visibles sont vierges.</p>
+
+      <h2>Déroulement du jeu</h2>
+      <ol>
+        <li>Prends un cube sur le bord du plateau. Il doit être vierge ou
+            montrer ton symbole. Un cube de l'adversaire ne se prend jamais.</li>
+        <li>Tourne-le pour qu'il montre ton symbole.</li>
+        <li>Remets-le au bout de sa ligne ou de sa colonne en poussant les
+            autres cubes. Tu ne peux pas le remettre à l'endroit d'où il vient.</li>
+      </ol>
+
+      <h2>Conditions de victoire</h2>
+      <p>Gagne le premier qui aligne cinq cubes à son symbole :
+         horizontalement, verticalement ou en diagonale.</p>
+      <p><strong>Attention :</strong> si ton coup aligne cinq symboles de
+         l'adversaire, c'est lui qui gagne, même si tu alignes aussi les tiens.</p>
+
+      <h2>Dans cette version</h2>
+      <ul>
+        <li>Les croix commencent toujours.</li>
+        <li>Touche d'abord un cube du bord en relief, puis une flèche.
+            Ton cube fait le tour du plateau, rentre par la flèche et pousse
+            la rangée dans le sens de la flèche.</li>
+        <li>Les cubes situés entre sa place de départ et sa place d'arrivée
+            glissent tous d'une case pour lui faire de la place.</li>
+        <li>Touche à nouveau le cube choisi pour changer d'avis.</li>
+        <li>Contre l’ordinateur, tu choisis ton camp et sa force de jeu.
+            Il montre d’abord le cube qu’il prend et la flèche choisie,
+            puis il joue.</li>
+      </ul>
+    </div>
+  </details>
+</main>
+
+<script src="appUtils.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   1. MOTEUR — indépendant de l'affichage
+   ═══════════════════════════════════════════════════════════════════════════
+   Une position : un tableau de 25 cubes valant 'X', 'O' ou '' (vierge).
+   Index 0..24, ligne par ligne (index = 5 * ligne + colonne). */
+
+const N = 5;
+const AUTRE = { X: 'O', O: 'X' };
+const idx = (r, c) => N * r + c;
+const lig = (i) => Math.floor(i / N);
+const col = (i) => i % N;
+
+const LIGNES = [];
+for (let r = 0; r < N; r++) LIGNES.push([0, 1, 2, 3, 4].map((c) => idx(r, c)));
+for (let c = 0; c < N; c++) LIGNES.push([0, 1, 2, 3, 4].map((r) => idx(r, c)));
+LIGNES.push([0, 1, 2, 3, 4].map((k) => idx(k, k)));
+LIGNES.push([0, 1, 2, 3, 4].map((k) => idx(k, N - 1 - k)));
+
+function estAuBord(i) {
+  const r = lig(i), c = col(i);
+  return r === 0 || r === N - 1 || c === 0 || c === N - 1;
+}
+
+/* Un joueur peut prendre un cube du bord, vierge ou à son symbole. */
+function prenable(p, i, joueur) {
+  return estAuBord(i) && (p[i] === '' || p[i] === joueur);
+}
+
+/* Destinations d'un cube pris en i : les extrémités de sa ligne et de sa
+   colonne, sauf sa propre place. Coin : 2 destinations ; bord : 3. */
+function destinations(i) {
+  const r = lig(i), c = col(i);
+  const set = new Set([idx(r, 0), idx(r, N - 1), idx(0, c), idx(N - 1, c)]);
+  set.delete(i);
+  return [...set];
+}
+
+/* Joue le coup (prise en i, réinsertion en d) et renvoie la nouvelle position. */
+function pousser(p, i, d, joueur) {
+  const q = p.slice();
+  const r = lig(i), c = col(i), dr = lig(d), dc = col(d);
+  if (dr === r) {
+    if (dc < c) for (let k = c; k > dc; k--) q[idx(r, k)] = q[idx(r, k - 1)];
+    else        for (let k = c; k < dc; k++) q[idx(r, k)] = q[idx(r, k + 1)];
+  } else {
+    if (dr < r) for (let k = r; k > dr; k--) q[idx(k, c)] = q[idx(k - 1, c)];
+    else        for (let k = r; k < dr; k++) q[idx(k, c)] = q[idx(k + 1, c)];
+  }
+  q[d] = joueur;
+  return q;
+}
+
+/* Sens de la poussée pour une destination : par où le cube rentre. */
+function sens(i, d) {
+  const r = lig(i), c = col(i), dr = lig(d), dc = col(d);
+  if (dr === r) return dc < c ? 'gauche' : 'droite';
+  return dr < r ? 'haut' : 'bas';
+}
+
+function alignements(p, sym) {
+  return LIGNES.filter((l) => l.every((i) => p[i] === sym));
+}
+
+/* Résultat après un coup de `joueur` : { gagnant, lignes, piege } ou null.
+   Un alignement adverse l'emporte toujours, même accompagné du sien. */
+function resultat(p, joueur) {
+  const adv = alignements(p, AUTRE[joueur]);
+  if (adv.length) return { gagnant: AUTRE[joueur], lignes: adv, piege: true };
+  const miens = alignements(p, joueur);
+  if (miens.length) return { gagnant: joueur, lignes: miens, piege: false };
+  return null;
+}
+
+/* ── Ordinateur ──────────────────────────────────────────────────────────────
+   Tous les coups légaux de `joueur` : [prise, destination]. Au plus 44. */
+function coupsLegaux(p, joueur) {
+  const coups = [];
+  for (let i = 0; i < N * N; i++) {
+    if (!prenable(p, i, joueur)) continue;
+    for (const d of destinations(i)) coups.push([i, d]);
+  }
+  return coups;
+}
+
+/* Évaluation d'une position du point de vue de `sym` : chaque rangée de cinq
+   (ligne, colonne, diagonale) vaut d'autant plus qu'elle contient de cubes du
+   même camp — la progression est forte pour qu'une rangée de quatre pèse
+   bien plus que deux rangées de deux. Le centre, que les poussées déplacent
+   moins souvent, compte un peu plus. */
+const POIDS = [0, 1, 4, 16, 64, 0];
+function evaluer(p, sym) {
+  const adv = AUTRE[sym];
+  let score = 0;
+  for (const l of LIGNES) {
+    let m = 0, a = 0;
+    for (const i of l) { if (p[i] === sym) m++; else if (p[i] === adv) a++; }
+    score += POIDS[m] - POIDS[a];
+  }
+  if (p[12] === sym) score += 3; else if (p[12] === adv) score -= 3;
+  return score;
+}
+
+const VICTOIRE = 100000;
+
+/* Négamax avec élagage alpha-bêta. Score du point de vue de `joueur`, qui a
+   le trait. Une victoire rapide vaut plus qu'une victoire lointaine. */
+function negamax(p, joueur, prof, alpha, beta) {
+  let meilleur = -Infinity;
+  for (const [i, d] of coupsLegaux(p, joueur)) {
+    const q = pousser(p, i, d, joueur);
+    const r = resultat(q, joueur);
+    let score;
+    if (r)              score = r.gagnant === joueur ? VICTOIRE + prof : -(VICTOIRE + prof);
+    else if (prof <= 1) score = evaluer(q, joueur);
+    else                score = -negamax(q, AUTRE[joueur], prof - 1, -beta, -alpha);
+    if (score > meilleur) meilleur = score;
+    if (score > alpha) alpha = score;
+    if (alpha >= beta) break;
+  }
+  return meilleur;
+}
+
+/* Choix du coup de l'ordinateur selon la difficulté :
+     1 — Facile : au hasard, mais sans jamais offrir la victoire d'un coup
+                  (il ne se fait pas piéger par ses propres poussées).
+     2 — Moyen  : voit un coup d'avance de chaque côté (gagne s'il peut,
+                  évite de laisser un coup gagnant à l'adversaire).
+     3 — Malin  : voit trois coups d'avance.
+   Entre plusieurs coups qui se valent, il tire au sort : il ne rejoue pas
+   toujours la même partie. */
+function choisirCoup(p, sym, difficulte) {
+  const coups = coupsLegaux(p, sym);
+  if (difficulte === 1) {
+    const surs = coups.filter(([i, d]) => {
+      const r = resultat(pousser(p, i, d, sym), sym);
+      return !r || r.gagnant === sym;
+    });
+    return pick(surs.length ? surs : coups, 1)[0];
+  }
+
+  const prof = difficulte === 2 ? 2 : 3;
+  let meilleurScore = -Infinity;
+  let meilleurs = [];
+  for (const [i, d] of shuffle(coups)) {
+    const q = pousser(p, i, d, sym);
+    const r = resultat(q, sym);
+    let score;
+    if (r) score = r.gagnant === sym ? VICTOIRE + prof : -(VICTOIRE + prof);
+    else   score = -negamax(q, AUTRE[sym], prof - 1, -Infinity, Infinity);
+    if (score > meilleurScore) { meilleurScore = score; meilleurs = [[i, d]]; }
+    else if (score === meilleurScore) meilleurs.push([i, d]);
+  }
+  return pick(meilleurs, 1)[0];
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   2. AFFICHAGE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const SVG_NS      = 'http://www.w3.org/2000/svg';
+const grid        = document.getElementById('grid');
+const questionBox = document.getElementById('question-box');
+const tourJeton   = document.getElementById('tour-jeton');
+const turnMain    = document.getElementById('turn-main');
+const turnSub     = document.getElementById('turn-sub');
+const scoreLine   = document.getElementById('score-line');
+const optionBar   = document.getElementById('option-bar');
+const campBtn     = document.getElementById('camp-btn');
+const diffBtns    = [...document.querySelectorAll('.option-btn[data-diff]')];
+const feedbackEl  = document.getElementById('feedback');
+const newBtn      = document.getElementById('new-btn');
+const undoBtn     = document.getElementById('undo-btn');
+
+const NOM_SYMBOLE = { X: 'croix', O: 'rond', '': 'cube vierge' };
+const NOM_CAMP    = { X: 'les croix', O: 'les ronds' };
+const ENTREE = {
+  gauche: (d) => 'ton cube va tout à gauche de la ligne ' + (lig(d) + 1) +
+                 ', les cubes entre les deux glissent d’une case vers la droite',
+  droite: (d) => 'ton cube va tout à droite de la ligne ' + (lig(d) + 1) +
+                 ', les cubes entre les deux glissent d’une case vers la gauche',
+  haut:   (d) => 'ton cube va tout en haut de la colonne ' + (col(d) + 1) +
+                 ', les cubes entre les deux glissent d’une case vers le bas',
+  bas:    (d) => 'ton cube va tout en bas de la colonne ' + (col(d) + 1) +
+                 ', les cubes entre les deux glissent d’une case vers le haut'
+};
+/* La flèche montre le sens de la poussée : le cube rentre par cette place et
+   pousse la rangée dans la direction de la flèche. C'est cohérent avec
+   l'animation, où le cube fait le tour par l'extérieur avant de pousser. */
+const ROTATION = { gauche: 0, haut: 90, droite: 180, bas: 270 };
+
+function el(nom, attrs) {
+  const e = document.createElementNS(SVG_NS, nom);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+
+function dessinerSymbole(cible, sym) {
+  if (sym === 'X') {
+    const trait = { stroke: 'var(--qx-croix)', 'stroke-width': 14, 'stroke-linecap': 'round' };
+    cible.appendChild(el('line', Object.assign({ x1: 20, y1: 20, x2: 80, y2: 80 }, trait)));
+    cible.appendChild(el('line', Object.assign({ x1: 80, y1: 20, x2: 20, y2: 80 }, trait)));
+  } else if (sym === 'O') {
+    cible.appendChild(el('circle', {
+      cx: 50, cy: 50, r: 30, fill: 'none', stroke: 'var(--qx-rond)', 'stroke-width': 14
+    }));
+  }
+}
+
+/* Flèche accent à liseré blanc, posée par-dessus le cube sans le masquer :
+   le symbole du cube cible reste visible en transparence. */
+function dessinerFleche(sens) {
+  const svg = el('svg', { class: 'fleche', viewBox: '0 0 100 100', 'aria-hidden': 'true' });
+  const g = el('g', { transform: 'rotate(' + ROTATION[sens] + ' 50 50)' });
+  /* Flèche pointant vers la droite, tournée selon le sens d'entrée. */
+  const forme = { d: 'M20 50 H72 M52 28 L76 50 L52 72', fill: 'none',
+                  'stroke-linecap': 'round', 'stroke-linejoin': 'round' };
+  g.appendChild(el('path', Object.assign({ stroke: '#fff', 'stroke-width': 22 }, forme)));
+  g.appendChild(el('path', Object.assign({ stroke: 'var(--app-accent)', 'stroke-width': 11 }, forme)));
+  svg.appendChild(g);
+  return svg;
+}
+
+const cubes = [];
+
+function construirePlateau() {
+  for (let i = 0; i < N * N; i++) {
+    const b = document.createElement('button');
+    b.className = 'cube';
+    b.type = 'button';
+    b.addEventListener('click', () => toucher(i));
+    grid.appendChild(b);
+    cubes.push(b);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   3. PARTIE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+let plateau, joueur, choisi, cibles, finie, fin, historique;
+let mode = '2j', difficulte = 1, campHumain = 'X', iaOccupee = false;
+let dernierResultat = null;
+let scores = { X: 0, O: 0 };
+
+/* Animation du coup (désactivée si l'appareil demande moins de mouvement). */
+const MOUVEMENT_REDUIT = window.matchMedia('(prefers-reduced-motion: reduce)');
+let enMouvement = false;
+let jetonAnim = 0;          // invalide une animation en cours (nouvelle partie)
+const attendre = (ms) => new Promise((ok) => setTimeout(ok, ms));
+
+function figer() {
+  /* Retirer d'abord les classes (donc la transition), puis les décalages :
+     les cubes reprennent leur place instantanément. */
+  cubes.forEach((b) => {
+    b.getAnimations().forEach((a) => a.cancel());
+    b.classList.remove('en-vol', 'glisse');
+  });
+  enMouvement = false;
+}
+
+/* ── Trajet du cube par l'extérieur du plateau ──────────────────────────────
+   Le pourtour extérieur est l'anneau des positions (ligne, colonne) où la
+   ligne ou la colonne vaut -1 ou 5. On le parcourt comme un rectangle de
+   périmètre 24, abscisse t comptée dans le sens horaire depuis (-1, -1). */
+const TOUR = 4 * (N + 1);   // 24
+function abscisse([r, c]) {
+  if (r === -1) return c + 1;                    // bord haut   : 0 → 6
+  if (c === N)  return (N + 1) + (r + 1);        // bord droit  : 6 → 12
+  if (r === N)  return 2 * (N + 1) + (N - c);    // bord bas    : 12 → 18
+  return 3 * (N + 1) + (N - r);                  // bord gauche : 18 → 24
+}
+const COINS = [[-1, -1], [-1, N], [N, N], [N, -1]];   // t = 0, 6, 12, 18
+
+/* Distance et coins traversés pour aller de a à b sur l'anneau, par le
+   plus court des deux sens. */
+function cheminAnneau(a, b) {
+  const ta = abscisse(a), tb = abscisse(b);
+  const horaire = (tb - ta + TOUR) % TOUR;
+  const sensH = horaire <= TOUR - horaire;
+  const dist = sensH ? horaire : TOUR - horaire;
+  const coins = [];
+  for (let k = 1; k < dist; k++) {
+    const t = ((sensH ? ta + k : ta - k) + TOUR) % TOUR;
+    if (t % (N + 1) === 0) coins.push(COINS[t / (N + 1)]);
+  }
+  return { dist, points: [...coins, b] };
+}
+
+/* Point d'entrée : la position extérieure d'où le cube pousse la rangée. */
+function pointEntree(i, d) {
+  const r = lig(d), c = col(d);
+  switch (sens(i, d)) {
+    case 'gauche': return [r, -1];
+    case 'droite': return [r, N];
+    case 'haut':   return [-1, c];
+    default:       return [N, c];
+  }
+}
+
+/* Trajet complet : sortie perpendiculaire au bord (pour un coin, le côté qui
+   rapproche le plus de l'entrée), tour par l'extérieur, puis entrée. */
+function trajet(i, d) {
+  const r = lig(i), c = col(i);
+  const sorties = [];
+  if (r === 0)     sorties.push([-1, c]);
+  if (r === N - 1) sorties.push([N, c]);
+  if (c === 0)     sorties.push([r, -1]);
+  if (c === N - 1) sorties.push([r, N]);
+  const entree = pointEntree(i, d);
+  let meilleur = null;
+  for (const s of sorties) {
+    const ch = cheminAnneau(s, entree);
+    if (!meilleur || ch.dist < meilleur.ch.dist) meilleur = { s, ch };
+  }
+  return { sortie: meilleur.s, tour: meilleur.ch.points, dist: meilleur.ch.dist };
+}
+
+/* Joue visuellement le coup (prise en i, réinsertion en d), comme avec les
+   mains sur le vrai plateau :
+     1. le cube choisi se soulève, déjà tourné sur le symbole du joueur ;
+     2. il sort du plateau par son bord ;
+     3. il fait le tour par l'extérieur jusqu'au bout de la rangée visée ;
+     4. il rentre et pousse : les cubes de la rangée glissent d'une case
+        jusqu'à la place qu'il a libérée.
+   Renvoie false si l'animation a été interrompue par une nouvelle partie. */
+async function animerCoup(i, d) {
+  if (MOUVEMENT_REDUIT.matches) return true;
+  const jeton = jetonAnim;
+  enMouvement = true;
+
+  const apercu = plateau.slice();
+  apercu[i] = joueur;
+  rendre(apercu);
+
+  const o = cubes[0].getBoundingClientRect();
+  const pasX = cubes[1].getBoundingClientRect().left - o.left;
+  const pasY = cubes[N].getBoundingClientRect().top - o.top;
+  const r = lig(i), c = col(i), dr = lig(d), dc = col(d);
+  /* Position (ligne, colonne) → transform relatif à la place d'origine. */
+  const tf = ([pr, pc], echelle) =>
+    'translate(' + (pc - c) * pasX + 'px, ' + (pr - r) * pasY + 'px) scale(' + echelle + ')';
+  const lancer = (b, images, duree) => b.animate(images, { duration: duree, easing: 'ease-in-out', fill: 'forwards' }).finished;
+  const suite = async (promesse) => { try { await promesse; } catch (e) { return false; } return jeton === jetonAnim; };
+
+  const vol = cubes[i];
+  vol.classList.add('en-vol');
+  const { sortie, tour, dist } = trajet(i, d);
+
+  // 1. Il se soulève.
+  if (!(await suite(lancer(vol, [{ transform: tf([r, c], 1) }, { transform: tf([r, c], 1.12) }], 220)))) return false;
+  // 2. Il sort du plateau.
+  if (!(await suite(lancer(vol, [{ transform: tf([r, c], 1.12) }, { transform: tf(sortie, 1.12) }], 260)))) return false;
+  // 3. Il fait le tour par l'extérieur (vitesse constante d'une case à l'autre).
+  const etapes = [sortie, ...tour];
+  let parcouru = 0;
+  const images = [{ transform: tf(sortie, 1.12), offset: 0 }];
+  for (let k = 1; k < etapes.length; k++) {
+    parcouru += Math.abs(etapes[k][0] - etapes[k - 1][0]) + Math.abs(etapes[k][1] - etapes[k - 1][1]);
+    images.push({ transform: tf(etapes[k], 1.12), offset: parcouru / dist });
+  }
+  if (!(await suite(vol.animate(images, { duration: Math.max(260, dist * 75), easing: 'linear', fill: 'forwards' }).finished))) return false;
+  // 4. Il rentre et pousse la rangée d'une case.
+  const glissent = [];
+  if (dr === r) {
+    const s = Math.sign(c - dc);
+    for (let k = dc; k !== c; k += s) glissent.push({ i: idx(r, k), x: s * pasX, y: 0 });
+  } else {
+    const s = Math.sign(r - dr);
+    for (let k = dr; k !== r; k += s) glissent.push({ i: idx(k, c), x: 0, y: s * pasY });
+  }
+  const poussee = glissent.map((g) => {
+    cubes[g.i].classList.add('glisse');
+    return lancer(cubes[g.i], [{ transform: 'translate(0, 0)' }, { transform: 'translate(' + g.x + 'px, ' + g.y + 'px)' }], 450);
+  });
+  poussee.push(lancer(vol, [{ transform: tf(tour[tour.length - 1], 1.12) }, { transform: tf([dr, dc], 1) }], 450));
+  if (!(await suite(Promise.all(poussee)))) return false;
+  await attendre(120);
+  return jeton === jetonAnim;
+}
+
+/* Un humain a-t-il la main ? (à deux joueurs : toujours, sauf fin de partie) */
+function humainJoue() {
+  if (finie || iaOccupee) return false;
+  return mode === '2j' || joueur === campHumain;
+}
+
+/* Changement de mode, de difficulté ou de camp : nouvelle série, scores remis
+   à zéro (les parties précédentes ne se comparent plus à celles qui suivent). */
+function nouvelleSerie() {
+  scores = { X: 0, O: 0 };
+  nouvellePartie();
+}
+
+function nouvellePartie() {
+  jetonAnim++;              // interrompt aussi un tour d'ordinateur en cours
+  iaOccupee = false;
+  figer();
+  plateau = new Array(N * N).fill('');
+  joueur = 'X';             // les croix commencent toujours
+  choisi = null;
+  cibles = [];
+  finie = false;
+  fin = null;
+  historique = [];
+  dernierResultat = null;
+  undoBtn.disabled = true;
+  viderFeedback();
+  rendre();
+  jouerIaSiBesoin();
+}
+
+function viderFeedback() {
+  feedbackEl.className = 'feedback';
+  feedbackEl.textContent = '';
+}
+
+function refuser(msg) {
+  feedbackEl.className = 'feedback wrong';
+  feedbackEl.textContent = msg;
+  playIncorrect();
+}
+
+function toucher(i) {
+  if (enMouvement) return;
+  if (finie) {
+    feedbackEl.className = 'feedback info';
+    feedbackEl.textContent = 'La partie est terminée. Appuie sur « Nouvelle partie » pour rejouer.';
+    return;
+  }
+  if (!humainJoue()) return;
+
+  /* Deuxième étape : un cube est déjà choisi. */
+  if (choisi !== null) {
+    if (i === choisi) {                       // changer d'avis
+      choisi = null; cibles = [];
+      viderFeedback(); rendre();
+      cubes[i].focus({ preventScroll: true });
+      return;
+    }
+    if (cibles.includes(i)) { jouer(choisi, i); return; }
+    if (prenable(plateau, i, joueur)) { choisir(i); return; }
+    refuser('Touche une des flèches pour pousser ton cube, ou touche à nouveau le cube choisi pour changer d’avis.');
+    return;
+  }
+
+  /* Première étape : prendre un cube. */
+  if (!estAuBord(i)) {
+    refuser('Ce cube n’est pas au bord. Prends un cube sur le pourtour du plateau.');
+    return;
+  }
+  if (plateau[i] === AUTRE[joueur]) {
+    refuser('Ce cube montre ' + (plateau[i] === 'X' ? 'une croix' : 'un rond') +
+            ' : il appartient à l’adversaire. Prends un cube vierge ou un cube à ton symbole.');
+    return;
+  }
+  choisir(i);
+}
+
+function choisir(i) {
+  choisi = i;
+  cibles = destinations(i);
+  viderFeedback();
+  rendre();
+  cubes[cibles[0]].focus({ preventScroll: true });
+}
+
+async function jouer(i, d) {
+  choisi = null; cibles = [];
+  viderFeedback();
+  if (!(await animerCoup(i, d))) return;
+  figer();
+
+  historique.push({ p: plateau.slice(), j: joueur });
+  undoBtn.disabled = false;
+  plateau = pousser(plateau, i, d, joueur);
+
+  const r = resultat(plateau, joueur);
+  if (r) { terminer(r); return; }
+
+  joueur = AUTRE[joueur];
+  viderFeedback();
+  rendre();
+  if (humainJoue()) focusPremierPrenable();
+  jouerIaSiBesoin();
+}
+
+function focusPremierPrenable() {
+  const k = cubes.findIndex((b) => b.tabIndex === 0);
+  if (k >= 0) cubes[k].focus({ preventScroll: true });
+}
+
+function terminer(r) {
+  finie = true;
+  fin = r;
+  scores[r.gagnant]++;
+  dernierResultat = r.gagnant;
+
+  const Nom   = r.gagnant === 'X' ? 'Les croix' : 'Les ronds';
+  const verbe = r.gagnant === 'X' ? 'elles gagnent' : 'ils gagnent';
+  let msg;
+  if (r.piege) {
+    msg = 'Ce coup a aligné cinq ' + (r.gagnant === 'X' ? 'croix' : 'ronds') +
+          ' : ' + NOM_CAMP[r.gagnant] + ' gagnent la partie ! ' +
+          'Un alignement de l’adversaire le fait toujours gagner. ' +
+          'Appuie sur « Nouvelle partie » pour rejouer.';
+  } else {
+    msg = Nom + ' alignent cinq cubes : ' + verbe + ' la partie ! ' +
+          'Appuie sur « Nouvelle partie » pour rejouer.';
+  }
+
+  /* Même convention que Kukuli, Le moulin et Le morpion : on ne célèbre que la
+     victoire d'un camp humain. À deux joueurs, c'est toujours le cas. Une
+     défaite contre l'ordinateur reste sur le tint neutre, jamais sur le rouge
+     des erreurs : perdre une partie n'est pas se tromper. */
+  const fete = mode === '2j' || r.gagnant === campHumain;
+  feedbackEl.className = fete ? 'feedback correct' : 'feedback info';
+  feedbackEl.textContent = msg;
+  if (fete) { playCorrect(); launchConfetti(); } else { playIncorrect(); }
+  rendre();
+  newBtn.focus();
+}
+
+/* `p` : position à afficher (par défaut le plateau ; pendant l'animation,
+   un aperçu où le cube pris est déjà tourné sur le symbole du joueur). */
+function rendre(p = plateau) {
+  const gagnants = fin ? new Set(fin.lignes.flat()) : new Set();
+
+  for (let i = 0; i < N * N; i++) {
+    const b = cubes[i];
+    b.textContent = '';
+    b.className = 'cube';
+
+    const svg = el('svg', { viewBox: '0 0 100 100', 'aria-hidden': 'true' });
+    dessinerSymbole(svg, p[i]);
+    b.appendChild(svg);
+
+    let etat = '';
+    let actif = false;
+    /* Le choix de l'ordinateur s'affiche comme celui d'un humain (cube
+       choisi, flèche retenue), mais sans être touchable. */
+    const main = humainJoue();
+    if (i === 0) grid.classList.toggle('tour-actif', main && !enMouvement);
+    if (!finie && !enMouvement) {
+      if (choisi !== null) {
+        if (i === choisi) {
+          b.classList.add('choisi');
+          etat = main ? ', cube choisi, touche-le pour changer d’avis' : ', cube choisi par l’ordinateur';
+          actif = main;
+        } else if (cibles.includes(i)) {
+          const s = sens(choisi, i);
+          b.classList.add('cible');
+          b.appendChild(dessinerFleche(s));
+          etat = (main ? ', destination possible : ' : ', flèche choisie par l’ordinateur : ') + ENTREE[s](i);
+          actif = main;
+        }
+      } else if (main && prenable(plateau, i, joueur)) {
+        b.classList.add('prenable');
+        etat = ', à prendre';
+        actif = true;
+      }
+    }
+    if (gagnants.has(i)) b.classList.add('gagnant');
+
+    /* Seuls les cubes réellement jouables entrent dans l'ordre de tabulation. */
+    b.tabIndex = actif ? 0 : -1;
+    b.setAttribute('aria-disabled', actif ? 'false' : 'true');
+    b.setAttribute('aria-label',
+      'Ligne ' + (lig(i) + 1) + ', colonne ' + (col(i) + 1) + ' : ' + NOM_SYMBOLE[p[i]] + etat);
+  }
+
+  majTexteTour();
+}
+
+function majTexteTour() {
+  tourJeton.textContent = '';
+  questionBox.classList.remove('tour-x', 'tour-o', 'tour-fin');
+
+  if (finie) {
+    questionBox.classList.add('tour-fin');
+    turnMain.textContent = 'Partie terminée';
+    turnSub.textContent = 'Les cubes gagnants sont encadrés.';
+  } else {
+    questionBox.classList.add(joueur === 'X' ? 'tour-x' : 'tour-o');
+    dessinerSymbole(tourJeton, joueur);
+    const ordi = mode === 'ia' && joueur !== campHumain;
+    turnMain.textContent = (joueur === 'X' ? 'Au tour des croix' : 'Au tour des ronds') +
+                           (ordi ? ' (ordinateur)' : '');
+    turnSub.textContent = ordi
+      ? (enMouvement || choisi !== null
+          ? 'Regarde le coup de l’ordinateur.'
+          : 'L’ordinateur réfléchit…')
+      : enMouvement
+      ? 'Ton cube va au bout de la rangée, les autres glissent d’une case.'
+      : choisi === null
+      ? 'Prends un cube du bord : vierge ou ' + (joueur === 'X' ? 'avec une croix.' : 'avec un rond.')
+      : 'Touche une flèche : ton cube rentrera par là et poussera la rangée.';
+  }
+  scoreLine.textContent = 'Parties gagnées — croix : ' + scores.X + ' · ronds : ' + scores.O;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   4. TOUR DE L'ORDINATEUR
+   ═══════════════════════════════════════════════════════════════════════════
+   Il réfléchit, montre le cube qu'il prend et la flèche qu'il a choisie,
+   puis joue avec la même animation qu'un humain : l'élève peut suivre. */
+
+async function jouerIaSiBesoin() {
+  if (finie || mode !== 'ia' || joueur === campHumain) return;
+  const jeton = jetonAnim;
+  iaOccupee = true;
+  rendre();
+
+  /* Laisse le navigateur peindre « L'ordinateur réfléchit… » avant le calcul. */
+  await attendre(450);
+  if (jeton !== jetonAnim) return;
+  const [i, d] = choisirCoup(plateau, joueur, difficulte);
+
+  choisi = i; cibles = [d];
+  rendre();
+  await attendre(900);
+  if (jeton !== jetonAnim) return;
+
+  iaOccupee = false;
+  jouer(i, d);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   5. COMMANDES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+document.querySelectorAll('.level-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    mode = btn.dataset.mode;
+    document.querySelectorAll('.level-btn').forEach((b) => {
+      b.classList.remove('active');
+      b.setAttribute('aria-pressed', 'false');
+    });
+    btn.classList.add('active');
+    btn.setAttribute('aria-pressed', 'true');
+    optionBar.hidden = mode !== 'ia';
+    nouvelleSerie();
+  });
+});
+
+diffBtns.forEach((btn) => {
+  btn.addEventListener('click', () => {
+    difficulte = parseInt(btn.dataset.diff, 10);
+    diffBtns.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+    nouvelleSerie();
+  });
+});
+
+/* Les croix commencent toujours : changer de camp revient donc aussi à choisir
+   qui joue en premier. Le libellé le dit en toutes lettres. */
+campBtn.addEventListener('click', () => {
+  campHumain = AUTRE[campHumain];
+  campBtn.setAttribute('aria-pressed', String(campHumain === 'X'));
+  campBtn.textContent = campHumain === 'X'
+    ? 'Tu joues les croix'
+    : 'Tu joues les ronds : l’ordinateur commence';
+  nouvelleSerie();
+});
+
+undoBtn.addEventListener('click', () => {
+  if (enMouvement || iaOccupee) return;
+  /* Un cube choisi mais pas encore poussé : on annule seulement le choix. */
+  if (choisi !== null) {
+    choisi = null; cibles = [];
+    viderFeedback(); rendre();
+    return;
+  }
+  if (historique.length === 0) return;
+  if (finie && dernierResultat) { scores[dernierResultat]--; dernierResultat = null; }
+  /* Contre l'ordinateur, on remonte jusqu'au dernier état où c'était à
+     l'humain de jouer : un seul appui annule bien le coup du joueur. */
+  do {
+    const prec = historique.pop();
+    plateau = prec.p; joueur = prec.j;
+  } while (historique.length > 0 && mode === 'ia' && joueur !== campHumain);
+  finie = false; fin = null;
+  undoBtn.disabled = historique.length === 0;
+  viderFeedback();
+  rendre();
+  /* Si l'on est revenu au tout début et que l'ordinateur commence, il rejoue. */
+  jouerIaSiBesoin();
+});
+
+newBtn.addEventListener('click', nouvellePartie);
+
+/* ── Démarrage ─────────────────────────────────────────────────────────────── */
+construirePlateau();
+nouvellePartie();
+</script>
+<!-- feedbackUtils.js DOIT être chargé APRÈS le script de l'app, juste avant </body> -->
+<script src="feedbackUtils.js"></script>
+</body>
+</html>
